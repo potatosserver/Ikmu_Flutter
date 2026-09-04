@@ -1,0 +1,92 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # 必須遵守 (Error level)
+    - always_declare_return_types
+    - always_put_required_named_parameters_first
+    - avoid_dynamic_calls
+    - avoid_empty_else
+    - avoid_relative_lib_imports
+    - avoid_type_to_string
+    - cancel_subscriptions
+    - close_sinks
+    - comment_references
+    - control_flow_in_finally
+    - empty_statements
+    - hash_and_equals
+    - no_duplicate_case_values
+    - no_logic_in_create_state
+    - no_runtimeType_toString
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_final_fields
+    - prefer_final_locals
+    - prefer_single_quotes
+    - type_init_formals
+    - unawaited_futures
+    - unnecessary_null_checks
+    - unnecessary_parenthesis
+    - use_build_context_synchronously
+    - use_key_in_widget_constructors
+    - use_super_parameters
+    - avoid_print
+    - avoid_unnecessary_containers
+    - prefer_const_literals_to_create_immutables
+    - prefer_interpolation_to_compose_strings
+    - unnecessary_brace_in_string_interps
+    - unnecessary_string_interpolations
+    - avoid_void_async
+    - prefer_typing_uninitialized_variables
+    - prefer_void_to_null
+    - prefer_initializing_formals
+    - sort_constructors_first
+    - sort_unnamed_constructors_first
+    - library_names
+    - file_names
+    - type_annotate_public_apis
+    - missing_whitespace_between_adjacent_strings
+    - avoid_annotating_with_dynamic
+    - avoid_positional_boolean_parameters
+    - prefer_conditional_assignment
+    - prefer_null_aware_operators
+    - prefer_spread_collections
+    - unnecessary_late
+    - unnecessary_new
+    - unnecessary_null_aware_assignments
+    - unnecessary_null_in_if_null_operators
+    - unnecessary_overrides
+    - unnecessary_raw_strings
+    - unnecessary_statements
+    - unnecessary_this
+    - use_is_even_rather_than_modulo
+    - use_late_for_private_fields_and_variables
+    - use_named_constants
+    - use_rethrow_when_possible
+    - use_setters_to_change_properties
+    - use_string_buffers
+    - use_to_and_as_if_applicable
+    - void_checks
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.gr.dart"
+    - "lib/**.gen.dart"
+    - "test/**.gen.dart"
+  errors:
+    # 將特定警告提升為錯誤
+    invalid_annotation_target: error
+    missing_return: error
+    dead_code: error
+    unused_import: error
+    unused_local_variable: error
+    unused_field: error
+    unnecessary_import: error
+
+  # 嚴格型別推論
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false

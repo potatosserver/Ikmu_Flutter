@@ -7,8 +7,6 @@
 .buildlog/
 .history
 
-
-
 # Flutter repo-specific
 /bin/cache/
 /bin/internal/bootstrap.bat
@@ -67,12 +65,12 @@ unlinked_spec.ds
 **/ios/**/.sconsign.dblite
 **/ios/**/.tags*
 **/ios/**/.vagrant/
-**/ios/**/DerivedData/
-**/ios/**/Icon?
-**/ios/**/Pods/
-**/ios/**/.symlinks/
-**/ios/**/profile
-**/ios/**/xcuserdata
+**/ios/DerivedData/
+**/ios/Icon?
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/profile
+**/ios/xcuserdata
 **/ios/.generated/
 **/ios/Flutter/.last_build_id
 **/ios/Flutter/App.framework
