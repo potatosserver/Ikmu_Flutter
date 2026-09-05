@@ -3,6 +3,7 @@
 // 包含事件詳細資訊頁面
 
 import 'package:flutter/material.dart' hide DateUtils;
+import 'package:flutter/gestures.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:marquee/marquee.dart';
@@ -11,7 +12,6 @@ import 'dart:ui' as ui;
 import '../../../core.dart';
 
 /// 自動判斷是否需要跑馬燈的文字組件
-/// 使用 LayoutBuilder 量測文字實際寬度，超過容器寬度才啟動跑馬燈
 class AutoMarquee extends StatelessWidget {
   const AutoMarquee({
     super.key,
@@ -30,7 +30,6 @@ class AutoMarquee extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // 使用 TextPainter 量測文字實際寬度
         final textPainter = TextPainter(
           text: TextSpan(text: text, style: style),
           maxLines: 1,
@@ -40,7 +39,6 @@ class AutoMarquee extends StatelessWidget {
         final textWidth = textPainter.width;
         final containerWidth = constraints.maxWidth;
 
-        // 文字寬度超過容器寬度才啟動跑馬燈
         if (textWidth > containerWidth) {
           return Marquee(
             text: text,
@@ -58,7 +56,6 @@ class AutoMarquee extends StatelessWidget {
           );
         }
 
-        // 文字未溢出，正常顯示
         return Text(
           text,
           style: style,
@@ -77,7 +74,7 @@ enum CalendarView { month, week, day }
 @immutable
 class CalendarState {
   const CalendarState({
-    this.events = const [],
+    this.eventsByMonth = const {},
     this.selectedDate,
     this.view = CalendarView.month,
     this.currentMonth,
@@ -85,15 +82,28 @@ class CalendarState {
     this.error,
   });
 
-  final List<CalendarEvent> events;
+  /// 多月份事件池：key 為 'yyyy-MM'，value 為該月份的事件列表
+  final Map<String, List<CalendarEvent>> eventsByMonth;
   final DateTime? selectedDate;
   final CalendarView view;
   final DateTime? currentMonth;
   final bool isLoading;
   final String? error;
 
+  /// 取得指定月份的事件
+  List<CalendarEvent> getEventsForMonth(DateTime month) {
+    final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+    return eventsByMonth[key] ?? const [];
+  }
+
+  /// 取得當前檢視月份的事件 (向後相容)
+  List<CalendarEvent> get currentMonthEvents {
+    if (currentMonth == null) return const [];
+    return getEventsForMonth(currentMonth!);
+  }
+
   CalendarState copyWith({
-    List<CalendarEvent>? events,
+    Map<String, List<CalendarEvent>>? eventsByMonth,
     DateTime? selectedDate,
     CalendarView? view,
     DateTime? currentMonth,
@@ -101,7 +111,7 @@ class CalendarState {
     String? error,
   }) {
     return CalendarState(
-      events: events ?? this.events,
+      eventsByMonth: eventsByMonth ?? this.eventsByMonth,
       selectedDate: selectedDate ?? this.selectedDate,
       view: view ?? this.view,
       currentMonth: currentMonth ?? this.currentMonth,
@@ -122,85 +132,64 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     _cache = ref.read(cacheServiceProvider);
 
     final now = DateTime.now();
-    
-    // 在 Microtask 中觸發初次載入
     Future.microtask(() => _loadEventsForView());
 
     return CalendarState(
       selectedDate: now,
       currentMonth: DateTime(now.year, now.month),
-      isLoading: true, // 初始設為載入中
+      isLoading: true,
     );
   }
 
-  /// 取得該日期所在週的起始日期 (週日 00:00:00)
   static DateTime getWeekStart(DateTime date) {
     return DateUtils.getWeekStart(date);
   }
 
-  /// 檢查兩個日期是否為同一天
   static bool isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
-           date1.month == date2.month &&
-           date1.day == date2.day;
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
-  /// 切換檢視模式
   void setView(CalendarView view) {
     final oldView = state.view;
     state = state.copyWith(view: view);
-    
-    // 只有在真正需要不同資料範圍時才重新載入
-    // 月->週/日、週->日 可能需要更精確的資料，但月快取已包含所有
-    // 週<->日 同一月份可共用快取
+
     final currentMonth = state.currentMonth;
     final selectedDate = state.selectedDate;
-    
     bool shouldReload = false;
-    
+
     if (oldView == CalendarView.month && view != CalendarView.month) {
-      // 月檢視切換到週/日：若當月快取存在，不需重載
       if (currentMonth != null) {
-        final cacheKey = 'calendar_month_${currentMonth.year}-${currentMonth.month.toString().padLeft(2, '0')}';
-        final cached = _cache.get<List<dynamic>>(
-          CacheBoxes.calendar,
-          cacheKey,
-          fromJson: (json) => json as List<dynamic>,
-        );
-        shouldReload = cached == null;
+        final key = '${currentMonth.year}-${currentMonth.month.toString().padLeft(2, '0')}';
+        // 檢查事件池中是否已有資料
+        shouldReload = !state.eventsByMonth.containsKey(key);
       } else {
         shouldReload = true;
       }
-    } else if ((oldView == CalendarView.week || oldView == CalendarView.day) && view == CalendarView.month) {
-      // 週/日切換到月：可能需要不同月份資料
+    } else if ((oldView == CalendarView.week || oldView == CalendarView.day) &&
+        view == CalendarView.month) {
       shouldReload = true;
-    } else if ((oldView == CalendarView.week && view == CalendarView.day) || 
-               (oldView == CalendarView.day && view == CalendarView.week)) {
-      // 週<->日切換：同一月份可共用快取
+    } else if ((oldView == CalendarView.week && view == CalendarView.day) ||
+        (oldView == CalendarView.day && view == CalendarView.week)) {
       if (currentMonth != null && selectedDate != null) {
-        final cacheKey = 'calendar_month_${currentMonth.year}-${currentMonth.month.toString().padLeft(2, '0')}';
-        final cached = _cache.get<List<dynamic>>(
-          CacheBoxes.calendar,
-          cacheKey,
-          fromJson: (json) => json as List<dynamic>,
-        );
-        shouldReload = cached == null;
+        final key = '${currentMonth.year}-${currentMonth.month.toString().padLeft(2, '0')}';
+        // 檢查事件池中是否已有資料
+        shouldReload = !state.eventsByMonth.containsKey(key);
       } else {
         shouldReload = true;
       }
     }
-    
+
     if (shouldReload) {
       _loadEventsForView();
     }
   }
 
-  /// 選擇日期
   void selectDate(DateTime date) {
     state = state.copyWith(selectedDate: date);
   }
 
-  /// 切換月份
   void changeMonth(int delta) {
     final current = state.currentMonth ?? DateTime.now();
     final newMonth = DateTime(current.year, current.month + delta);
@@ -208,7 +197,6 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     _loadEventsForView();
   }
 
-  /// 切換週
   void changeWeek(int delta) {
     final selected = state.selectedDate ?? DateTime.now();
     final newDate = selected.add(Duration(days: 7 * delta));
@@ -217,24 +205,20 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     final isSameMonth = currentMonth != null &&
         currentMonth.year == newMonth.year &&
         currentMonth.month == newMonth.month;
-    
-    state = state.copyWith(selectedDate: newDate);
-    
-    // 只有月份改變且無快取時才重新載入
+
+    state = state.copyWith(
+      selectedDate: newDate,
+      currentMonth: newMonth,
+    );
+
     if (!isSameMonth) {
-      final cacheKey = 'calendar_month_${newMonth.year}-${newMonth.month.toString().padLeft(2, '0')}';
-      final cached = _cache.get<List<dynamic>>(
-        CacheBoxes.calendar,
-        cacheKey,
-        fromJson: (json) => json as List<dynamic>,
-      );
-      if (cached == null) {
+      final key = '${newMonth.year}-${newMonth.month.toString().padLeft(2, '0')}';
+      if (!state.eventsByMonth.containsKey(key)) {
         _loadEventsForView();
       }
     }
   }
 
-  /// 切換日
   void changeDay(int delta) {
     final selected = state.selectedDate ?? DateTime.now();
     final newDate = selected.add(Duration(days: delta));
@@ -243,63 +227,72 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     final isSameMonth = currentMonth != null &&
         currentMonth.year == newMonth.year &&
         currentMonth.month == newMonth.month;
-    
-    state = state.copyWith(selectedDate: newDate);
-    
-    // 只有月份改變且無快取時才重新載入
+
+    state = state.copyWith(
+      selectedDate: newDate,
+      currentMonth: newMonth,
+    );
+
     if (!isSameMonth) {
-      final cacheKey = 'calendar_month_${newMonth.year}-${newMonth.month.toString().padLeft(2, '0')}';
-      final cached = _cache.get<List<dynamic>>(
-        CacheBoxes.calendar,
-        cacheKey,
-        fromJson: (json) => json as List<dynamic>,
-      );
-      if (cached == null) {
+      final key = '${newMonth.year}-${newMonth.month.toString().padLeft(2, '0')}';
+      if (!state.eventsByMonth.containsKey(key)) {
         _loadEventsForView();
       }
     }
   }
 
-  /// 跳到今天
   void goToToday() {
     final now = DateTime.now();
     final currentMonth = state.currentMonth;
     final isSameMonth = currentMonth != null &&
         currentMonth.year == now.year &&
         currentMonth.month == now.month;
-    
+
     state = state.copyWith(
       selectedDate: now,
       currentMonth: DateTime(now.year, now.month),
     );
-    
-    // 只有月份改變時才重新載入
+
     if (!isSameMonth) {
       _loadEventsForView();
     }
   }
 
-  /// 根據目前檢視載入事件
   Future<void> _loadEventsForView() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      List<CalendarEvent> events = [];
+      final Map<String, List<CalendarEvent>> newEventsByMonth = Map.from(state.eventsByMonth);
 
       switch (state.view) {
         case CalendarView.month:
-          events = await _loadMonthEvents();
+          final month = state.currentMonth ?? DateTime.now();
+          await _loadMonthIntoPool(month, newEventsByMonth);
+          // Prefetch adjacent months
+          await _loadMonthIntoPool(DateTime(month.year, month.month - 1), newEventsByMonth);
+          await _loadMonthIntoPool(DateTime(month.year, month.month + 1), newEventsByMonth);
           break;
         case CalendarView.week:
-          events = await _loadWeekEvents();
+          final selected = state.selectedDate ?? DateTime.now();
+          final weekStart = getWeekStart(selected);
+          final weekMonth = DateTime(weekStart.year, weekStart.month);
+          await _loadMonthIntoPool(weekMonth, newEventsByMonth);
+          // Prefetch adjacent months
+          await _loadMonthIntoPool(DateTime(weekMonth.year, weekMonth.month - 1), newEventsByMonth);
+          await _loadMonthIntoPool(DateTime(weekMonth.year, weekMonth.month + 1), newEventsByMonth);
           break;
         case CalendarView.day:
-          events = await _loadDayEvents();
+          final selected = state.selectedDate ?? DateTime.now();
+          final dayMonth = DateTime(selected.year, selected.month);
+          await _loadMonthIntoPool(dayMonth, newEventsByMonth);
+          // Prefetch adjacent months
+          await _loadMonthIntoPool(DateTime(dayMonth.year, dayMonth.month - 1), newEventsByMonth);
+          await _loadMonthIntoPool(DateTime(dayMonth.year, dayMonth.month + 1), newEventsByMonth);
           break;
       }
 
       state = state.copyWith(
-        events: events,
+        eventsByMonth: newEventsByMonth,
         isLoading: false,
       );
     } catch (e) {
@@ -310,69 +303,81 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     }
   }
 
-  /// 載入月份事件 (使用快取)
-  Future<List<CalendarEvent>> _loadMonthEvents() async {
-    final month = state.currentMonth ?? DateTime.now();
+  /// 載入指定月份到事件池 (若已存在則跳過)
+  Future<void> _loadMonthIntoPool(DateTime month, Map<String, List<CalendarEvent>> pool) async {
+    final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+    if (pool.containsKey(key)) return; // 已有快取
+
+    try {
+      final events = await _loadMonthEvents(month);
+      pool[key] = events;
+    } catch (e) {
+      // 單月載入失敗不影響其他月份
+      pool[key] = [];
+    }
+  }
+
+  Future<List<CalendarEvent>> _loadMonthEvents(DateTime month) async {
     final yearMonth = '${month.year}-${month.month.toString().padLeft(2, '0')}';
     final cacheKey = 'calendar_month_$yearMonth';
 
-    // 檢查快取 (存的是 List<Map>，避免 Hive 序列化 freezed 類型)
     final cached = _cache.get<List<dynamic>>(
       CacheBoxes.calendar,
       cacheKey,
       fromJson: (json) => json as List<dynamic>,
     );
     if (cached != null) {
-      // ✅ 使用 Map<String, dynamic>.from 進行深拷貝轉型
-      return cached.map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map))).toList();
+      return cached
+          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
+          .toList();
     }
 
-    // 從 API 載入
     final events = await _endpoints.calendar.getMonthEvents(yearMonth: yearMonth);
 
-    // 存入快取 (1小時) - 轉成 Map 列表避免 Hive 序列化 freezed
-    // 注意：CalendarEvent.fromJson 期望 'atype' 鍵而非 'typeCode'，需與 API 回傳格式一致
     try {
-      final serializable = events.map((e) => {
-        'id': e.id,
-        'title': e.title,
-        'atype': e.typeCode,  // API 回傳鍵名為 'atype'
-        'atype_name': e.typeName,
-        'start_time': e.startTime,
-        'end_time': e.endTime,
-        'all_day': e.allDay,
-        'location': e.location,
-        'info': e.info,
-        'einfo': e.extendedInfo,
-        'color': e.color,
-        'seq': e.sequence,
-        'dateFrom': e.date,
-      }).toList();
+      final serializable = events
+          .map((e) => {
+                'id': e.id,
+                'title': e.title,
+                'atype': e.typeCode,
+                'atype_name': e.typeName,
+                'start_time': e.startTime,
+                'end_time': e.endTime,
+                'all_day': e.allDay,
+                'location': e.location,
+                'info': e.info,
+                'einfo': e.extendedInfo,
+                'color': e.color,
+                'seq': e.sequence,
+                'dateFrom': e.date,
+              })
+          .toList();
       await _cache.set(CacheBoxes.calendar, cacheKey, serializable,
           fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
     } catch (_) {}
     return events;
   }
 
-  /// 載入週事件 (優先從已快取的整月資料提取，若無再抓取)
   Future<List<CalendarEvent>> _loadWeekEvents() async {
     final selected = state.selectedDate ?? DateTime.now();
-    final yearMonth = '${selected.year}-${selected.month.toString().padLeft(2, '0')}';
+    final yearMonth =
+        '${selected.year}-${selected.month.toString().padLeft(2, '0')}';
     final weekStart = getWeekStart(selected);
-    final weekStartStr = '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
+    final weekStartStr =
+        '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
     final weekCacheKey = 'calendar_week_$weekStartStr';
 
-    // 1. 先嘗試讀取週快取
     final weekCached = _cache.get<List<dynamic>>(
       CacheBoxes.calendar,
       weekCacheKey,
       fromJson: (json) => json as List<dynamic>,
     );
     if (weekCached != null) {
-      return weekCached.map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map))).toList();
+      return weekCached
+          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
+          .toList();
     }
 
-    // 2. 嘗試從月快取提取
     final monthCacheKey = 'calendar_month_$yearMonth';
     final monthCached = _cache.get<List<dynamic>>(
       CacheBoxes.calendar,
@@ -380,62 +385,86 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
       fromJson: (json) => json as List<dynamic>,
     );
     if (monthCached != null) {
-      final allEvents = monthCached.map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map))).toList();
-      // 過濾該週事件並存入週快取
+      final allEvents = monthCached
+          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
+          .toList();
       final weekEvents = allEvents.where((e) {
         final ed = e.eventDate;
-        return ed != null && !ed.isBefore(weekStart) && ed.isBefore(weekStart.add(const Duration(days: 7)));
+        return ed != null &&
+            !ed.isBefore(weekStart) &&
+            ed.isBefore(weekStart.add(const Duration(days: 7)));
       }).toList();
-      // 存入週快取
       try {
-        final serializable = weekEvents.map((e) => {
-          'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
-          'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
-          'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
-          'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
-        }).toList();
+        final serializable = weekEvents
+            .map((e) => {
+                  'id': e.id,
+                  'title': e.title,
+                  'atype': e.typeCode,
+                  'atype_name': e.typeName,
+                  'start_time': e.startTime,
+                  'end_time': e.endTime,
+                  'all_day': e.allDay,
+                  'location': e.location,
+                  'info': e.info,
+                  'einfo': e.extendedInfo,
+                  'color': e.color,
+                  'seq': e.sequence,
+                  'dateFrom': e.date,
+                })
+            .toList();
         await _cache.set(CacheBoxes.calendar, weekCacheKey, serializable,
             fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
       } catch (_) {}
       return weekEvents;
     }
 
-    // 3. 從 API 載入該週 7 天
     final events = await _endpoints.calendar.getWeekEvents(weekStart: weekStartStr);
-    // 存入週快取
     try {
-      final serializable = events.map((e) => {
-        'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
-        'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
-        'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
-        'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
-      }).toList();
+      final serializable = events
+          .map((e) => {
+                'id': e.id,
+                'title': e.title,
+                'atype': e.typeCode,
+                'atype_name': e.typeName,
+                'start_time': e.startTime,
+                'end_time': e.endTime,
+                'all_day': e.allDay,
+                'location': e.location,
+                'info': e.info,
+                'einfo': e.extendedInfo,
+                'color': e.color,
+                'seq': e.sequence,
+                'dateFrom': e.date,
+              })
+          .toList();
       await _cache.set(CacheBoxes.calendar, weekCacheKey, serializable,
           fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
     } catch (_) {}
     return events;
   }
 
-  /// 載入日事件 (優先從已快取的整月/週資料提取)
   Future<List<CalendarEvent>> _loadDayEvents() async {
     final selected = state.selectedDate ?? DateTime.now();
-    final yearMonth = '${selected.year}-${selected.month.toString().padLeft(2, '0')}';
-    final dateStr = '${selected.year}-${selected.month.toString().padLeft(2, '0')}-${selected.day.toString().padLeft(2, '0')}';
+    final yearMonth =
+        '${selected.year}-${selected.month.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${selected.year}-${selected.month.toString().padLeft(2, '0')}-${selected.day.toString().padLeft(2, '0')}';
     final dayCacheKey = 'calendar_day_$dateStr';
 
-    // 1. 先嘗試讀取日快取
     final dayCached = _cache.get<List<dynamic>>(
       CacheBoxes.calendar,
       dayCacheKey,
       fromJson: (json) => json as List<dynamic>,
     );
     if (dayCached != null) {
-      return dayCached.map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map))).toList();
+      return dayCached
+          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
+          .toList();
     }
 
-    // 2. 嘗試從週快取提取
     final weekStart = getWeekStart(selected);
-    final weekStartStr = '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
+    final weekStartStr =
+        '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
     final weekCacheKey = 'calendar_week_$weekStartStr';
     final weekCached = _cache.get<List<dynamic>>(
       CacheBoxes.calendar,
@@ -443,26 +472,40 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
       fromJson: (json) => json as List<dynamic>,
     );
     if (weekCached != null) {
-      final allEvents = weekCached.map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map))).toList();
+      final allEvents = weekCached
+          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
+          .toList();
       final dayEvents = allEvents.where((e) {
         final ed = e.eventDate;
-        return ed != null && ed.year == selected.year && ed.month == selected.month && ed.day == selected.day;
+        return ed != null &&
+            ed.year == selected.year &&
+            ed.month == selected.month &&
+            ed.day == selected.day;
       }).toList();
-      // 存入日快取
       try {
-        final serializable = dayEvents.map((e) => {
-          'id': e.id, 'title': e.title, 'typeCode': e.typeCode, 'typeName': e.typeName,
-          'startTime': e.startTime, 'endTime': e.endTime, 'allDay': e.allDay,
-          'location': e.location, 'info': e.info, 'extendedInfo': e.extendedInfo,
-          'color': e.color, 'sequence': e.sequence, 'date': e.date,
-        }).toList();
+        final serializable = dayEvents
+            .map((e) => {
+                  'id': e.id,
+                  'title': e.title,
+                  'typeCode': e.typeCode,
+                  'typeName': e.typeName,
+                  'startTime': e.startTime,
+                  'endTime': e.endTime,
+                  'allDay': e.allDay,
+                  'location': e.location,
+                  'info': e.info,
+                  'extendedInfo': e.extendedInfo,
+                  'color': e.color,
+                  'sequence': e.sequence,
+                  'date': e.date,
+                })
+            .toList();
         await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
             fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
       } catch (_) {}
       return dayEvents;
     }
 
-    // 3. 嘗試從月快取提取
     final monthCacheKey = 'calendar_month_$yearMonth';
     final monthCached = _cache.get<List<dynamic>>(
       CacheBoxes.calendar,
@@ -470,68 +513,105 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
       fromJson: (json) => json as List<dynamic>,
     );
     if (monthCached != null) {
-      final allEvents = monthCached.map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map))).toList();
+      final allEvents = monthCached
+          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
+          .toList();
       final dayEvents = allEvents.where((e) {
         final ed = e.eventDate;
-        return ed != null && ed.year == selected.year && ed.month == selected.month && ed.day == selected.day;
+        return ed != null &&
+            ed.year == selected.year &&
+            ed.month == selected.month &&
+            ed.day == selected.day;
       }).toList();
-      // 存入日快取
       try {
-        final serializable = dayEvents.map((e) => {
-          'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
-          'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
-          'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
-          'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
-        }).toList();
+        final serializable = dayEvents
+            .map((e) => {
+                  'id': e.id,
+                  'title': e.title,
+                  'atype': e.typeCode,
+                  'atype_name': e.typeName,
+                  'start_time': e.startTime,
+                  'end_time': e.endTime,
+                  'all_day': e.allDay,
+                  'location': e.location,
+                  'info': e.info,
+                  'einfo': e.extendedInfo,
+                  'color': e.color,
+                  'seq': e.sequence,
+                  'dateFrom': e.date,
+                })
+            .toList();
         await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
             fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
       } catch (_) {}
       return dayEvents;
     }
 
-    // 4. 從 API 載入單日
     final events = await _endpoints.calendar.getDayEvents(date: dateStr);
-    // 存入日快取
     try {
-      final serializable = events.map((e) => {
-        'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
-        'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
-        'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
-        'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
-      }).toList();
+      final serializable = events
+          .map((e) => {
+                'id': e.id,
+                'title': e.title,
+                'atype': e.typeCode,
+                'atype_name': e.typeName,
+                'start_time': e.startTime,
+                'end_time': e.endTime,
+                'all_day': e.allDay,
+                'location': e.location,
+                'info': e.info,
+                'einfo': e.extendedInfo,
+                'color': e.color,
+                'seq': e.sequence,
+                'dateFrom': e.date,
+              })
+          .toList();
       await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
           fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
     } catch (_) {}
     return events;
   }
 
-  /// 刷新事件
   Future<void> refresh() async {
-    // 清除相關快取
     final month = state.currentMonth ?? DateTime.now();
-    await _cache.delete(CacheBoxes.calendar, 'calendar_month_${month.year}-${month.month.toString().padLeft(2, '0')}');
+    await _cache.delete(CacheBoxes.calendar,
+        'calendar_month_${month.year}-${month.month.toString().padLeft(2, '0')}');
 
     final selected = state.selectedDate ?? DateTime.now();
     final weekStart = getWeekStart(selected);
-    final weekStartStr = '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
+    final weekStartStr =
+        '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
     await _cache.delete(CacheBoxes.calendar, 'calendar_week_$weekStartStr');
 
-    final dateStr = '${selected.year}-${selected.month.toString().padLeft(2, '0')}-${selected.day.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${selected.year}-${selected.month.toString().padLeft(2, '0')}-${selected.day.toString().padLeft(2, '0')}';
     await _cache.delete(CacheBoxes.calendar, 'calendar_day_$dateStr');
+
+    // Also clear the eventsByMonth pool for current and adjacent months
+    final newEventsByMonth = Map<String, List<CalendarEvent>>.from(state.eventsByMonth);
+    final currentMonthKey = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+    final prevMonthKey = '${month.year}-${(month.month - 1).toString().padLeft(2, '0')}';
+    final nextMonthKey = '${month.year}-${(month.month + 1).toString().padLeft(2, '0')}';
+    newEventsByMonth.remove(currentMonthKey);
+    newEventsByMonth.remove(prevMonthKey);
+    newEventsByMonth.remove(nextMonthKey);
+    state = state.copyWith(eventsByMonth: newEventsByMonth);
 
     await _loadEventsForView();
   }
 
-  /// 取得指定日期的事件
   List<CalendarEvent> getEventsForDate(DateTime date) {
-    return state.events
-        .where((e) => e.eventDate != null && CalendarNotifier.isSameDay(e.eventDate!, date))
+    final month = DateTime(date.year, date.month);
+    final monthEvents = state.getEventsForMonth(month);
+    return monthEvents
+        .where((e) =>
+            e.eventDate != null && CalendarNotifier.isSameDay(e.eventDate!, date))
         .toList();
   }
 }
 
-/// 行事曆 Provider
-final calendarProvider = AutoDisposeNotifierProvider<CalendarNotifier, CalendarState>(() {
+final calendarProvider =
+    AutoDisposeNotifierProvider<CalendarNotifier, CalendarState>(() {
   return CalendarNotifier();
 });
 
@@ -551,10 +631,7 @@ class CalendarPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.today),
             onPressed: () {
-              final now = DateTime.now();
-              notifier.selectDate(now);
               notifier.goToToday();
-              notifier._loadEventsForView();
             },
             tooltip: '今天',
           ),
@@ -585,7 +662,7 @@ class CalendarPage extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: notifier.refresh,
-        child: state.isLoading && state.events.isEmpty
+        child: state.isLoading && state.eventsByMonth.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : state.error != null
                 ? _buildError(context, state.error!, notifier)
@@ -593,7 +670,6 @@ class CalendarPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: 新增事件
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('新增事件功能開發中')),
           );
@@ -621,7 +697,8 @@ class CalendarPage extends ConsumerWidget {
     }
   }
 
-  Widget _buildError(BuildContext context, String error, CalendarNotifier notifier) {
+  Widget _buildError(
+      BuildContext context, String error, CalendarNotifier notifier) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -660,13 +737,14 @@ class CalendarPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCalendarView(BuildContext context, CalendarState state, CalendarNotifier notifier) {
+  Widget _buildCalendarView(
+      BuildContext context, CalendarState state, CalendarNotifier notifier) {
     switch (state.view) {
       case CalendarView.month:
         return _MonthView(
           currentMonth: state.currentMonth ?? DateTime.now(),
           selectedDate: state.selectedDate,
-          events: state.events,
+          eventsByMonth: state.eventsByMonth,
           onDateSelected: notifier.selectDate,
           onMonthChanged: notifier.changeMonth,
           onEventTap: (event) {
@@ -681,7 +759,7 @@ class CalendarPage extends ConsumerWidget {
       case CalendarView.week:
         return _WeekView(
           selectedDate: state.selectedDate ?? DateTime.now(),
-          events: state.events,
+          eventsByMonth: state.eventsByMonth,
           onDateSelected: notifier.selectDate,
           onWeekChanged: notifier.changeWeek,
           onEventTap: (event) {
@@ -696,7 +774,7 @@ class CalendarPage extends ConsumerWidget {
       case CalendarView.day:
         return _DayView(
           selectedDate: state.selectedDate ?? DateTime.now(),
-          events: state.events,
+          eventsByMonth: state.eventsByMonth,
           onDayChanged: notifier.changeDay,
           onEventTap: (event) {
             Navigator.push(
@@ -712,11 +790,11 @@ class CalendarPage extends ConsumerWidget {
 }
 
 /// 月檢視
-class _MonthView extends StatelessWidget {
+class _MonthView extends StatefulWidget {
   const _MonthView({
     required this.currentMonth,
     required this.selectedDate,
-    required this.events,
+    required this.eventsByMonth,
     required this.onDateSelected,
     required this.onMonthChanged,
     required this.onEventTap,
@@ -724,140 +802,254 @@ class _MonthView extends StatelessWidget {
 
   final DateTime currentMonth;
   final DateTime? selectedDate;
-  final List<CalendarEvent> events;
+  final Map<String, List<CalendarEvent>> eventsByMonth;
   final void Function(DateTime) onDateSelected;
   final void Function(int) onMonthChanged;
   final void Function(CalendarEvent) onEventTap;
 
   @override
-  Widget build(BuildContext context) {
-    final firstDayOfMonth = DateTime(currentMonth.year, currentMonth.month, 1);
-    final lastDayOfMonth = DateTime(currentMonth.year, currentMonth.month + 1, 0);
-    // 週日為起始: 0=Sun, 1=Mon, ..., 6=Sat
-    final firstWeekday = firstDayOfMonth.weekday % 7; 
-    final daysInMonth = lastDayOfMonth.day;
+  State<_MonthView> createState() => _MonthViewState();
+}
 
-    final today = DateTime.now();
-    final isCurrentMonth = currentMonth.year == today.year && currentMonth.month == today.month;
+class _MonthViewState extends State<_MonthView> {
+  static const int _initialPage = 1000000;
+  late final PageController _pageController;
+  late int _currentPage;
+  late final DateTime _baseMonth; // 固定錨點月份，避免漂移
 
-    // 事件按日期分組 - 使用 eventDate 取代 parsedStartTime
+  @override
+  void initState() {
+    super.initState();
+    _currentPage = _initialPage;
+    _baseMonth = DateTime(widget.currentMonth.year, widget.currentMonth.month);
+    _pageController = PageController(initialPage: _currentPage);
+  }
+
+  @override
+  void didUpdateWidget(covariant _MonthView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 只有在外部主動變更月份時（非滑動造成）才做動畫切換
+    final targetPage = _getPageFromMonth(widget.currentMonth);
+    if (targetPage != _currentPage) {
+      _currentPage = targetPage;
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  DateTime _getMonthFromPage(int page) {
+    final delta = page - _initialPage;
+    return DateTime(_baseMonth.year, _baseMonth.month + delta);
+  }
+
+  int _getPageFromMonth(DateTime month) {
+    final delta = (month.year - _baseMonth.year) * 12 + (month.month - _baseMonth.month);
+    return _initialPage + delta;
+  }
+
+  void _onPageChanged(int page) {
+    if (page != _currentPage) {
+      final delta = page - _currentPage;
+      _currentPage = page;
+      widget.onMonthChanged(delta);
+    }
+  }
+
+  void _handleScroll(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      if (event.scrollDelta.dy.abs() > 20) {
+        final direction = event.scrollDelta.dy > 0 ? 1 : -1;
+        final targetPage = _currentPage + direction;
+        _pageController.animateToPage(
+          targetPage,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
+  }
+
+  /// 從事件池取得指定月份的事件並按日期分組
+  Map<DateTime, List<CalendarEvent>> _getEventsByDateForMonth(DateTime month) {
+    final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+    final monthEvents = widget.eventsByMonth[key] ?? [];
     final eventsByDate = <DateTime, List<CalendarEvent>>{};
-    for (final event in events) {
+    for (final event in monthEvents) {
       final eventDay = event.eventDate;
       if (eventDay != null) {
         final date = DateTime(eventDay.year, eventDay.month, eventDay.day);
         eventsByDate.putIfAbsent(date, () => []).add(event);
       }
     }
+    return eventsByDate;
+  }
 
-    // 7x6 固定 42 格 (6 週 x 7 天)
-    const int totalCells = 42;
-    // 週日在最左邊的星期標題
+  @override
+  Widget build(BuildContext context) {
     final weekdayNames = WeekdayMap.shortName;
 
     return Column(
       children: [
-        // 星期標題
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            children: weekdayNames.map((day) => Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    day,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withOpacity(0.5),
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
               ),
-            )).toList(),
+            ),
           ),
-                  ),
+          child: Row(
+            children: weekdayNames
+                .map((day) => Expanded(
+                      child: Center(
+                        child: Text(
+                          day,
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        Expanded(
+          child: Listener(
+            onPointerSignal: _handleScroll,
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              physics: const PageScrollPhysics(),
+              itemBuilder: (context, pageIndex) {
+                final month = _getMonthFromPage(pageIndex);
+                return _buildMonthGrid(context, month);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-                  // 日期格子 - 固定 6 週 (42 格)，高度平均填滿
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // 每列高度 = 可用高度 / 6
-                        final cellHeight = constraints.maxHeight / 6;
-                        final cellWidth = constraints.maxWidth / 7;
-                        final aspectRatio = cellWidth / cellHeight;
+  Widget _buildMonthGrid(BuildContext context, DateTime month) {
+    final firstDayOfMonth = DateTime(month.year, month.month, 1);
+    final lastDayOfMonth = DateTime(month.year, month.month + 1, 0);
+    final firstWeekday = firstDayOfMonth.weekday % 7;
+    final daysInMonth = lastDayOfMonth.day;
 
-                        return GridView.builder(
-                          padding: const EdgeInsets.all(4),
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 7,
-                            childAspectRatio: aspectRatio,
-                            mainAxisSpacing: 1,
-                            crossAxisSpacing: 1,
-                          ),
-                          itemCount: totalCells,
-                          itemBuilder: (context, index) {
-                            // 計算該格子對應的日期
-                            final dayOffset = index - firstWeekday;
+    final today = DateTime.now();
+    final isCurrentMonth =
+        month.year == today.year && month.month == today.month;
 
-                            if (dayOffset < 0) {
-                              // 上個月的尾巴
-                              final prevMonthLastDay = DateTime(currentMonth.year, currentMonth.month, 0).day;
-                              final prevMonthDay = prevMonthLastDay + dayOffset + 1;
-                              final date = DateTime(currentMonth.year, currentMonth.month - 1, prevMonthDay);
-                              return _MonthDayCell(
-                                date: date,
-                                day: prevMonthDay,
-                                isToday: false,
-                                isSelected: false,
-                                isCurrentMonth: false,
-                                events: const [],
-                                onTap: () => onDateSelected(date),
-                                onEventTap: onEventTap,
-                              );
-                            } else if (dayOffset >= daysInMonth) {
-                              // 下個月的開頭
-                              final nextMonthDay = dayOffset - daysInMonth + 1;
-                              final date = DateTime(currentMonth.year, currentMonth.month + 1, nextMonthDay);
-                              return _MonthDayCell(
-                                date: date,
-                                day: nextMonthDay,
-                                isToday: false,
-                                isSelected: false,
-                                isCurrentMonth: false,
-                                events: const [],
-                                onTap: () => onDateSelected(date),
-                                onEventTap: onEventTap,
-                              );
-                            } else {
-                              // 當月日期
-                              final day = dayOffset + 1;
-                              final date = DateTime(currentMonth.year, currentMonth.month, day);
-                              final isToday = isCurrentMonth && day == today.day;
-                              final isSelected = selectedDate != null && CalendarNotifier.isSameDay(date, selectedDate!);
-                              final dayEvents = eventsByDate[date] ?? [];
+    // 取得當前月份的事件
+    final currentMonthEventsByDate = _getEventsByDateForMonth(month);
+    // 取得上個月的事件 (用於邊緣格子)
+    final prevMonth = DateTime(month.year, month.month - 1);
+    final prevMonthEventsByDate = _getEventsByDateForMonth(prevMonth);
+    // 取得下個月的事件 (用於邊緣格子)
+    final nextMonth = DateTime(month.year, month.month + 1);
+    final nextMonthEventsByDate = _getEventsByDateForMonth(nextMonth);
 
-                              return _MonthDayCell(
-                                date: date,
-                                day: day,
-                                isToday: isToday,
-                                isSelected: isSelected,
-                                isCurrentMonth: true,
-                                events: dayEvents,
-                                onTap: () => onDateSelected(date),
-                                onEventTap: onEventTap,
-                              );
-                            }
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
+    const int totalCells = 42;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cellHeight = constraints.maxHeight / 6;
+        final cellWidth = constraints.maxWidth / 7;
+        final aspectRatio = cellWidth / cellHeight;
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(4),
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7,
+            childAspectRatio: aspectRatio,
+            mainAxisSpacing: 1,
+            crossAxisSpacing: 1,
+          ),
+          itemCount: totalCells,
+          itemBuilder: (context, index) {
+            final dayOffset = index - firstWeekday;
+
+            if (dayOffset < 0) {
+              final prevMonthLastDay =
+                  DateTime(month.year, month.month, 0).day;
+              final prevMonthDay = prevMonthLastDay + dayOffset + 1;
+              final date =
+                  DateTime(month.year, month.month - 1, prevMonthDay);
+              final prevMonthEvents = prevMonthEventsByDate[date] ?? [];
+              return _MonthDayCell(
+                date: date,
+                day: prevMonthDay,
+                isToday: false,
+                isSelected: false,
+                isCurrentMonth: false,
+                events: prevMonthEvents,
+                onTap: () => widget.onDateSelected(date),
+                onEventTap: widget.onEventTap,
+              );
+            } else if (dayOffset >= daysInMonth) {
+              final nextMonthDay = dayOffset - daysInMonth + 1;
+              final date =
+                  DateTime(month.year, month.month + 1, nextMonthDay);
+              final nextMonthEvents = nextMonthEventsByDate[date] ?? [];
+              return _MonthDayCell(
+                date: date,
+                day: nextMonthDay,
+                isToday: false,
+                isSelected: false,
+                isCurrentMonth: false,
+                events: nextMonthEvents,
+                onTap: () => widget.onDateSelected(date),
+                onEventTap: widget.onEventTap,
+              );
+            } else {
+              final day = dayOffset + 1;
+              final date = DateTime(month.year, month.month, day);
+              final isToday = isCurrentMonth && day == today.day;
+              final isSelected = widget.selectedDate != null &&
+                  CalendarNotifier.isSameDay(date, widget.selectedDate!);
+              final dayEvents = currentMonthEventsByDate[date] ?? [];
+
+              return _MonthDayCell(
+                date: date,
+                day: day,
+                isToday: isToday,
+                isSelected: isSelected,
+                isCurrentMonth: true,
+                events: dayEvents,
+                onTap: () => widget.onDateSelected(date),
+                onEventTap: widget.onEventTap,
               );
             }
-          }
+          },
+        );
+      },
+    );
+  }
+}
 
 /// 月檢視日期格子
 class _MonthDayCell extends StatelessWidget {
@@ -908,13 +1100,14 @@ class _MonthDayCell extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // 日期數字
               Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(
                   '$day',
                   style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
+                        fontWeight: isToday || isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w400,
                         color: isSelected
                             ? theme.colorScheme.onPrimaryContainer
                             : isToday
@@ -925,8 +1118,6 @@ class _MonthDayCell extends StatelessWidget {
                       ),
                 ),
               ),
-
-              // 事件指示器
               if (hasEvents) ...[
                 const SizedBox(height: 2),
                 Flexible(
@@ -941,23 +1132,24 @@ class _MonthDayCell extends StatelessWidget {
                         borderRadius: BorderRadius.circular(3),
                         child: Container(
                           margin: const EdgeInsets.symmetric(vertical: 0.5),
-                          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 2, vertical: 1),
                           decoration: BoxDecoration(
                             color: _getEventColor(event),
                             borderRadius: BorderRadius.circular(3),
                           ),
                           child: SizedBox(
-                          height: 16,
-                          child: AutoMarquee(
-                            text: event.title,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                            velocity: 30.0,
-                            blankSpace: 15.0,
+                            height: 16,
+                            child: AutoMarquee(
+                              text: event.title,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                              velocity: 30.0,
+                              blankSpace: 15.0,
+                            ),
                           ),
-                        ),
                         ),
                       );
                     },
@@ -982,7 +1174,6 @@ class _MonthDayCell extends StatelessWidget {
   }
 
   Color _getEventColor(CalendarEvent event) {
-    // 優先使用 API 回傳的 color 欄位
     if (event.color != null && event.color!.isNotEmpty) {
       try {
         final colorStr = event.color!.replaceAll('#', '');
@@ -991,18 +1182,15 @@ class _MonthDayCell extends StatelessWidget {
         }
       } catch (_) {}
     }
-    // Fallback: 依據 KMU atype 代碼
-    // '1'=一般活動, '2'=演講, '3'=活動, '4'=比賽, '5'=其他
-    // 兼容舊版: EXAM, ASSIGNMENT, MEETING, HOLIDAY
     switch (event.typeCode) {
       case '1':
       case '2':
-        return Colors.blue; // 演講/講座
+        return Colors.blue;
       case '3':
       case '4':
-        return Colors.green; // 活動/比賽
+        return Colors.green;
       case '5':
-        return Colors.purple; // 其他
+        return Colors.purple;
       case 'EXAM':
         return Colors.red;
       case 'ASSIGNMENT':
@@ -1021,14 +1209,14 @@ class _MonthDayCell extends StatelessWidget {
 class _WeekView extends StatefulWidget {
   const _WeekView({
     required this.selectedDate,
-    required this.events,
+    required this.eventsByMonth,
     required this.onDateSelected,
     required this.onWeekChanged,
     required this.onEventTap,
   });
 
   final DateTime selectedDate;
-  final List<CalendarEvent> events;
+  final Map<String, List<CalendarEvent>> eventsByMonth;
   final void Function(DateTime) onDateSelected;
   final void Function(int) onWeekChanged;
   final void Function(CalendarEvent) onEventTap;
@@ -1038,14 +1226,34 @@ class _WeekView extends StatefulWidget {
 }
 
 class _WeekViewState extends State<_WeekView> {
+  static const int _initialPage = 1000000;
   late final PageController _pageController;
-  late DateTime _currentWeekStart;
+  late int _currentPage;
+  late final DateTime _baseWeekStart; // 固定錨點週
 
   @override
   void initState() {
     super.initState();
-    _currentWeekStart = CalendarNotifier.getWeekStart(widget.selectedDate);
-    _pageController = PageController(initialPage: 1000); // 大頁碼作為中心，可雙向無限滑動
+    _currentPage = _initialPage;
+    _baseWeekStart = CalendarNotifier.getWeekStart(widget.selectedDate);
+    _pageController = PageController(initialPage: _currentPage);
+  }
+
+  @override
+  void didUpdateWidget(covariant _WeekView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final currentWeekStart = CalendarNotifier.getWeekStart(widget.selectedDate);
+    final targetPage = _getPageFromWeekStart(currentWeekStart);
+    if (targetPage != _currentPage) {
+      _currentPage = targetPage;
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
   }
 
   @override
@@ -1054,13 +1262,35 @@ class _WeekViewState extends State<_WeekView> {
     super.dispose();
   }
 
+  DateTime _getWeekStartFromPage(int page) {
+    final delta = page - _initialPage;
+    return _baseWeekStart.add(Duration(days: 7 * delta));
+  }
+
+  int _getPageFromWeekStart(DateTime weekStart) {
+    final delta = (weekStart.difference(_baseWeekStart).inDays / 7).round();
+    return _initialPage + delta;
+  }
+
   void _onPageChanged(int page) {
-    final delta = page - 1000;
-    if (delta != 0) {
-      _currentWeekStart = _currentWeekStart.add(Duration(days: 7 * delta));
+    if (page != _currentPage) {
+      final delta = page - _currentPage;
+      _currentPage = page;
       widget.onWeekChanged(delta);
-      // 重置到中心頁避免邊界問題
-      _pageController.jumpToPage(1000);
+    }
+  }
+
+  void _handleScroll(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      if (event.scrollDelta.dy.abs() > 20) {
+        final direction = event.scrollDelta.dy > 0 ? 1 : -1;
+        final targetPage = _currentPage + direction;
+        _pageController.animateToPage(
+          targetPage,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        );
+      }
     }
   }
 
@@ -1068,107 +1298,76 @@ class _WeekViewState extends State<_WeekView> {
     return List.generate(7, (i) => weekStart.add(Duration(days: i)));
   }
 
-  Map<DateTime, List<CalendarEvent>> _groupEventsByDate(List<CalendarEvent> events) {
+  /// 從事件池取得指定週的所有事件並按日期分組
+  Map<DateTime, List<CalendarEvent>> _getEventsByDateForWeek(DateTime weekStart) {
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    // 可能跨越兩個月份
+    final startMonth = DateTime(weekStart.year, weekStart.month);
+    final endMonth = DateTime(weekEnd.year, weekEnd.month);
+    
     final eventsByDate = <DateTime, List<CalendarEvent>>{};
-    for (final event in events) {
-      final eventDay = event.eventDate;
-      if (eventDay != null) {
-        final date = DateTime(eventDay.year, eventDay.month, eventDay.day);
-        eventsByDate.putIfAbsent(date, () => []).add(event);
+    
+    // 收集週範圍內所有月份的事件
+    DateTime currentMonth = startMonth;
+    while (currentMonth.isBefore(endMonth.add(const Duration(days: 1))) || 
+           (currentMonth.year == endMonth.year && currentMonth.month == endMonth.month)) {
+      final key = '${currentMonth.year}-${currentMonth.month.toString().padLeft(2, '0')}';
+      final monthEvents = widget.eventsByMonth[key] ?? [];
+      for (final event in monthEvents) {
+        final eventDay = event.eventDate;
+        if (eventDay != null) {
+          final date = DateTime(eventDay.year, eventDay.month, eventDay.day);
+          // 只保留本週範圍內的事件
+          if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
+            eventsByDate.putIfAbsent(date, () => []).add(event);
+          }
+        }
       }
+      currentMonth = DateTime(currentMonth.year, currentMonth.month + 1);
     }
+    
     return eventsByDate;
   }
 
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
-    final weekdayNames = WeekdayMap.shortName;
 
     return Column(
       children: [
-        // 週標題列 - 固定在最上方，字體放大
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-            border: Border(
-              bottom: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                width: 1,
-              ),
-            ),
-          ),
-          child: Row(
-            children: List.generate(7, (i) {
-              final day = _getWeekDays(_currentWeekStart)[i];
-              final isToday = CalendarNotifier.isSameDay(day, today);
-              final isSelected = CalendarNotifier.isSameDay(day, widget.selectedDate);
-              return Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        weekdayNames[i],
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: isToday
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${day.day}',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w500,
-                              fontSize: 20,
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : isToday
-                                      ? Theme.of(context).colorScheme.primary
-                                      : null,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-
-        // 事件列表 - 使用 PageView 實現左右滑動切換週
         Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            physics: const ClampingScrollPhysics(),
-            itemBuilder: (context, pageIndex) {
-              final weekStart = _currentWeekStart;
-              final weekDays = _getWeekDays(weekStart);
-              final eventsByDate = _groupEventsByDate(widget.events);
+          child: Listener(
+            onPointerSignal: _handleScroll,
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              physics: const PageScrollPhysics(),
+              itemBuilder: (context, pageIndex) {
+                final weekStart = _getWeekStartFromPage(pageIndex);
+                final weekDays = _getWeekDays(weekStart);
+                final eventsByDate = _getEventsByDateForWeek(weekStart);
 
-              return ListView(
-                padding: const EdgeInsets.all(16),
-                children: weekDays.map((day) {
-                  final isToday = CalendarNotifier.isSameDay(day, today);
-                  final isSelected = CalendarNotifier.isSameDay(day, widget.selectedDate);
-                  final dayEvents = eventsByDate[day] ?? [];
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: weekDays.map((day) {
+                    final isToday = CalendarNotifier.isSameDay(day, today);
+                    final isSelected =
+                        CalendarNotifier.isSameDay(day, widget.selectedDate);
+                    final dayEvents = eventsByDate[day] ?? [];
 
-                  return _WeekDayColumn(
-                    date: day,
-                    isToday: isToday,
-                    isSelected: isSelected,
-                    events: dayEvents,
-                    onTap: () => widget.onDateSelected(day),
-                    onEventTap: widget.onEventTap,
-                  );
-                }).toList(),
-              );
-            },
+                    return _WeekDayColumn(
+                      date: day,
+                      isToday: isToday,
+                      isSelected: isSelected,
+                      events: dayEvents,
+                      onTap: () => widget.onDateSelected(day),
+                      onEventTap: widget.onEventTap,
+                      showDateHeader: true,
+                    );
+                  }).toList(),
+                );
+              },
+            ),
           ),
         ),
       ],
@@ -1185,6 +1384,7 @@ class _WeekDayColumn extends StatelessWidget {
     required this.events,
     required this.onTap,
     required this.onEventTap,
+    this.showDateHeader = true,
   });
 
   final DateTime date;
@@ -1193,6 +1393,7 @@ class _WeekDayColumn extends StatelessWidget {
   final List<CalendarEvent> events;
   final VoidCallback onTap;
   final void Function(CalendarEvent) onEventTap;
+  final bool showDateHeader;
 
   @override
   Widget build(BuildContext context) {
@@ -1206,9 +1407,9 @@ class _WeekDayColumn extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primaryContainer.withOpacity( 0.3)
+              ? theme.colorScheme.primaryContainer.withOpacity(0.3)
               : isToday
-                  ? theme.colorScheme.primary.withOpacity( 0.05)
+                  ? theme.colorScheme.primary.withOpacity(0.05)
                   : null,
           border: Border(
             bottom: BorderSide(
@@ -1220,40 +1421,45 @@ class _WeekDayColumn extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 日期資訊
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  weekdayName,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: isToday || isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isToday ? theme.colorScheme.primary : null,
-                      ),
-                ),
-                Text(
-                  dayNumber,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
-                        color: isSelected
-                            ? theme.colorScheme.onPrimaryContainer
-                            : isToday
-                                ? theme.colorScheme.primary
-                                : null,
-                      ),
-                ),
-              ],
-            ),
-
-            const SizedBox(width: 16),
-
-            // 事件列表
+            if (showDateHeader) ...[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    weekdayName,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: isToday || isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: isToday ? theme.colorScheme.primary : null,
+                        ),
+                  ),
+                  Text(
+                    dayNumber,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: isToday || isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                          color: isSelected
+                              ? theme.colorScheme.onPrimaryContainer
+                              : isToday
+                                  ? theme.colorScheme.primary
+                                  : null,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+            ],
             Expanded(
               child: events.isEmpty
                   ? const SizedBox()
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: events.map((event) => _EventChip(event: event, onTap: () => onEventTap(event))).toList(),
+                      children: events
+                          .map((event) => _EventChip(
+                              event: event, onTap: () => onEventTap(event)))
+                          .toList(),
                     ),
             ),
           ],
@@ -1267,13 +1473,13 @@ class _WeekDayColumn extends StatelessWidget {
 class _DayView extends StatefulWidget {
   const _DayView({
     required this.selectedDate,
-    required this.events,
+    required this.eventsByMonth,
     required this.onDayChanged,
     required this.onEventTap,
   });
 
   final DateTime selectedDate;
-  final List<CalendarEvent> events;
+  final Map<String, List<CalendarEvent>> eventsByMonth;
   final void Function(int) onDayChanged;
   final void Function(CalendarEvent) onEventTap;
 
@@ -1282,14 +1488,37 @@ class _DayView extends StatefulWidget {
 }
 
 class _DayViewState extends State<_DayView> {
+  static const int _initialPage = 1000000;
   late final PageController _pageController;
-  late DateTime _currentDate;
+  late int _currentPage;
+  late final DateTime _baseDate; // 固定錨點日
 
   @override
   void initState() {
     super.initState();
-    _currentDate = widget.selectedDate;
-    _pageController = PageController(initialPage: 1000);
+    _currentPage = _initialPage;
+    _baseDate = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    );
+    _pageController = PageController(initialPage: _currentPage);
+  }
+
+  @override
+  void didUpdateWidget(covariant _DayView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final targetPage = _getPageFromDate(widget.selectedDate);
+    if (targetPage != _currentPage) {
+      _currentPage = targetPage;
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
   }
 
   @override
@@ -1298,18 +1527,48 @@ class _DayViewState extends State<_DayView> {
     super.dispose();
   }
 
+  DateTime _getDateFromPage(int page) {
+    final delta = page - _initialPage;
+    return _baseDate.add(Duration(days: delta));
+  }
+
+  int _getPageFromDate(DateTime date) {
+    final cleanDate = DateTime(date.year, date.month, date.day);
+    final delta = cleanDate.difference(_baseDate).inDays;
+    return _initialPage + delta;
+  }
+
   void _onPageChanged(int page) {
-    final delta = page - 1000;
-    if (delta != 0) {
-      _currentDate = _currentDate.add(Duration(days: delta));
+    if (page != _currentPage) {
+      final delta = page - _currentPage;
+      _currentPage = page;
       widget.onDayChanged(delta);
-      _pageController.jumpToPage(1000);
     }
   }
 
-  List<CalendarEvent> _getDayEvents(DateTime date, List<CalendarEvent> events) {
-    return events
-        .where((e) => e.eventDate != null && CalendarNotifier.isSameDay(e.eventDate!, date))
+  void _handleScroll(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      if (event.scrollDelta.dy.abs() > 20) {
+        final direction = event.scrollDelta.dy > 0 ? 1 : -1;
+        final targetPage = _currentPage + direction;
+        _pageController.animateToPage(
+          targetPage,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
+  }
+
+  /// 從事件池取得指定日期的事件
+  List<CalendarEvent> _getDayEvents(DateTime date) {
+    final month = DateTime(date.year, date.month);
+    final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+    final monthEvents = widget.eventsByMonth[key] ?? [];
+    
+    return monthEvents
+        .where((e) =>
+            e.eventDate != null && CalendarNotifier.isSameDay(e.eventDate!, date))
         .toList()
       ..sort((a, b) {
         final aTime = a.parsedStartTime ?? a.eventDate;
@@ -1322,60 +1581,36 @@ class _DayViewState extends State<_DayView> {
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
-    final isToday = CalendarNotifier.isSameDay(_currentDate, today);
 
     return Column(
       children: [
-        // 日期標題列 - 固定在最上方，字體放大，移除左右切換鈕
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-            border: Border(
-              bottom: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                width: 1,
-              ),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                DateFormat('yyyy 年 M 月 d 日 EEEE', 'zh_TW').format(_currentDate),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 24,
-                      color: isToday ? Theme.of(context).colorScheme.primary : null,
-                    ),
-              ),
-            ],
-          ),
-        ),
-
-        // 事件時間軸 - 使用 PageView 實現左右滑動切換日
         Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            physics: const ClampingScrollPhysics(),
-            itemBuilder: (context, pageIndex) {
-              final dayEvents = _getDayEvents(_currentDate, widget.events);
+          child: Listener(
+            onPointerSignal: _handleScroll,
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              physics: const PageScrollPhysics(),
+              itemBuilder: (context, pageIndex) {
+                final currentDate = _getDateFromPage(pageIndex);
+                final isToday = CalendarNotifier.isSameDay(currentDate, today);
+                final dayEvents = _getDayEvents(currentDate);
 
-              return dayEvents.isEmpty
-                  ? _buildEmptyState(context, isToday)
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: dayEvents.length,
-                      itemBuilder: (context, index) {
-                        final event = dayEvents[index];
-                        return _EventCard(
-                          event: event,
-                          onTap: () => widget.onEventTap(event),
-                        );
-                      },
-                    );
-            },
+                return dayEvents.isEmpty
+                    ? _buildEmptyState(context, isToday)
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: dayEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = dayEvents[index];
+                          return _EventCard(
+                            event: event,
+                            onTap: () => widget.onEventTap(event),
+                          );
+                        },
+                      );
+              },
+            ),
           ),
         ),
       ],
@@ -1437,7 +1672,8 @@ class _EventCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
@@ -1495,8 +1731,6 @@ class _EventCard extends StatelessWidget {
   }
 
   String _getEventTypeLabel(String typeCode) {
-    // KMU atype: '1'=一般活動, '2'=演講, '3'=活動, '4'=比賽, '5'=其他
-    // 兼容舊版: EXAM, ASSIGNMENT, MEETING, HOLIDAY
     switch (typeCode) {
       case '1':
         return '一般活動';
@@ -1522,7 +1756,6 @@ class _EventCard extends StatelessWidget {
   }
 
   Color _getEventColor(CalendarEvent event) {
-    // 優先使用 API 回傳的 color 欄位
     if (event.color != null && event.color!.isNotEmpty) {
       try {
         final colorStr = event.color!.replaceAll('#', '');
@@ -1531,7 +1764,6 @@ class _EventCard extends StatelessWidget {
         }
       } catch (_) {}
     }
-    // Fallback: KMU atype 代碼映射
     switch (event.typeCode) {
       case '1':
       case '2':
@@ -1555,7 +1787,6 @@ class _EventCard extends StatelessWidget {
   }
 }
 
-
 /// 事件詳細資訊頁面
 class EventDetailPage extends ConsumerWidget {
   const EventDetailPage({super.key, required this.event});
@@ -1566,10 +1797,16 @@ class EventDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final color = _getEventColor(event);
-    final startTime = event.parsedStartTime != null ? DateFormat('HH:mm').format(event.parsedStartTime!) : null;
-    final endTime = event.parsedEndTime != null ? DateFormat('HH:mm').format(event.parsedEndTime!) : null;
+    final startTime = event.parsedStartTime != null
+        ? DateFormat('HH:mm').format(event.parsedStartTime!)
+        : null;
+    final endTime = event.parsedEndTime != null
+        ? DateFormat('HH:mm').format(event.parsedEndTime!)
+        : null;
     final eventDate = event.eventDate;
-    final dateStr = eventDate != null ? DateFormat('yyyy 年 M 月 d 日 EEEE', 'zh_TW').format(eventDate) : '';
+    final dateStr = eventDate != null
+        ? DateFormat('yyyy 年 M 月 d 日 EEEE', 'zh_TW').format(eventDate)
+        : '';
 
     return Scaffold(
       appBar: AppBar(
@@ -1584,7 +1821,6 @@ class EventDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 類型標籤
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -1608,8 +1844,6 @@ class EventDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // 標題
             Text(
               event.title,
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -1617,8 +1851,6 @@ class EventDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-
-            // 基本資訊卡片
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -1671,8 +1903,6 @@ class EventDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // 詳細說明
             if (event.info != null && event.info!.isNotEmpty ||
                 event.extendedInfo != null && event.extendedInfo!.isNotEmpty) ...[
               Card(
@@ -1697,7 +1927,8 @@ class EventDetailPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 12),
                       ],
-                      if (event.extendedInfo != null && event.extendedInfo!.isNotEmpty) ...[
+                      if (event.extendedInfo != null &&
+                          event.extendedInfo!.isNotEmpty) ...[
                         Text(
                           event.extendedInfo!,
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -1712,8 +1943,6 @@ class EventDetailPage extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
             ],
-
-            // 系統資訊
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -1802,8 +2031,6 @@ class EventDetailPage extends ConsumerWidget {
   }
 
   Color _getEventColor(CalendarEvent event) {
-    // KMU atype: '1'=一般活動, '2'=演講, '3'=活動, '4'=比賽, '5'=其他
-    // 兼容舊版: EXAM, ASSIGNMENT, MEETING, HOLIDAY
     switch (event.typeCode) {
       case '1':
       case '2':
@@ -1876,34 +2103,33 @@ class _EventChip extends StatelessWidget {
           border: Border.all(color: color.withOpacity(0.5)),
         ),
         child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 20,
-                              child: AutoMarquee(
-                                text: event.title,
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: color,
-                                    ),
-                                velocity: 30.0,
-                                blankSpace: 20.0,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 20,
+                    child: AutoMarquee(
+                      text: event.title,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: color,
+                          ),
+                      velocity: 30.0,
+                      blankSpace: 20.0,
+                    ),
                   ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Color _getEventColor(CalendarEvent event) {
-    // 優先使用 API 回傳的 color 欄位
     if (event.color != null && event.color!.isNotEmpty) {
       try {
         final colorStr = event.color!.replaceAll('#', '');
@@ -1912,9 +2138,6 @@ class _EventChip extends StatelessWidget {
         }
       } catch (_) {}
     }
-    // Fallback: 依據 KMU atype 代碼
-    // '1'=一般活動, '2'=演講, '3'=活動, '4'=比賽, '5'=其他
-    // 兼容舊版: EXAM, ASSIGNMENT, MEETING, HOLIDAY
     switch (event.typeCode) {
       case '1':
       case '2':
