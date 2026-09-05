@@ -250,7 +250,7 @@ class MyScoresPage extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.grade_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
+          Icon(Icons.grade_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
           const SizedBox(height: 16),
           Text('目前沒有成績資料', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
@@ -348,7 +348,7 @@ class MyScoresPage extends ConsumerWidget {
         gradient: LinearGradient(
           colors: [
             theme.colorScheme.primaryContainer,
-            theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
+            theme.colorScheme.primaryContainer.withOpacity(0.7),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -428,7 +428,7 @@ class MyScoresPage extends ConsumerWidget {
                   drawVerticalLine: false,
                   horizontalInterval: 0.5,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    color: theme.colorScheme.outlineVariant.withOpacity(0.5),
                     strokeWidth: 0.5,
                   ),
                 ),
@@ -494,8 +494,8 @@ class MyScoresPage extends ConsumerWidget {
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          theme.colorScheme.primary.withValues(alpha: 0.3),
-                          theme.colorScheme.secondary.withValues(alpha: 0.1),
+                          theme.colorScheme.primary.withOpacity(0.3),
+                          theme.colorScheme.secondary.withOpacity(0.1),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -563,7 +563,7 @@ class _ScoreTile extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
+                      color: statusColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(

@@ -609,7 +609,7 @@ class _MonthDayCell extends StatelessWidget {
           color: isSelected
               ? theme.colorScheme.primaryContainer
               : isToday
-                  ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                  ? theme.colorScheme.primary.withOpacity( 0.1)
                   : null,
           borderRadius: BorderRadius.circular(12),
           border: isToday && !isSelected
@@ -806,9 +806,9 @@ class _WeekDayColumn extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+              ? theme.colorScheme.primaryContainer.withOpacity( 0.3)
               : isToday
-                  ? theme.colorScheme.primary.withValues(alpha: 0.05)
+                  ? theme.colorScheme.primary.withOpacity( 0.05)
                   : null,
           border: Border(
             bottom: BorderSide(
@@ -952,7 +952,7 @@ class _DayView extends StatelessWidget {
           Icon(
             Icons.event_available,
             size: 80,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            color: Theme.of(context).colorScheme.primary.withOpacity( 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1049,7 +1049,7 @@ class _EventCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.2),
+                            color: color.withOpacity( 0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -1156,9 +1156,9 @@ class _EventChip extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withOpacity( 0.15),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity( 0.5)),
       ),
       child: Row(
         children: [

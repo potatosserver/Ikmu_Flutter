@@ -18,13 +18,23 @@ abstract class ClassroomCategory with _$ClassroomCategory {
 
   factory ClassroomCategory.fromJson(Map<String, dynamic> json) {
     return ClassroomCategory(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      icon: json['icon'] as String?,
-      sortOrder: json['sort_order'] as int? ?? 0,
-      roomCount: json['room_count'] as int? ?? 0,
+      id: (json['id'] ?? json['plakno'] ?? json['no'] ?? '').toString(),
+      name: (json['name'] ?? json['plaknam'] ?? '').toString(),
+      icon: json['icon']?.toString(),
+      sortOrder: (json['sort_order'] ?? json['sortOrder']) as int? ?? 0,
+      roomCount: (json['room_count'] ?? json['roomCount']) as int? ?? 0,
     );
   }
+}
+
+extension ClassroomCategoryExtension on ClassroomCategory {
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'icon': icon,
+        'sort_order': sortOrder,
+        'room_count': roomCount,
+      };
 }
 
 /// 場地基本資訊 (列表用)
@@ -49,22 +59,43 @@ abstract class ClassroomRoom with _$ClassroomRoom {
 
   factory ClassroomRoom.fromJson(Map<String, dynamic> json) {
     return ClassroomRoom(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      building: json['building'] as String?,
-      floor: json['floor'] as String?,
-      capacity: json['capacity'] as int?,
-      categoryId: json['category_id'] as String?,
-      categoryName: json['category_name'] as String?,
-      location: json['location'] as String?,
-      equipment: (json['equipment'] as List?)?.map((e) => e as String).toList() ?? [],
+      id: (json['id'] ?? json['no'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      building: json['building']?.toString(),
+      floor: json['floor']?.toString(),
+      capacity: (json['capacity'] is int)
+          ? json['capacity'] as int
+          : int.tryParse(json['capacity']?.toString() ?? ''),
+      categoryId: (json['category_id'] ?? json['plakno'])?.toString(),
+      categoryName: (json['category_name'] ?? json['plaknam'])?.toString(),
+      location: json['location']?.toString(),
+      equipment: (json['equipment'] as List?)?.map((e) => e.toString()).toList() ?? [],
       hasProjector: json['has_projector'] as bool? ?? false,
       hasAc: json['has_ac'] as bool? ?? false,
       hasComputer: json['has_computer'] as bool? ?? false,
-      imageUrl: json['image_url'] as String?,
-      description: json['description'] as String?,
+      imageUrl: json['image_url']?.toString(),
+      description: json['description']?.toString(),
     );
   }
+}
+
+extension ClassroomRoomExtension on ClassroomRoom {
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'building': building,
+        'floor': floor,
+        'capacity': capacity,
+        'category_id': categoryId,
+        'category_name': categoryName,
+        'location': location,
+        'equipment': equipment,
+        'has_projector': hasProjector,
+        'has_ac': hasAc,
+        'has_computer': hasComputer,
+        'image_url': imageUrl,
+        'description': description,
+      };
 }
 
 /// 場地詳情
@@ -90,23 +121,45 @@ abstract class ClassroomDetail with _$ClassroomDetail {
 
   factory ClassroomDetail.fromJson(Map<String, dynamic> json) {
     return ClassroomDetail(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      building: json['building'] as String?,
-      floor: json['floor'] as String?,
-      capacity: json['capacity'] as int?,
-      description: json['description'] as String?,
-      imageUrl: json['image_url'] as String?,
-      equipments: (json['equipments'] as List?)?.map((e) => e as String).toList() ?? [],
-      openTime: json['open_time'] as String?,
-      closeTime: json['close_time'] as String?,
-      contactPhone: json['contact_phone'] as String?,
-      manager: json['manager'] as String?,
-      notes: json['notes'] as String?,
-      location: json['location'] as String?,
-      categoryName: json['category_name'] as String?,
+      id: (json['id'] ?? json['no'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      building: json['building']?.toString(),
+      floor: json['floor']?.toString(),
+      capacity: (json['capacity'] is int)
+          ? json['capacity'] as int
+          : int.tryParse(json['capacity']?.toString() ?? ''),
+      description: json['description']?.toString(),
+      imageUrl: json['image_url']?.toString(),
+      equipments: (json['equipments'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      openTime: json['open_time']?.toString(),
+      closeTime: json['close_time']?.toString(),
+      contactPhone: json['contact_phone']?.toString(),
+      manager: json['manager']?.toString(),
+      notes: json['notes']?.toString(),
+      location: json['location']?.toString(),
+      categoryName: (json['category_name'] ?? json['plaknam'])?.toString(),
     );
   }
+}
+
+extension ClassroomDetailExtension on ClassroomDetail {
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'building': building,
+        'floor': floor,
+        'capacity': capacity,
+        'description': description,
+        'image_url': imageUrl,
+        'equipments': equipments,
+        'open_time': openTime,
+        'close_time': closeTime,
+        'contact_phone': contactPhone,
+        'manager': manager,
+        'notes': notes,
+        'location': location,
+        'category_name': categoryName,
+      };
 }
 
 /// 時間段 (場地使用狀況)
@@ -128,16 +181,18 @@ abstract class TimeSlot with _$TimeSlot {
 
   factory TimeSlot.fromJson(Map<String, dynamic> json) {
     return TimeSlot(
-      id: json['id'] as String,
-      startTime: json['start_time'] as String,
-      endTime: json['end_time'] as String,
-      status: json['status'] as String,
-      courseName: json['course_name'] as String?,
-      teacherName: json['teacher_name'] as String?,
-      department: json['department'] as String?,
-      className: json['class_name'] as String?,
-      weekday: json['weekday'] as int?,
-      weeks: json['weeks'] as String?,
+      id: (json['id'] ?? '').toString(),
+      startTime: (json['start_time'] ?? json['startTime'] ?? '').toString(),
+      endTime: (json['end_time'] ?? json['endTime'] ?? '').toString(),
+      status: (json['status'] ?? 'available').toString(),
+      courseName: json['course_name']?.toString(),
+      teacherName: json['teacher_name']?.toString(),
+      department: json['department']?.toString(),
+      className: json['class_name']?.toString(),
+      weekday: (json['weekday'] is int)
+          ? json['weekday'] as int
+          : int.tryParse(json['weekday']?.toString() ?? ''),
+      weeks: json['weeks']?.toString(),
       isRecurring: json['is_recurring'] as bool? ?? false,
     );
   }
@@ -145,6 +200,20 @@ abstract class TimeSlot with _$TimeSlot {
 
 /// TimeSlot 擴展方法
 extension TimeSlotExtension on TimeSlot {
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'start_time': startTime,
+        'end_time': endTime,
+        'status': status,
+        'course_name': courseName,
+        'teacher_name': teacherName,
+        'department': department,
+        'class_name': className,
+        'weekday': weekday,
+        'weeks': weeks,
+        'is_recurring': isRecurring,
+      };
+
   /// 解析時間
   DateTime? get parsedStartTime {
     try {
@@ -243,13 +312,15 @@ abstract class ClassroomUsageData with _$ClassroomUsageData {
 
   factory ClassroomUsageData.fromJson(Map<String, dynamic> json) {
     return ClassroomUsageData(
-      room: ClassroomDetail.fromJson(json['room'] as Map<String, dynamic>),
-      date: json['date'] as String,
+      room: ClassroomDetail.fromJson(json['room'] as Map<String, dynamic>? ?? {}),
+      date: (json['date'] ?? '').toString(),
       timeSlots: (json['time_slots'] as List?)
               ?.map((e) => TimeSlot.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      weekday: json['weekday'] as int?,
+      weekday: (json['weekday'] is int)
+          ? json['weekday'] as int
+          : int.tryParse(json['weekday']?.toString() ?? ''),
     );
   }
 }

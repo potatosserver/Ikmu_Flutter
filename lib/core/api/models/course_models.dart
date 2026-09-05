@@ -2,6 +2,59 @@
 
 import 'common_models.dart';
 
+/// 高醫節次對照表 (對齊 reference/kmucoursequery_wac.py PERIOD_MAP)
+/// 1~9 為日間，A~D 為夜間
+class KmuPeriod {
+  const KmuPeriod(this.code, this.timeRange);
+  final String code;
+  final String timeRange;
+
+  static const List<KmuPeriod> all = [
+    KmuPeriod('1', '08:10-09:00'),
+    KmuPeriod('2', '09:10-10:00'),
+    KmuPeriod('3', '10:10-11:00'),
+    KmuPeriod('4', '11:10-12:00'),
+    KmuPeriod('5', '13:10-14:00'),
+    KmuPeriod('6', '14:10-15:00'),
+    KmuPeriod('7', '15:10-16:00'),
+    KmuPeriod('8', '16:10-17:00'),
+    KmuPeriod('9', '17:10-18:00'),
+    KmuPeriod('A', '18:10-19:00'),
+    KmuPeriod('B', '19:10-20:00'),
+    KmuPeriod('C', '20:10-21:00'),
+    KmuPeriod('D', '21:10-22:00'),
+  ];
+
+  /// 節次代碼 → 該節起始時間 HH:mm
+  static String? startTimeOf(String code) {
+    for (final p in all) {
+      if (p.code == code) return p.timeRange.split('-').first;
+    }
+    return null;
+  }
+
+  /// 節次代碼 → 該節結束時間 HH:mm
+  static String? endTimeOf(String code) {
+    for (final p in all) {
+      if (p.code == code) return p.timeRange.split('-').last;
+    }
+    return null;
+  }
+
+  /// 起始節次 + 結束節次 → 連續節次代碼清單 (對齊 Python get_period_range)
+  static List<String> expandRange(String? bcl, String? ecl) {
+    if (bcl == null || bcl.isEmpty || ecl == null || ecl.isEmpty) return const [];
+    final keys = all.map((p) => p.code).toList();
+    final upperBcl = bcl.toUpperCase();
+    final upperEcl = ecl.toUpperCase();
+    final i1 = keys.indexOf(upperBcl);
+    final i2 = keys.indexOf(upperEcl);
+    if (i1 < 0 || i2 < 0) return [bcl];
+    if (i1 > i2) return [bcl];
+    return keys.sublist(i1, i2 + 1);
+  }
+}
+
 /// 課程基本資訊
 class Course {
   const Course({
@@ -42,6 +95,9 @@ class Course {
     this.textbook,
     this.xdeptno,
     this.seqno,
+    // 高醫 wac CSV 節次欄位 (從 qurq0006.php 取得)
+    this.periodCode,
+    this.periods = const [],
   });
 
   final String id;
@@ -81,6 +137,9 @@ class Course {
   final String? textbook;
   final String? xdeptno;
   final String? seqno;
+  // 高醫 wac CSV 節次欄位 (從 qurq0006.php 取得)
+  final String? periodCode;
+  final List<String> periods;
 
   factory Course.fromJson(Map<String, dynamic> json) {
     // Python API 欄位對應
@@ -106,10 +165,28 @@ class Course {
       weekday = pyWk == 0 ? 7 : pyWk;
     }
 
-    // 預設上課時間 (Python API 沒給時間，需要從某處推測)
-    // 高醫課堂通常是 50 分鐘，給預設 08:00-08:50
-    const startTime = '08:00';
-    const endTime = '08:50';
+    // wac CSV 節次欄位 (從 qurq0006.php join 進來)
+    // periodCode = 第一節代碼 (1~9 / A~D)
+    // periods = 展開後的連續節次清單
+    final periodCodeRaw = json['periodCode']?.toString().trim();
+    final periodsRaw = json['periods'];
+    final List<String> periods = periodsRaw is List
+        ? periodsRaw.map((e) => e.toString()).toList()
+        : (periodCodeRaw != null && periodCodeRaw.isNotEmpty)
+            ? [periodCodeRaw]
+            : <String>[];
+
+    // 從第一節推導上課時間 (若無 wac 資料則 fallback 預設值)
+    String startTime;
+    String endTime;
+    if (periods.isNotEmpty) {
+      startTime = KmuPeriod.startTimeOf(periods.first) ?? '08:00';
+      final lastPeriod = periods.last;
+      endTime = KmuPeriod.endTimeOf(lastPeriod) ?? '08:50';
+    } else {
+      startTime = '08:00';
+      endTime = '08:50';
+    }
 
     // credit 可能是字串或數字 (Python API: "0", "2", "3" 或 0/2/3)
     final creditRaw = json['credit'];
@@ -171,6 +248,8 @@ class Course {
       textbook: json['textbook']?.toString(),
       xdeptno: json['xdeptno']?.toString(),
       seqno: seqno.isNotEmpty ? seqno : null,
+      periodCode: periodCodeRaw != null && periodCodeRaw.isNotEmpty ? periodCodeRaw : null,
+      periods: periods,
     );
   }
 
@@ -212,7 +291,91 @@ class Course {
       'textbook': textbook,
       'xdeptno': xdeptno,
       'seqno': seqno,
+      'periodCode': periodCode,
+      'periods': periods,
     };
+  }
+
+  Course copyWith({
+    String? id,
+    String? name,
+    int? weekday,
+    String? startTime,
+    String? endTime,
+    int? startWeek,
+    int? endWeek,
+    double? credit,
+    String? teacher,
+    String? classroom,
+    String? building,
+    String? weeks,
+    String? type,
+    String? color,
+    String? department,
+    String? semester,
+    String? cm,
+    String? cono,
+    String? deptnam,
+    String? edeptnam,
+    String? englishco,
+    String? esm,
+    String? ecsk,
+    String? furcm,
+    String? grade,
+    String? mteafno,
+    String? noryn,
+    String? pid,
+    String? secnam,
+    String? secqty,
+    String? sm,
+    String? teafenam,
+    String? teafnam,
+    String? textbook,
+    String? xdeptno,
+    String? seqno,
+    String? periodCode,
+    List<String>? periods,
+  }) {
+    return Course(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      weekday: weekday ?? this.weekday,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      startWeek: startWeek ?? this.startWeek,
+      endWeek: endWeek ?? this.endWeek,
+      credit: credit ?? this.credit,
+      teacher: teacher ?? this.teacher,
+      classroom: classroom ?? this.classroom,
+      building: building ?? this.building,
+      weeks: weeks ?? this.weeks,
+      type: type ?? this.type,
+      color: color ?? this.color,
+      department: department ?? this.department,
+      semester: semester ?? this.semester,
+      cm: cm ?? this.cm,
+      cono: cono ?? this.cono,
+      deptnam: deptnam ?? this.deptnam,
+      edeptnam: edeptnam ?? this.edeptnam,
+      englishco: englishco ?? this.englishco,
+      esm: esm ?? this.esm,
+      ecsk: ecsk ?? this.ecsk,
+      furcm: furcm ?? this.furcm,
+      grade: grade ?? this.grade,
+      mteafno: mteafno ?? this.mteafno,
+      noryn: noryn ?? this.noryn,
+      pid: pid ?? this.pid,
+      secnam: secnam ?? this.secnam,
+      secqty: secqty ?? this.secqty,
+      sm: sm ?? this.sm,
+      teafenam: teafenam ?? this.teafenam,
+      teafnam: teafnam ?? this.teafnam,
+      textbook: textbook ?? this.textbook,
+      xdeptno: xdeptno ?? this.xdeptno,
+      seqno: seqno ?? this.seqno,
+      periodCode: periodCode ?? this.periodCode,
+      periods: periods ?? this.periods,
+    );
   }
 }
 
@@ -369,6 +532,18 @@ class ScheduleData {
       'semester': semester,
       'totalCredits': totalCredits,
     };
+  }
+
+  ScheduleData copyWith({
+    List<Course>? courses,
+    String? semester,
+    double? totalCredits,
+  }) {
+    return ScheduleData(
+      courses: courses ?? this.courses,
+      semester: semester ?? this.semester,
+      totalCredits: totalCredits ?? this.totalCredits,
+    );
   }
 }
 

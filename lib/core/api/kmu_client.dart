@@ -2,6 +2,7 @@
 // 封裝 Dio、加密、簽名、Token 管理
 // 對應 Python ikmu.py 實作
 
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
@@ -50,6 +51,51 @@ class KmuClient {
     }
     _dio.options.headers['User-Agent'] = 'Dalvik/2.1.0 (Linux; U; Android 10; AOSP on IA Emulator Build/QSR1.190920.001)';
     _dio.options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+  }
+
+  /// 安全解析 Response 為 Map<String, dynamic>
+  Map<String, dynamic> _parseResponseData(dynamic rawData) {
+    if (rawData == null) {
+      return {'result': false, 'reason': '伺服器未回傳資料', 'items': null};
+    }
+
+    if (rawData is Map<String, dynamic>) {
+      return rawData;
+    }
+
+    if (rawData is Map) {
+      return Map<String, dynamic>.from(rawData);
+    }
+
+    if (rawData is String) {
+      final trimmed = rawData.trim();
+      if (trimmed.isEmpty) {
+        return {'result': false, 'reason': '伺服器回傳空內容', 'items': null};
+      }
+      try {
+        final decoded = jsonDecode(trimmed);
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        } else if (decoded is Map) {
+          return Map<String, dynamic>.from(decoded);
+        } else {
+          return {'result': true, 'reason': '', 'items': decoded};
+        }
+      } catch (e) {
+        // 如果是 HTML 或是非 JSON 字串
+        return {
+          'result': false,
+          'reason': '無效的回應格式: $trimmed',
+          'items': null,
+        };
+      }
+    }
+
+    return {
+      'result': false,
+      'reason': '未知的回應格式 (${rawData.runtimeType})',
+      'items': null,
+    };
   }
 
   /// 登入 - 取得 kmutoken (對應 Python /verify 端點)
@@ -103,11 +149,11 @@ class KmuClient {
       print('[KmuClient] Response data: ${response.data}');
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+        final data = _parseResponseData(response.data);
         if (data['result'].toString() == 'true') {
-          final items = data['items'] as Map<String, dynamic>?;
-          if (items != null && items['token'] != null) {
-            final token = items['token'] as String;
+          final items = data['items'];
+          if (items is Map && items['token'] != null) {
+            final token = items['token'].toString();
             _currentToken = token;
             _updateAuthHeaders(); // 更新 headers 帶入 token
             return {
@@ -179,7 +225,7 @@ class KmuClient {
 
   /// 處理回應 - Python 格式 (result 為字串 "true"/"false")
   Map<String, dynamic> _handleResponse(Response response) {
-    final responseData = response.data as Map<String, dynamic>;
+    final responseData = _parseResponseData(response.data);
     final result = responseData['result']?.toString();
 
     if (result == 'true') {
@@ -193,6 +239,7 @@ class KmuClient {
     return {
       'success': false,
       'message': responseData['reason']?.toString() ?? '請求失敗',
+      'data': responseData['items'],
     };
   }
 
@@ -201,6 +248,8 @@ class KmuClient {
       final data = e.response!.data;
       if (data is Map && data['reason'] != null) {
         return data['reason'] as String;
+      } else if (data is Map && data['message'] != null) {
+        return data['message'] as String;
       }
       return 'HTTP ${e.response!.statusCode}: ${e.response!.statusMessage}';
     }

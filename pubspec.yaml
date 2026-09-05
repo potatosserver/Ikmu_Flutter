@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.5.4 <4.0.0'
+  sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -25,7 +25,6 @@ dependencies:
   hive_flutter: ^1.1.0
   path_provider: ^2.1.2
   flutter_secure_storage: ^10.0.0
-  intl: ^0.20.2
   timezone: ^0.9.2
   crypto: ^3.0.3
   pointycastle: ^3.7.0
@@ -33,15 +32,15 @@ dependencies:
   fl_chart: ^0.65.0
   url_launcher: ^6.1.14
   package_info_plus: ^8.0.0
-  device_info_plus: ^12.4.0
+  device_info_plus: ^10.0.0
   connectivity_plus: ^7.0.0
-  local_auth: ^3.0.0
+  local_auth: ^2.3.0
   shared_preferences: ^2.5.0
   logger: ^2.0.2
   equatable: ^2.0.5
 
   # Maps - Platform specific
-  maplibre: ^0.2.0          # 跨平台向量瓦片地圖 (Web/Android/iOS)
+  maplibre: ^0.1.0          # 跨平台向量瓦片地圖 (Web/Android/iOS)
   # google_maps_flutter: ^2.9.0  # Mobile 原生地圖 (Android/iOS) - 可選替代方案
 
   # Firebase (可選，啟用後取消註解)

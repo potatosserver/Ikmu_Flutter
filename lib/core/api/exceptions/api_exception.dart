@@ -55,7 +55,13 @@ class ApiException implements Exception {
         return const ApiException(statusCode: 0, message: '無法連線到伺服器', code: 'CONNECTION_ERROR');
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode ?? 0;
-        final message = e.response?.data?['message'] as String? ?? '請求失敗';
+        String message = '請求失敗';
+        final data = e.response?.data;
+        if (data is Map && data['reason'] != null) {
+          message = data['reason'] as String;
+        } else if (data is Map && data['message'] != null) {
+          message = data['message'] as String;
+        }
         return ApiException(statusCode: statusCode, message: message);
       case DioExceptionType.cancel:
         return const ApiException(statusCode: 0, message: '請求已取消', code: 'CANCELLED');

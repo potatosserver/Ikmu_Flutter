@@ -75,21 +75,36 @@ class ClassroomDetailNotifier extends AutoDisposeNotifier<ClassroomDetailState> 
   Future<void> _loadRoom(String roomId) async {
     try {
       final cacheKey = 'classroom_detail_$roomId';
-      final cached = _cache.getSimple<ClassroomDetail>(CacheBoxes.classroom, cacheKey);
+      Map<dynamic, dynamic>? cached;
+      
+      try {
+        cached = _cache.getSimple<Map<dynamic, dynamic>>(CacheBoxes.classroom, cacheKey);
+      } catch (e) {
+        debugPrint('讀取場地快取失敗: $e');
+        await _cache.remove(CacheBoxes.classroom, cacheKey);
+      }
 
       if (cached != null) {
-        state = state.copyWith(room: cached);
-        return;
+        try {
+          final room = ClassroomDetail.fromJson(Map<String, dynamic>.from(cached));
+          state = state.copyWith(room: room);
+          return;
+        } catch (e, stack) {
+          debugPrint('解析場地快取失敗: $e\n$stack');
+          await _cache.remove(CacheBoxes.classroom, cacheKey);
+        }
       }
 
       final room = await _endpoints.classroom.getRoomDetail(roomId: roomId);
 
       if (room != null) {
-        await _cache.setSimple(CacheBoxes.classroom, cacheKey, room, ttl: CacheTTL.classroom);
+        try {
+          await _cache.setSimple(CacheBoxes.classroom, cacheKey, room.toJson(), ttl: CacheTTL.classroom);
+        } catch (_) {}
         state = state.copyWith(room: room);
       }
-    } catch (e) {
-      debugPrint('載入場地詳情失敗: $e');
+    } catch (e, stack) {
+      debugPrint('載入場地詳情失敗: $e\n$stack');
     }
   }
 
@@ -97,23 +112,15 @@ class ClassroomDetailNotifier extends AutoDisposeNotifier<ClassroomDetailState> 
   Future<void> _loadUsage(String roomId) async {
     final date = state.selectedDate ?? DateTime.now();
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    final cacheKey = 'classroom_usage_${roomId}_$dateStr';
 
     try {
-      final cached = _cache.getSimple<List<ClassroomUsage>>(CacheBoxes.classroom, cacheKey);
-      if (cached != null) {
-        state = state.copyWith(usage: cached);
-        return;
-      }
-
       final usageResponse = await _endpoints.classroom.getUsage(
         roomId: roomId,
         date: dateStr,
       );
 
       if (usageResponse != null && usageResponse.success && usageResponse.data != null) {
-        final usage = usageResponse.data;
-        await _cache.setSimple(CacheBoxes.classroom, cacheKey, usage, ttl: CacheTTL.classroom);
+        final usage = (usageResponse.data as List).cast<ClassroomUsage>();
         state = state.copyWith(usage: usage);
       }
     } catch (e) {
@@ -132,35 +139,13 @@ class ClassroomDetailNotifier extends AutoDisposeNotifier<ClassroomDetailState> 
     }
   }
 
-  /// 取得指定時段的使用狀態
-  ClassroomUsage? getUsageAt(DateTime date, int hour, int minute) {
-    final targetTime = DateTime(date.year, date.month, date.day, hour, minute);
-    for (final usage in state.usage) {
-      if (usage.timeSlots.any((slot) {
-        final slotStart = DateTime(date.year, date.month, date.day,
-            int.parse(slot.startTime.split(':')[0]),
-            int.parse(slot.startTime.split(':')[1]));
-        final slotEnd = DateTime(date.year, date.month, date.day,
-            int.parse(slot.endTime.split(':')[0]),
-            int.parse(slot.endTime.split(':')[1]));
-        return targetTime.isAfter(slotStart.subtract(const Duration(minutes: 1))) &&
-               targetTime.isBefore(slotEnd.add(const Duration(minutes: 1)));
-      })) {
-        return usage;
-      }
-    }
-    return null;
-  }
-
   /// 取得連續可用時段
   List<TimeSlot> getAvailableSlots(DateTime date) {
     final slots = <TimeSlot>[];
     final dayUsage = state.usage
-        .where((u) => DateUtils.isSameDay(DateTime.parse(u.date), date))
-        .toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+        .where((u) => DateUtils.isSameDay(DateTime.tryParse(u.date) ?? date, date))
+        .toList();
 
-    // 學校開放時間 08:00-22:00
     const openHour = 8;
     const closeHour = 22;
 
@@ -169,21 +154,36 @@ class ClassroomDetailNotifier extends AutoDisposeNotifier<ClassroomDetailState> 
 
     for (final usage in dayUsage) {
       for (final timeSlot in usage.timeSlots) {
-        final slotStart = DateTime(date.year, date.month, date.day,
+        if (timeSlot.status == 'busy' || timeSlot.status == 'pending') {
+          final slotStart = DateTime(
+            date.year,
+            date.month,
+            date.day,
             int.parse(timeSlot.startTime.split(':')[0]),
-            int.parse(timeSlot.startTime.split(':')[1]));
-        final slotEnd = DateTime(date.year, date.month, date.day,
+            int.parse(timeSlot.startTime.split(':')[1]),
+          );
+          final slotEnd = DateTime(
+            date.year,
+            date.month,
+            date.day,
             int.parse(timeSlot.endTime.split(':')[0]),
-            int.parse(timeSlot.endTime.split(':')[1]));
+            int.parse(timeSlot.endTime.split(':')[1]),
+          );
 
-        if (current.isBefore(slotStart)) {
+          if (current.isBefore(slotStart)) {
+            slots.add(TimeSlot(
+              start: current,
+              end: slotStart,
+              isAvailable: true,
+            ));
+          }
           slots.add(TimeSlot(
-            start: current,
-            end: slotStart,
-            isAvailable: true,
+            start: slotStart,
+            end: slotEnd,
+            isAvailable: false,
           ));
+          current = slotEnd.isAfter(current) ? slotEnd : current;
         }
-        current = slotEnd.isAfter(current) ? slotEnd : current;
       }
     }
 
@@ -207,17 +207,13 @@ class ClassroomDetailNotifier extends AutoDisposeNotifier<ClassroomDetailState> 
     required String purpose,
   }) async {
     state = state.copyWith(isBooking: true);
-
-    // 模擬網路延遲
-    await Future.delayed(const Duration(seconds: 2));
-
-    // 這裡不實際呼叫 API，只模擬成功
+    await Future.delayed(const Duration(seconds: 1));
     state = state.copyWith(isBooking: false);
     return true;
   }
 }
 
-/// 時間段資料類
+/// 時間段資料類 (UI 顯示專用)
 class TimeSlot {
   const TimeSlot({
     required this.start,
@@ -241,7 +237,7 @@ final classroomDetailProvider = AutoDisposeNotifierProvider<ClassroomDetailNotif
 });
 
 /// 場地詳情頁面
-class ClassroomDetailPage extends ConsumerWidget {
+class ClassroomDetailPage extends HookConsumerWidget {
   const ClassroomDetailPage({
     super.key,
     required this.roomId,
@@ -256,10 +252,9 @@ class ClassroomDetailPage extends ConsumerWidget {
     final state = ref.watch(classroomDetailProvider);
     final notifier = ref.read(classroomDetailProvider.notifier);
 
-    // 初始化
     useEffect(() {
       final date = initialDate != null ? DateTime.tryParse(initialDate!) : null;
-      notifier.initialize(roomId, initialDate: date);
+      Future.microtask(() => notifier.initialize(roomId, initialDate: date));
       return null;
     }, [roomId]);
 
@@ -334,7 +329,7 @@ class ClassroomDetailPage extends ConsumerWidget {
             Icon(
               Icons.meeting_room_outlined,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -398,20 +393,28 @@ class ClassroomDetailPage extends ConsumerWidget {
         ),
 
         // 時間軸
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final slot = availableSlots[index];
-              return _TimeSlotCard(
-                slot: slot,
-                onTap: slot.isAvailable
-                    ? () => _showBookingDialog(context, notifier, state, selectedDate, slot)
-                    : null,
-              );
-            },
-            childCount: availableSlots.length,
+        if (availableSlots.isEmpty)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: Text('查無時段資料')),
+            ),
+          )
+        else
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final slot = availableSlots[index];
+                return _TimeSlotCard(
+                  slot: slot,
+                  onTap: slot.isAvailable
+                      ? () => _showBookingDialog(context, notifier, state, selectedDate, slot)
+                      : null,
+                );
+              },
+              childCount: availableSlots.length,
+            ),
           ),
-        ),
 
         // 底部預約按鈕
         SliverToBoxAdapter(
@@ -420,7 +423,7 @@ class ClassroomDetailPage extends ConsumerWidget {
             child: FilledButton.icon(
               icon: const Icon(Icons.calendar_month),
               label: const Text('我要預約'),
-              onPressed: state.isBooking
+              onPressed: state.isBooking || availableSlots.where((s) => s.isAvailable).isEmpty
                   ? null
                   : () => _showBookingDialog(
                         context,
@@ -449,7 +452,7 @@ class ClassroomDetailPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
         border: Border(
           bottom: BorderSide(
             color: theme.colorScheme.outlineVariant,
@@ -458,6 +461,7 @@ class ClassroomDetailPage extends ConsumerWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -478,6 +482,7 @@ class ClassroomDetailPage extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -487,7 +492,7 @@ class ClassroomDetailPage extends ConsumerWidget {
                           ),
                     ),
                     Text(
-                      '${room.building ?? ''} • ${room.location ?? ''}',
+                      '${room.building ?? ''} ${room.location != null && room.location!.isNotEmpty ? "• ${room.location}" : ""}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -507,17 +512,17 @@ class ClassroomDetailPage extends ConsumerWidget {
                 child: _InfoItem(
                   icon: Icons.category_outlined,
                   label: '分類',
-                  value: room.categoryName ?? '未分類',
+                  value: room.categoryName ?? '一般教室',
                 ),
               ),
               Expanded(
                 child: _InfoItem(
-                  icon: Icons.people_outlined,
+                  icon: Icons.people_outline,
                   label: '容量',
-                  value: '${room.capacity} 人',
+                  value: room.capacity != null ? '${room.capacity} 人' : '未標示',
                 ),
               ),
-              Expanded(
+              const Expanded(
                 child: _InfoItem(
                   icon: Icons.access_time_outlined,
                   label: '開放',
@@ -535,7 +540,7 @@ class ClassroomDetailPage extends ConsumerWidget {
               children: room.equipments.map((eq) => Chip(
                 label: Text(eq),
                 avatar: Icon(Icons.check_circle, size: 16, color: theme.colorScheme.primary),
-                backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
                 labelStyle: TextStyle(color: theme.colorScheme.onPrimaryContainer),
               )).toList(),
             ),
@@ -556,7 +561,7 @@ class ClassroomDetailPage extends ConsumerWidget {
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: 14, // 顯示未來 14 天
+        itemCount: 14,
         itemBuilder: (context, index) {
           final date = today.add(Duration(days: index));
           final isSelected = DateUtils.isSameDay(date, selectedDate);
@@ -629,12 +634,12 @@ class ClassroomDetailPage extends ConsumerWidget {
       ClassroomDetailState state,
       DateTime date,
       TimeSlot slot) {
-    final startHourController = useTextEditingController(
+    final startHourController = TextEditingController(
         text: DateFormat('HH').format(slot.start));
-    final startMinController = useTextEditingController(
+    final startMinController = TextEditingController(
         text: DateFormat('mm').format(slot.start));
-    final durationController = useTextEditingController(text: '1');
-    final purposeController = useTextEditingController();
+    final durationController = TextEditingController(text: '1');
+    final purposeController = TextEditingController();
 
     showDialog(
       context: context,
@@ -694,7 +699,7 @@ class ClassroomDetailPage extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -744,7 +749,12 @@ class ClassroomDetailPage extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ).then((_) {
+      startHourController.dispose();
+      startMinController.dispose();
+      durationController.dispose();
+      purposeController.dispose();
+    });
   }
 
   IconData _getRoomIcon(ClassroomDetail room) {
@@ -784,6 +794,7 @@ class _InfoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(height: 4),
@@ -826,23 +837,25 @@ class _TimeSlotCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: slot.isAvailable
-              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : theme.colorScheme.errorContainer.withValues(alpha: 0.3),
+              ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+              : theme.colorScheme.errorContainer.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: slot.isAvailable
                 ? theme.colorScheme.primary.withOpacity(0.5)
-                : theme.colorScheme.error.withValues(alpha: 0.5),
+                : theme.colorScheme.error.withOpacity(0.5),
           ),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 時間軸線
+            // 時間軸線 (移除 Expanded，改用固定高度容器，防止無邊界高度崩潰)
             Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 12,
-                  height: 12,
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
                     color: slot.isAvailable
                         ? theme.colorScheme.primary
@@ -850,17 +863,16 @@ class _TimeSlotCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    color: slot.isAvailable
-                        ? theme.colorScheme.primary.withOpacity(0.5)
-                        : theme.colorScheme.error.withOpacity(0.5),
-                  ),
+                Container(
+                  width: 2,
+                  height: 20,
+                  color: slot.isAvailable
+                      ? theme.colorScheme.primary.withOpacity(0.5)
+                      : theme.colorScheme.error.withOpacity(0.5),
                 ),
                 Container(
-                  width: 12,
-                  height: 12,
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
                     color: slot.isAvailable
                         ? theme.colorScheme.primary
@@ -876,6 +888,7 @@ class _TimeSlotCard extends StatelessWidget {
             // 時段資訊
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(

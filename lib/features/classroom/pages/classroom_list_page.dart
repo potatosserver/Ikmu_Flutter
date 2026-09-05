@@ -68,29 +68,41 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
     return const ClassroomListState();
   }
 
-  /// 載入分類
+  /// 載入分類與場地
   Future<void> _loadCategories() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final cacheKey = 'classroom_categories';
-      final cached = _cache.getSimple<List<ClassroomCategory>>(CacheBoxes.classroom, cacheKey);
+      const cacheKey = 'classroom_categories';
+      final cached = _cache.getSimple<List<dynamic>>(CacheBoxes.classroom, cacheKey);
 
-      if (cached != null) {
-        state = state.copyWith(categories: cached, isLoading: false);
-        await _loadRooms();
-        return;
+      List<ClassroomCategory> categories = [];
+      if (cached != null && cached.isNotEmpty) {
+        try {
+          categories = cached
+              .map((e) => ClassroomCategory.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList();
+        } catch (_) {
+          await _cache.remove(CacheBoxes.classroom, cacheKey);
+        }
       }
 
-      final categories = await _endpoints.classroom.getCategories();
-
-      if (categories.isNotEmpty) {
-        await _cache.setSimple(CacheBoxes.classroom, cacheKey, categories, ttl: CacheTTL.classroom);
-        state = state.copyWith(categories: categories, isLoading: false);
-        await _loadRooms();
-      } else {
-        throw Exception('載入分類失敗');
+      if (categories.isEmpty) {
+        categories = await _endpoints.classroom.getCategories();
+        if (categories.isNotEmpty) {
+          try {
+            await _cache.setSimple(
+              CacheBoxes.classroom,
+              cacheKey,
+              categories.map((c) => c.toJson()).toList(),
+              ttl: CacheTTL.classroom,
+            );
+          } catch (_) {}
+        }
       }
+
+      state = state.copyWith(categories: categories);
+      await _loadRooms();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -104,27 +116,36 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final cacheKey = 'classroom_rooms';
-      final cached = _cache.getSimple<List<ClassroomRoom>>(CacheBoxes.classroom, cacheKey);
-
-      if (cached != null) {
-        _applyFilters(cached);
-        return;
-      }
-
       final selectedCategory = state.selectedCategory;
-      if (selectedCategory == null) {
-        throw Exception('請先選擇分類');
+      final cacheKey = 'classroom_rooms_${selectedCategory?.id ?? "all"}';
+      final cached = _cache.getSimple<List<dynamic>>(CacheBoxes.classroom, cacheKey);
+
+      List<ClassroomRoom> rooms = [];
+      if (cached != null && cached.isNotEmpty) {
+        try {
+          rooms = cached
+              .map((e) => ClassroomRoom.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList();
+        } catch (_) {
+          await _cache.remove(CacheBoxes.classroom, cacheKey);
+        }
       }
 
-      final rooms = await _endpoints.classroom.getRooms(categoryId: selectedCategory.id);
-
-      if (rooms.isNotEmpty) {
-        await _cache.setSimple(CacheBoxes.classroom, cacheKey, rooms, ttl: CacheTTL.classroom);
-        _applyFilters(rooms);
-      } else {
-        throw Exception('載入場地失敗');
+      if (rooms.isEmpty) {
+        rooms = await _endpoints.classroom.getRooms(categoryId: selectedCategory?.id ?? '');
+        if (rooms.isNotEmpty) {
+          try {
+            await _cache.setSimple(
+              CacheBoxes.classroom,
+              cacheKey,
+              rooms.map((r) => r.toJson()).toList(),
+              ttl: CacheTTL.classroom,
+            );
+          } catch (_) {}
+        }
       }
+
+      _applyFilters(rooms);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -139,7 +160,7 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
 
     // 分類篩選
     if (state.selectedCategory != null) {
-      filtered = filtered.where((r) => r.categoryId == state.selectedCategory!.id).toList();
+      filtered = filtered.where((r) => r.categoryId == state.selectedCategory!.id || r.categoryName == state.selectedCategory!.name).toList();
     }
 
     // 搜尋關鍵字
@@ -162,7 +183,7 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
   /// 選擇分類
   void selectCategory(ClassroomCategory? category) {
     state = state.copyWith(selectedCategory: category);
-    _applyFilters(state.rooms);
+    _loadRooms();
   }
 
   /// 更新搜尋
@@ -179,13 +200,16 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
   /// 刷新
   Future<void> refresh() async {
     await _cache.remove(CacheBoxes.classroom, 'classroom_categories');
-    await _cache.remove(CacheBoxes.classroom, 'classroom_rooms');
+    await _cache.remove(CacheBoxes.classroom, 'classroom_rooms_all');
+    if (state.selectedCategory != null) {
+      await _cache.remove(CacheBoxes.classroom, 'classroom_rooms_${state.selectedCategory!.id}');
+    }
     await _loadCategories();
   }
 
   /// 導航到詳情頁
   void goToDetail(BuildContext context, ClassroomRoom room) {
-    context.push('${RoutePaths.classroomDetail}/${room.id}');
+    context.push(RoutePaths.classroomDetail.replaceFirst(':roomId', room.id));
   }
 }
 
@@ -226,7 +250,7 @@ class ClassroomListPage extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: TextField(
               decoration: InputDecoration(
-                hintText: '搜尋場地名稱、建築、位置...',
+                hintText: '搜尋場地名稱、代號、建築...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: state.searchQuery.isNotEmpty
                     ? IconButton(
@@ -245,7 +269,7 @@ class ClassroomListPage extends ConsumerWidget {
           // 分類篩選
           if (state.categories.isNotEmpty)
             SizedBox(
-              height: 56,
+              height: 48,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -377,7 +401,7 @@ class ClassroomListPage extends ConsumerWidget {
 
   Widget _buildListView(BuildContext context, ClassroomListState state, ClassroomListNotifier notifier) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: state.filteredRooms.length,
       itemBuilder: (context, index) {
         final room = state.filteredRooms[index];
@@ -391,7 +415,7 @@ class ClassroomListPage extends ConsumerWidget {
 
   Widget _buildGridView(BuildContext context, ClassroomListState state, ClassroomListNotifier notifier) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 1.1,
@@ -468,6 +492,7 @@ class _RoomListTile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // 圖示/類型指示
               Container(
@@ -486,9 +511,10 @@ class _RoomListTile extends StatelessWidget {
 
               const SizedBox(width: 16),
 
-              // 場地資訊
+              // 場地資訊 (加入 mainAxisSize: MainAxisSize.min 避免高度未約束問題)
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -506,9 +532,11 @@ class _RoomListTile extends StatelessWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 4),
-                        Expanded(
+                        Flexible(
                           child: Text(
-                            '${room.building} • ${room.location}',
+                            room.building != null && room.building!.isNotEmpty
+                                ? '${room.building}${room.location != null && room.location!.isNotEmpty ? " • ${room.location}" : ""}'
+                                : room.location ?? room.categoryName ?? '一般教室',
                             style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -518,35 +546,38 @@ class _RoomListTile extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.people_outline,
-                          size: 14,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '可容納 ${room.capacity} 人',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        const SizedBox(width: 16),
-                        if (room.equipment.isNotEmpty)
-                          Expanded(
-                            child: Text(
-                              '設備: ${room.equipment.take(3).join(', ')}${room.equipment.length > 3 ? '...' : ''}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                    if (room.capacity != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.people_outline,
+                            size: 14,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
-                      ],
-                    ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '可容納 ${room.capacity} 人',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          if (room.equipment.isNotEmpty) ...[
+                            const SizedBox(width: 16),
+                            Flexible(
+                              child: Text(
+                                '設備: ${room.equipment.take(3).join(', ')}${room.equipment.length > 3 ? '...' : ''}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -564,7 +595,6 @@ class _RoomListTile extends StatelessWidget {
   }
 
   IconData _getRoomIcon(ClassroomRoom room) {
-    // 根據場地類型返回圖示
     final name = room.name.toLowerCase();
     if (name.contains('電腦') || name.contains('computer') || name.contains('程式')) {
       return Icons.computer;
@@ -607,65 +637,62 @@ class _RoomGridCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // 圖示
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  _getRoomIcon(room),
-                  color: theme.colorScheme.onPrimaryContainer,
-                  size: 20,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              // 名稱
-              Text(
-                room.name,
-                style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              const SizedBox(height: 4),
-
-              // 建築/位置
-              Text(
-                room.building ?? '',
-                style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              const Spacer(),
-
-              // 容量
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 12,
-                    color: theme.colorScheme.onSurfaceVariant,
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      _getRoomIcon(room),
+                      color: theme.colorScheme.onPrimaryContainer,
+                      size: 20,
+                    ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(height: 8),
                   Text(
-                    '${room.capacity}人',
-                    style: theme.textTheme.labelSmall?.copyWith(
+                    room.name,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    room.building ?? room.location ?? room.categoryName ?? '',
+                    style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
+              if (room.capacity != null)
+                Row(
+                  children: [
+                    Icon(
+                      Icons.people_outline,
+                      size: 12,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${room.capacity}人',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

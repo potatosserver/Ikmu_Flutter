@@ -24,7 +24,6 @@ class AuthEndpoint {
       fcmToken: fcmToken,
     );
 
-    // 對齊 Python ikmu.py: 回應是 {result: "true", items: {token, userId, userName, userType, ...}}
     if (response['success'] == true && response['data'] != null) {
       final items = response['data'] as Map<String, dynamic>;
       return LoginResponse(
@@ -48,34 +47,23 @@ class AuthEndpoint {
   /// 登出
   Future<ApiResponse> logout(String token) async {
     _client.clearCredentials();
-    return ApiResponse(
+    return const ApiResponse(
       success: true,
       message: '已登出',
     );
   }
-
-  /// 安全提取 message，支援 String 或 int
-  String _extractMessage(dynamic message) {
-    if (message == null) return '';
-    if (message is String) return message;
-    if (message is int) return message.toString();
-    return message.toString();
-  }
 }
 
 /// 行事曆端點
-/// Python API: /getCalendarEvent?d=yyyy-MM-dd (單日查詢，回傳整月事件)
 class CalendarEndpoint {
   CalendarEndpoint(this._client);
 
   final KmuClient _client;
 
-  /// 取得月份事件 - Python API: 傳入當月任一天 (例 2026-09-01)
-  /// API 會回傳整個月份的事件
+  /// 取得月份事件
   Future<List<CalendarEvent>> getMonthEvents({
     required String yearMonth, // YYYY-MM
   }) async {
-    // Python API 用 d=yyyy-MM-dd，取當月第一天
     final date = '$yearMonth-01';
     final response = await _client.get(
       ApiEndpoints.calendar,
@@ -83,20 +71,19 @@ class CalendarEndpoint {
     );
 
     if (response['success'] == true && response['data'] != null) {
-      // data 可能是 List 或 Map (Python items 結構)
       final data = response['data'];
       if (data is List) {
         return data
-            .whereType<Map<String, dynamic>>()
-            .map((e) => CalendarEvent.fromApi(e))
+            .whereType<Map>()
+            .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
             .toList();
-      } else if (data is Map<String, dynamic>) {
-        // 若是 Map，嘗試取 events/days 欄位或整個 map 當單一事件
-        final events = data['events'] ?? data['items'] ?? data['days'];
+      } else if (data is Map) {
+        final mapData = Map<String, dynamic>.from(data);
+        final events = mapData['events'] ?? mapData['items'] ?? mapData['days'];
         if (events is List) {
           return events
-              .whereType<Map<String, dynamic>>()
-              .map((e) => CalendarEvent.fromApi(e))
+              .whereType<Map>()
+              .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
               .toList();
         }
       }
@@ -104,7 +91,7 @@ class CalendarEndpoint {
     return [];
   }
 
-  /// 取得週事件 - 用週一日期查詢
+  /// 取得週事件
   Future<List<CalendarEvent>> getWeekEvents({
     required String weekStart, // YYYY-MM-DD
   }) async {
@@ -117,15 +104,15 @@ class CalendarEndpoint {
       final data = response['data'];
       if (data is List) {
         return data
-            .whereType<Map<String, dynamic>>()
-            .map((e) => CalendarEvent.fromApi(e))
+            .whereType<Map>()
+            .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
             .toList();
       }
     }
     return [];
   }
 
-  /// 取得日事件 - 用當日日期查詢
+  /// 取得日事件
   Future<List<CalendarEvent>> getDayEvents({
     required String date, // YYYY-MM-DD
   }) async {
@@ -138,20 +125,17 @@ class CalendarEndpoint {
       final data = response['data'];
       if (data is List) {
         return data
-            .whereType<Map<String, dynamic>>()
-            .map((e) => CalendarEvent.fromApi(e))
+            .whereType<Map>()
+            .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
             .toList();
       }
     }
     return [];
   }
 
-  /// 取得事件詳情 - Python 沒有 detail API，回傳 null
   Future<EventDetailData?> getEventDetail({
     required String eventId,
-  }) async {
-    return null;
-  }
+  }) async => null;
 }
 
 /// 場地查詢端點
@@ -160,73 +144,153 @@ class ClassroomEndpoint {
 
   final KmuClient _client;
 
-  /// 取得場地分類
-  Future<List<ClassroomCategory>> getCategories() async {
-    final response = await _client.get(ApiEndpoints.classroomCategory);
-
-    if (response['success'] == true && response['data'] is List) {
-      final dataList = (response['data'] as List)
-          .map((e) => ClassroomCategory.fromJson(e as Map<String, dynamic>))
-          .toList();
-      return dataList;
-    }
-    return [];
-  }
+  // 快取清單以供詳情查詢
+  List<ClassroomRoom>? _cachedRooms;
 
   /// 取得場地列表
   Future<List<ClassroomRoom>> getRooms({
-    required String categoryId,
+    String? categoryId,
     String? buildingId,
   }) async {
-    final response = await _client.get(
-      ApiEndpoints.classroomList,
-      queryParameters: {
-        'category_id': categoryId,
-        if (buildingId != null) 'building_id': buildingId,
-      },
-    );
+    final response = await _client.get(ApiEndpoints.classroomList);
 
-    if (response['success'] == true && response['data'] is List) {
-      final dataList = (response['data'] as List)
-          .map((e) => ClassroomRoom.fromJson(e as Map<String, dynamic>))
-          .toList();
-      return dataList;
+    if (response['success'] == true && response['data'] != null) {
+      final data = response['data'];
+      if (data is List) {
+        var rooms = data
+            .whereType<Map>()
+            .map((e) => ClassroomRoom.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+
+        _cachedRooms = rooms;
+
+        if (categoryId != null && categoryId.isNotEmpty) {
+          rooms = rooms.where((r) => r.categoryName == categoryId || r.categoryId == categoryId).toList();
+        }
+
+        return rooms;
+      }
     }
     return [];
   }
 
-  /// 取得場地使用狀況
-  Future<ClassroomUsageResponse?> getUsage({
-    required String roomId,
-    required String date, // YYYY-MM-DD
-  }) async {
-    final response = await _client.get(
-      ApiEndpoints.classroomUsage,
-      queryParameters: {
-        'room_id': roomId,
-        'date': date,
-      },
-    );
+  /// 取得場地分類（從場地清單中動態分組）
+  Future<List<ClassroomCategory>> getCategories() async {
+    final rooms = _cachedRooms ?? await getRooms();
+    final Map<String, int> categoryCounts = {};
 
-    if (response['success'] == true && response['data'] != null) {
-      return ClassroomUsageResponse.fromJson(response['data'] as Map<String, dynamic>);
+    for (final room in rooms) {
+      final catName = room.categoryName;
+      final cat = (catName != null && catName.isNotEmpty) ? catName : '其他';
+      categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1;
     }
-    return null;
+
+    return categoryCounts.entries.map((entry) {
+      return ClassroomCategory(
+        id: entry.key,
+        name: entry.key,
+        roomCount: entry.value,
+      );
+    }).toList();
   }
 
   /// 取得場地詳情
   Future<ClassroomDetail?> getRoomDetail({
     required String roomId,
   }) async {
+    final rooms = _cachedRooms ?? await getRooms();
+    try {
+      final room = rooms.firstWhere(
+        (r) => r.id == roomId || r.name == roomId,
+      );
+      return ClassroomDetail(
+        id: room.id,
+        name: room.name,
+        capacity: room.capacity,
+      );
+    } catch (_) {
+      return ClassroomDetail(
+        id: roomId,
+        name: roomId,
+      );
+    }
+  }
+
+  /// 取得場地使用狀況（對齊 Python: /getClassroomUsageByDate）
+  Future<ClassroomUsageResponse?> getUsage({
+    required String roomId,
+    required String date, // YYYY-MM-DD
+  }) async {
     final response = await _client.get(
-      ApiEndpoints.classroomDetail,
-      queryParameters: {'room_id': roomId},
+      '/getClassroomUsageByDate',
+      queryParameters: {
+        'plano': roomId,
+        'date': date,
+      },
     );
 
     if (response['success'] == true && response['data'] != null) {
-      return ClassroomDetail.fromJson(response['data'] as Map<String, dynamic>);
+      final data = response['data'];
+      final List<TimeSlot> timeSlots = [];
+
+      if (data is List && data.isNotEmpty) {
+        final first = Map<String, dynamic>.from(data.first as Map);
+
+        const startTimes = [
+          '08:10', '09:10', '10:10', '11:10',
+          '12:10', '13:10', '14:10', '15:10',
+          '16:10', '17:10', '18:10', '19:10',
+          '20:10', '21:10',
+        ];
+        const endTimes = [
+          '09:00', '10:00', '11:00', '12:00',
+          '13:00', '14:00', '15:00', '16:00',
+          '17:00', '18:00', '19:00', '20:00',
+          '21:00', '22:00',
+        ];
+
+        for (int i = 1; i <= 14; i++) {
+          final slotKey = 't$i';
+          final val = first[slotKey]?.toString().trim() ?? '';
+          final status = (val.isEmpty || val == '空閒' || val == '可借')
+              ? 'free'
+              : (val.contains('借出') ? 'pending' : 'busy');
+
+          timeSlots.add(
+            TimeSlot(
+              id: 't$i',
+              startTime: startTimes[i - 1],
+              endTime: endTimes[i - 1],
+              status: status,
+            ),
+          );
+        }
+      }
+
+      final usage = ClassroomUsage(
+        room: ClassroomDetail(id: roomId, name: ''),
+        date: date,
+        timeSlots: timeSlots,
+      );
+
+      return ClassroomUsageResponse(
+        success: true,
+        message: '成功',
+        data: [usage],
+      );
     }
-    return null;
+
+    return ClassroomUsageResponse(
+      success: true,
+      message: '成功',
+      data: [
+        ClassroomUsage(
+          room: ClassroomDetail(id: roomId, name: ''),
+          date: date,
+          timeSlots: const [],
+        ),
+      ],
+    );
   }
 }
 
@@ -236,7 +300,7 @@ class CourseEndpoint {
 
   final KmuClient _client;
 
-  /// 取得課表 - Python: myclass_list 只要 id, pw
+  /// 取得課表
   Future<MyScheduleResponse?> getSchedule({
     required String userId,
     required String password,
@@ -252,7 +316,6 @@ class CourseEndpoint {
     );
 
     if (response['success'] == true && response['data'] != null) {
-      // Python API: data 是 List<課堂>
       return MyScheduleResponse.fromJson({
         'success': true,
         'message': response['message']?.toString() ?? '成功',
@@ -262,7 +325,7 @@ class CourseEndpoint {
     return null;
   }
 
-  /// 取得成績學期清單 - Python: myscore_sem 端點
+  /// 取得成績學期清單
   Future<List<SemesterInfo>> getSemesters({
     required String userId,
     required String password,
@@ -286,7 +349,7 @@ class CourseEndpoint {
     return [];
   }
 
-  /// 取得成績 - Python: myscore_his 端點 (需要 year, sem)
+  /// 取得成績
   Future<MyScoresResponse?> getScores({
     required String year,
     required String sem,
@@ -315,7 +378,7 @@ class CourseEndpoint {
     return null;
   }
 
-  /// 取得課程詳細資料 - Python: myclass_detail (需要 seq)
+  /// 取得課程詳細資料
   Future<Map<String, dynamic>?> getClassDetail({
     required String seq,
     required String userId,

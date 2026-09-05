@@ -20,6 +20,8 @@ final dioProvider = Provider<Dio>((ref) {
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       sendTimeout: const Duration(seconds: 30),
+      // 不在 Dio 層面拋出 HTTP 錯誤狀態碼，改由 _handleResponse 統一處理
+      validateStatus: (status) => true,
     ),
   );
   return dio;
