@@ -14,13 +14,15 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven("https://plugins.gradle.org/m2/")
     }
 }
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    id("com.android.application") version "9.0.1" apply false
+    id("com.android.application") version "9.1.0" apply false
     id("org.jetbrains.kotlin.android") version "2.3.20" apply false
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0" apply false
 }
 
 include(":app")

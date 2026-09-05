@@ -331,21 +331,22 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     final events = await _endpoints.calendar.getMonthEvents(yearMonth: yearMonth);
 
     // 存入快取 (1小時) - 轉成 Map 列表避免 Hive 序列化 freezed
+    // 注意：CalendarEvent.fromJson 期望 'atype' 鍵而非 'typeCode'，需與 API 回傳格式一致
     try {
       final serializable = events.map((e) => {
         'id': e.id,
         'title': e.title,
-        'typeCode': e.typeCode,
-        'typeName': e.typeName,
-        'startTime': e.startTime,
-        'endTime': e.endTime,
-        'allDay': e.allDay,
+        'atype': e.typeCode,  // API 回傳鍵名為 'atype'
+        'atype_name': e.typeName,
+        'start_time': e.startTime,
+        'end_time': e.endTime,
+        'all_day': e.allDay,
         'location': e.location,
         'info': e.info,
-        'extendedInfo': e.extendedInfo,
+        'einfo': e.extendedInfo,
         'color': e.color,
-        'sequence': e.sequence,
-        'date': e.date,
+        'seq': e.sequence,
+        'dateFrom': e.date,
       }).toList();
       await _cache.set(CacheBoxes.calendar, cacheKey, serializable,
           fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
@@ -388,10 +389,10 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
       // 存入週快取
       try {
         final serializable = weekEvents.map((e) => {
-          'id': e.id, 'title': e.title, 'typeCode': e.typeCode, 'typeName': e.typeName,
-          'startTime': e.startTime, 'endTime': e.endTime, 'allDay': e.allDay,
-          'location': e.location, 'info': e.info, 'extendedInfo': e.extendedInfo,
-          'color': e.color, 'sequence': e.sequence, 'date': e.date,
+          'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
+          'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
+          'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
+          'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
         }).toList();
         await _cache.set(CacheBoxes.calendar, weekCacheKey, serializable,
             fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
@@ -404,10 +405,10 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     // 存入週快取
     try {
       final serializable = events.map((e) => {
-        'id': e.id, 'title': e.title, 'typeCode': e.typeCode, 'typeName': e.typeName,
-        'startTime': e.startTime, 'endTime': e.endTime, 'allDay': e.allDay,
-        'location': e.location, 'info': e.info, 'extendedInfo': e.extendedInfo,
-        'color': e.color, 'sequence': e.sequence, 'date': e.date,
+        'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
+        'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
+        'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
+        'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
       }).toList();
       await _cache.set(CacheBoxes.calendar, weekCacheKey, serializable,
           fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
@@ -477,10 +478,10 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
       // 存入日快取
       try {
         final serializable = dayEvents.map((e) => {
-          'id': e.id, 'title': e.title, 'typeCode': e.typeCode, 'typeName': e.typeName,
-          'startTime': e.startTime, 'endTime': e.endTime, 'allDay': e.allDay,
-          'location': e.location, 'info': e.info, 'extendedInfo': e.extendedInfo,
-          'color': e.color, 'sequence': e.sequence, 'date': e.date,
+          'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
+          'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
+          'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
+          'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
         }).toList();
         await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
             fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
@@ -493,10 +494,10 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     // 存入日快取
     try {
       final serializable = events.map((e) => {
-        'id': e.id, 'title': e.title, 'typeCode': e.typeCode, 'typeName': e.typeName,
-        'startTime': e.startTime, 'endTime': e.endTime, 'allDay': e.allDay,
-        'location': e.location, 'info': e.info, 'extendedInfo': e.extendedInfo,
-        'color': e.color, 'sequence': e.sequence, 'date': e.date,
+        'id': e.id, 'title': e.title, 'atype': e.typeCode, 'atype_name': e.typeName,
+        'start_time': e.startTime, 'end_time': e.endTime, 'all_day': e.allDay,
+        'location': e.location, 'info': e.info, 'einfo': e.extendedInfo,
+        'color': e.color, 'seq': e.sequence, 'dateFrom': e.date,
       }).toList();
       await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
           fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
@@ -1017,7 +1018,7 @@ class _MonthDayCell extends StatelessWidget {
 }
 
 /// 週檢視
-class _WeekView extends StatelessWidget {
+class _WeekView extends StatefulWidget {
   const _WeekView({
     required this.selectedDate,
     required this.events,
@@ -1033,12 +1034,41 @@ class _WeekView extends StatelessWidget {
   final void Function(CalendarEvent) onEventTap;
 
   @override
-  Widget build(BuildContext context) {
-    final weekStart = CalendarNotifier.getWeekStart(selectedDate);
-    final weekDays = List.generate(7, (i) => weekStart.add(Duration(days: i))); // 週日到週六
-    final today = DateTime.now();
+  State<_WeekView> createState() => _WeekViewState();
+}
 
-    // 事件按日期分組 - 使用 eventDate 取代 parsedStartTime
+class _WeekViewState extends State<_WeekView> {
+  late final PageController _pageController;
+  late DateTime _currentWeekStart;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentWeekStart = CalendarNotifier.getWeekStart(widget.selectedDate);
+    _pageController = PageController(initialPage: 1000); // 大頁碼作為中心，可雙向無限滑動
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int page) {
+    final delta = page - 1000;
+    if (delta != 0) {
+      _currentWeekStart = _currentWeekStart.add(Duration(days: 7 * delta));
+      widget.onWeekChanged(delta);
+      // 重置到中心頁避免邊界問題
+      _pageController.jumpToPage(1000);
+    }
+  }
+
+  List<DateTime> _getWeekDays(DateTime weekStart) {
+    return List.generate(7, (i) => weekStart.add(Duration(days: i)));
+  }
+
+  Map<DateTime, List<CalendarEvent>> _groupEventsByDate(List<CalendarEvent> events) {
     final eventsByDate = <DateTime, List<CalendarEvent>>{};
     for (final event in events) {
       final eventDay = event.eventDate;
@@ -1047,67 +1077,62 @@ class _WeekView extends StatelessWidget {
         eventsByDate.putIfAbsent(date, () => []).add(event);
       }
     }
+    return eventsByDate;
+  }
 
-    // 週日在最左邊的星期標題
+  @override
+  Widget build(BuildContext context) {
+    final today = DateTime.now();
     final weekdayNames = WeekdayMap.shortName;
 
     return Column(
       children: [
-        // 週導航 - 日期範圍已在 AppBar 顯示，此處不再重複
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: () => onWeekChanged(-1),
+        // 週標題列 - 固定在最上方，字體放大
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
               ),
-              const SizedBox(),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: () => onWeekChanged(1),
-              ),
-            ],
+            ),
           ),
-        ),
-
-        // 星期標題列
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             children: List.generate(7, (i) {
-              final day = weekDays[i];
+              final day = _getWeekDays(_currentWeekStart)[i];
               final isToday = CalendarNotifier.isSameDay(day, today);
-              final isSelected = CalendarNotifier.isSameDay(day, selectedDate);
+              final isSelected = CalendarNotifier.isSameDay(day, widget.selectedDate);
               return Expanded(
                 child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Column(
-                      children: [
-                        Text(
-                          weekdayNames[i],
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: isToday 
-                                    ? Theme.of(context).colorScheme.primary 
-                                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        Text(
-                          '${day.day}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w400,
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.onPrimaryContainer
-                                    : isToday
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                              ),
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        weekdayNames[i],
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: isToday
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${day.day}',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w500,
+                              fontSize: 20,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : isToday
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -1115,23 +1140,35 @@ class _WeekView extends StatelessWidget {
           ),
         ),
 
-        // 事件列表
+        // 事件列表 - 使用 PageView 實現左右滑動切換週
         Expanded(
-          child: ListView(
-            children: weekDays.map((day) {
-              final isToday = CalendarNotifier.isSameDay(day, today);
-              final isSelected = CalendarNotifier.isSameDay(day, selectedDate);
-              final dayEvents = eventsByDate[day] ?? [];
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            physics: const ClampingScrollPhysics(),
+            itemBuilder: (context, pageIndex) {
+              final weekStart = _currentWeekStart;
+              final weekDays = _getWeekDays(weekStart);
+              final eventsByDate = _groupEventsByDate(widget.events);
 
-              return _WeekDayColumn(
-                date: day,
-                isToday: isToday,
-                isSelected: isSelected,
-                events: dayEvents,
-                onTap: () => onDateSelected(day),
-                onEventTap: onEventTap,
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: weekDays.map((day) {
+                  final isToday = CalendarNotifier.isSameDay(day, today);
+                  final isSelected = CalendarNotifier.isSameDay(day, widget.selectedDate);
+                  final dayEvents = eventsByDate[day] ?? [];
+
+                  return _WeekDayColumn(
+                    date: day,
+                    isToday: isToday,
+                    isSelected: isSelected,
+                    events: dayEvents,
+                    onTap: () => widget.onDateSelected(day),
+                    onEventTap: widget.onEventTap,
+                  );
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
         ),
       ],
@@ -1227,7 +1264,7 @@ class _WeekDayColumn extends StatelessWidget {
 }
 
 /// 日檢視
-class _DayView extends StatelessWidget {
+class _DayView extends StatefulWidget {
   const _DayView({
     required this.selectedDate,
     required this.events,
@@ -1241,13 +1278,38 @@ class _DayView extends StatelessWidget {
   final void Function(CalendarEvent) onEventTap;
 
   @override
-  Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final isToday = CalendarNotifier.isSameDay(selectedDate, today);
+  State<_DayView> createState() => _DayViewState();
+}
 
-    // 過濾當日事件並按時間排序 - 使用 eventDate 取代 parsedStartTime
-    final dayEvents = events
-        .where((e) => e.eventDate != null && CalendarNotifier.isSameDay(e.eventDate!, selectedDate))
+class _DayViewState extends State<_DayView> {
+  late final PageController _pageController;
+  late DateTime _currentDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentDate = widget.selectedDate;
+    _pageController = PageController(initialPage: 1000);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int page) {
+    final delta = page - 1000;
+    if (delta != 0) {
+      _currentDate = _currentDate.add(Duration(days: delta));
+      widget.onDayChanged(delta);
+      _pageController.jumpToPage(1000);
+    }
+  }
+
+  List<CalendarEvent> _getDayEvents(DateTime date, List<CalendarEvent> events) {
+    return events
+        .where((e) => e.eventDate != null && CalendarNotifier.isSameDay(e.eventDate!, date))
         .toList()
       ..sort((a, b) {
         final aTime = a.parsedStartTime ?? a.eventDate;
@@ -1255,49 +1317,66 @@ class _DayView extends StatelessWidget {
         if (aTime == null || bTime == null) return 0;
         return aTime.compareTo(bTime);
       });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final today = DateTime.now();
+    final isToday = CalendarNotifier.isSameDay(_currentDate, today);
 
     return Column(
       children: [
-        // 日導航
-        Padding(
-          padding: const EdgeInsets.all(16),
+        // 日期標題列 - 固定在最上方，字體放大，移除左右切換鈕
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
+              ),
+            ),
+          ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: () => onDayChanged(-1),
-              ),
-              // 日期已在 AppBar 顯示，此處僅顯示星期
               Text(
-                DateFormat('EEEE', 'zh_TW').format(selectedDate),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                DateFormat('yyyy 年 M 月 d 日 EEEE', 'zh_TW').format(_currentDate),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      fontSize: 24,
+                      color: isToday ? Theme.of(context).colorScheme.primary : null,
                     ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: () => onDayChanged(1),
               ),
             ],
           ),
         ),
 
-        // 事件時間軸
+        // 事件時間軸 - 使用 PageView 實現左右滑動切換日
         Expanded(
-          child: dayEvents.isEmpty
-              ? _buildEmptyState(context, isToday)
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: dayEvents.length,
-                  itemBuilder: (context, index) {
-                    final event = dayEvents[index];
-                    return _EventCard(
-                      event: event,
-                      onTap: () => onEventTap(event),
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            physics: const ClampingScrollPhysics(),
+            itemBuilder: (context, pageIndex) {
+              final dayEvents = _getDayEvents(_currentDate, widget.events);
+
+              return dayEvents.isEmpty
+                  ? _buildEmptyState(context, isToday)
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: dayEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = dayEvents[index];
+                        return _EventCard(
+                          event: event,
+                          onTap: () => widget.onEventTap(event),
+                        );
+                      },
                     );
-                  },
-                ),
+            },
+          ),
         ),
       ],
     );
@@ -1311,7 +1390,7 @@ class _DayView extends StatelessWidget {
           Icon(
             Icons.event_available,
             size: 80,
-            color: Theme.of(context).colorScheme.primary.withOpacity( 0.5),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
           ),
           const SizedBox(height: 16),
           Text(
