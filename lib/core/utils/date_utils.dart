@@ -12,18 +12,27 @@ void initializeTimeZones() {
   tz.setLocalLocation(tz.getLocation('Asia/Taipei'));
 }
 
-/// 星期映射
+/// 星期映射 (週日在最左邊)
 class WeekdayMap {
   static const List<String> fullName = [
-    '星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日',
+    '星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六',
   ];
   
   static const List<String> shortName = [
-    '一', '二', '三', '四', '五', '六', '日',
+    '日', '一', '二', '三', '四', '五', '六',
   ];
   
   static const List<String> enShortName = [
-    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+    'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat',
+  ];
+
+  // 舊版相容：週一在最左邊
+  static const List<String> fullNameMonFirst = [
+    '星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日',
+  ];
+  
+  static const List<String> shortNameMonFirst = [
+    '一', '二', '三', '四', '五', '六', '日',
   ];
 }
 
@@ -99,11 +108,13 @@ class DateUtils {
   // ===========================================
   
   /// 取得該日期所在週的起始日期 (週日 00:00:00)
-  /// 對應 Python: getWeekStart(date)
+  /// 對應 Python: getWeekStart(date) - 週日為週起始
   static DateTime getWeekStart(DateTime date) {
     final d = DateTime(date.year, date.month, date.day);
-    final weekday = d.weekday % 7; // DateTime.weekday: 1=Mon, 7=Sun -> 0=Sun, 1=Mon...
-    return d.subtract(Duration(days: weekday));
+    // DateTime.weekday: 1=Mon, 2=Tue, ..., 6=Sat, 7=Sun
+    // 我們要週日=0, 週一=1, ..., 週六=6
+    final sundayBasedWeekday = d.weekday % 7; // 7%7=0 (Sun), 1%7=1 (Mon), ..., 6%7=6 (Sat)
+    return d.subtract(Duration(days: sundayBasedWeekday));
   }
   
   /// 取得該日期所在週的結束日期 (週六 23:59:59)

@@ -80,6 +80,7 @@ class AppConstants {
   static const int cacheTtlLong = 60 * 60 * 1000;      // 1 小時
   static const int cacheTtlDay = 24 * 60 * 60 * 1000;  // 1 天
   static const int cacheTtlWeek = 7 * 24 * 60 * 60 * 1000; // 1 週
+  static const int cacheTtlMonth = 30 * 24 * 60 * 60 * 1000; // 1 個月 (30 天)
 }
 
 /// 快取 Box 名稱
@@ -97,9 +98,9 @@ enum CacheBoxes {
 /// 快取 TTL 分類
 enum CacheTTL {
   auth(AppConstants.cacheTtlLong),           // 1 小時
-  calendar(AppConstants.cacheTtlLong),       // 1 小時
+  calendar(AppConstants.cacheTtlDay),        // 1 天
   classroom(AppConstants.cacheTtlMedium),    // 30 分鐘
-  courses(AppConstants.cacheTtlLong),        // 1 小時
+  courses(AppConstants.cacheTtlMonth),       // 1 個月 (30 天)
   transport(AppConstants.cacheTtlShort),     // 5 分鐘
   campusInfo(AppConstants.cacheTtlMedium),   // 30 分鐘
   settings(AppConstants.cacheTtlDay),        // 1 天

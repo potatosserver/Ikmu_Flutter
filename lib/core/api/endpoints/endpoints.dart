@@ -5,6 +5,7 @@ import 'package:ikmu_flutter/core/api/kmu_client.dart';
 import 'package:ikmu_flutter/core/constants/api_constants.dart';
 import 'package:ikmu_flutter/core/api/models.dart';
 import 'package:ikmu_flutter/core/utils/crypto_utils.dart';
+import 'package:ikmu_flutter/core/utils/date_utils.dart';
 
 /// 認證端點
 class AuthEndpoint {
@@ -60,59 +61,7 @@ class CalendarEndpoint {
 
   final KmuClient _client;
 
-  /// 取得月份事件
-  Future<List<CalendarEvent>> getMonthEvents({
-    required String yearMonth, // YYYY-MM
-  }) async {
-    final date = '$yearMonth-01';
-    final response = await _client.get(
-      ApiEndpoints.calendar,
-      queryParameters: {'d': date},
-    );
-
-    if (response['success'] == true && response['data'] != null) {
-      final data = response['data'];
-      if (data is List) {
-        return data
-            .whereType<Map>()
-            .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
-            .toList();
-      } else if (data is Map) {
-        final mapData = Map<String, dynamic>.from(data);
-        final events = mapData['events'] ?? mapData['items'] ?? mapData['days'];
-        if (events is List) {
-          return events
-              .whereType<Map>()
-              .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
-              .toList();
-        }
-      }
-    }
-    return [];
-  }
-
-  /// 取得週事件
-  Future<List<CalendarEvent>> getWeekEvents({
-    required String weekStart, // YYYY-MM-DD
-  }) async {
-    final response = await _client.get(
-      ApiEndpoints.calendar,
-      queryParameters: {'d': weekStart},
-    );
-
-    if (response['success'] == true && response['data'] != null) {
-      final data = response['data'];
-      if (data is List) {
-        return data
-            .whereType<Map>()
-            .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
-            .toList();
-      }
-    }
-    return [];
-  }
-
-  /// 取得日事件
+  /// 取得日事件 (單日)
   Future<List<CalendarEvent>> getDayEvents({
     required String date, // YYYY-MM-DD
   }) async {
@@ -123,14 +72,101 @@ class CalendarEndpoint {
 
     if (response['success'] == true && response['data'] != null) {
       final data = response['data'];
+      List<dynamic> list = [];
       if (data is List) {
-        return data
-            .whereType<Map>()
-            .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e)))
-            .toList();
+        list = data;
+      } else if (data is Map) {
+        final mapData = Map<String, dynamic>.from(data);
+        final events = mapData['events'] ?? mapData['items'] ?? mapData['days'];
+        if (events is List) {
+          list = events;
+        } else {
+          // 處理 {"0": {...}, "1": {...}} 格式
+          list = mapData.values.toList();
+        }
       }
+
+      return list
+          .whereType<Map>()
+          .map((e) {
+            final map = Map<String, dynamic>.from(e);
+            // 若 API 回傳缺少 date 或 dateFrom，自動補上查詢當日的日期
+            if (map['date'] == null && map['dateFrom'] == null) {
+              map['date'] = date;
+            }
+            return CalendarEvent.fromApi(map);
+          })
+          .toList();
     }
-    return [];
+    // API 回傳 success != true 或無資料
+    throw Exception('API 回傳失敗: ${response['message'] ?? '未知錯誤'}');
+  }
+
+  /// 取得月份所有事件 (自動平行併發下載 7x6 格子共 42 天，含上下月重疊天數)
+  Future<List<CalendarEvent>> getMonthEvents({
+    required String yearMonth, // YYYY-MM
+  }) async {
+    final parts = yearMonth.split('-');
+    if (parts.length < 2) return [];
+
+    final year = int.tryParse(parts[0]) ?? DateTime.now().year;
+    final month = int.tryParse(parts[1]) ?? DateTime.now().month;
+
+    // 計算該月第一天和最後一天
+    final firstDayOfMonth = DateTime(year, month, 1);
+    final lastDayOfMonth = DateTime(year, month + 1, 0);
+
+    // 7x6 固定網格：週日為起始，共 42 格 (6 週)
+    // 找出第一格的日期 (該月 1 號所在週的週日)
+    final firstWeekday = firstDayOfMonth.weekday % 7; // 0=Sun, 1=Mon...
+    final gridStartDate = firstDayOfMonth.subtract(Duration(days: firstWeekday));
+    
+    // 最後一格的日期 (該月最後一天所在週的週六)
+    final lastWeekday = lastDayOfMonth.weekday % 7;
+    final daysToAdd = (6 - lastWeekday) % 7; // 到週六需要加的天數
+    final gridEndDate = lastDayOfMonth.add(Duration(days: daysToAdd));
+
+    // 計算總天數
+    final totalDays = gridEndDate.difference(gridStartDate).inDays + 1;
+
+    // 產生所有 42 天的非同步請求列表
+    final futures = List.generate(totalDays, (index) {
+      final d = gridStartDate.add(Duration(days: index));
+      final dateStr =
+          '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+      return getDayEvents(date: dateStr);
+    });
+
+    // 平行同時抓取所有天數
+    final results = await Future.wait(futures);
+
+    // 攤平 (flatten) 為單一事件清單
+    final allEvents = <CalendarEvent>[];
+    for (final dayEvents in results) {
+      allEvents.addAll(dayEvents);
+    }
+    return allEvents;
+  }
+
+  /// 取得週所有事件 (自動平行併發下載該週 7 天，週日到週六)
+  Future<List<CalendarEvent>> getWeekEvents({
+    required String weekStart, // YYYY-MM-DD
+  }) async {
+    final startDate = DateTime.tryParse(weekStart);
+    if (startDate == null) return [];
+
+    // 確保起始是週日
+    final weekStartDate = DateUtils.getWeekStart(startDate);
+
+    final futures = List.generate(7, (i) {
+      final d = weekStartDate.add(Duration(days: i));
+      final dateStr =
+          '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+      return getDayEvents(date: dateStr);
+    });
+
+    final results = await Future.wait(futures);
+    return results.expand((dayList) => dayList).toList();
   }
 
   Future<EventDetailData?> getEventDetail({

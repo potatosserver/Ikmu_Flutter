@@ -144,6 +144,20 @@ extension CalendarEventExtension on CalendarEvent {
   /// 兼容 UI 代碼期望的 description getter
   String? get description => info ?? extendedInfo;
 
+  /// 取得該事件的所屬日期 (優先解析 date，若無則 fallback 到 startTime 或當天)
+  DateTime? get eventDate {
+    if (date != null && date!.isNotEmpty) {
+      try {
+        final parsed = DateTime.parse(date!);
+        return DateTime(parsed.year, parsed.month, parsed.day);
+      } catch (_) {}
+    }
+    if (parsedStartTime != null) {
+      return DateTime(parsedStartTime!.year, parsedStartTime!.month, parsedStartTime!.day);
+    }
+    return null;
+  }
+
   DateTime? get parsedStartTime {
     if (startTime != null && startTime!.isNotEmpty) {
       try {
@@ -152,11 +166,15 @@ extension CalendarEventExtension on CalendarEvent {
           if (parts.length >= 2) {
             final hour = int.tryParse(parts[0]) ?? 0;
             final minute = int.tryParse(parts[1]) ?? 0;
-            final baseDate = date != null ? DateTime.parse(date!) : DateTime.now();
+            final baseDate = eventDate ?? DateTime.now();
             return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
           }
         }
       } catch (_) {}
+    }
+    // 若無 startTime，但有 date，則預設為當天 00:00
+    if (eventDate != null) {
+      return eventDate;
     }
     return null;
   }
@@ -168,12 +186,12 @@ extension CalendarEventExtension on CalendarEvent {
         if (parts.length >= 2) {
           final hour = int.tryParse(parts[0]) ?? 0;
           final minute = int.tryParse(parts[1]) ?? 0;
-          final baseDate = date != null ? DateTime.parse(date!) : DateTime.now();
+          final baseDate = eventDate ?? DateTime.now();
           return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
         }
       } catch (_) {}
     }
-    return null;
+    return parsedStartTime;
   }
 }
 

@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.5.0
   logger: ^2.0.2
   equatable: ^2.0.5
+  marquee: ^2.3.0
 
   # Maps - Platform specific
   maplibre: ^0.1.0          # 跨平台向量瓦片地圖 (Web/Android/iOS)

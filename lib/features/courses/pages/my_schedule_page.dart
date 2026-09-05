@@ -10,7 +10,7 @@ import '../../../core.dart' hide DateUtils;
 import '../../../core/api/services/wac_course_catalog.dart';
 
 /// 週課表表格視圖 (節次=列, 星期=欄) - 對齊 reference/kmucoursequery_wac.py PERIOD_MAP
-/// 高醫節次：1~9 (日間), A~D (夜間)；星期：一~六 (含週六)
+/// 高醫節次：1~9 (日間), A~D (夜間)；星期：一~五 (移除週六)
 class WeekScheduleGrid extends StatelessWidget {
   const WeekScheduleGrid({
     super.key,
@@ -22,10 +22,10 @@ class WeekScheduleGrid extends StatelessWidget {
   final void Function(Course) onCourseTap;
 
   static const List<KmuPeriod> _periods = KmuPeriod.all;
-  static const List<String> _weekdayLabels = ['一', '二', '三', '四', '五', '六'];
-  static const double _timeColumnWidth = 76.0;
+  static const List<String> _weekdayLabels = ['一', '二', '三', '四', '五']; // 移除週六
+  static const double _timeColumnWidth = 64.0; // 增加時間欄寬度以容納 節次 + 時間範圍
   static const double _headerHeight = 44.0;
-  static const double _rowHeight = 52.0;
+  static const double _rowHeight = 60.0; // 增加行高以容納課名+教授+教室
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +40,8 @@ class WeekScheduleGrid extends StatelessWidget {
     // 收集所有要顯示的課程卡片資訊
     final cards = <_CourseCardInfo>[];
     for (final course in courses) {
-      // 支援 weekday 1-6 (週一~週六)
-      if (course.weekday < 1 || course.weekday > 6) continue;
+      // 支援 weekday 1-5 (週一~週五) - 移除週六
+      if (course.weekday < 1 || course.weekday > 5) continue;
       if (course.periods.isEmpty) continue;
 
       final firstPeriod = course.periods.first.toUpperCase();
@@ -51,68 +51,134 @@ class WeekScheduleGrid extends StatelessWidget {
       final periodSpan = course.periods.length;
       cards.add(_CourseCardInfo(
         course: course,
-        weekday: course.weekday, // 1-6
+        weekday: course.weekday, // 1-5
         periodStartIdx: startIdx, // 0-based
         periodSpan: periodSpan,
       ));
     }
 
-    // 計算總高度: Header (44) + 14 節 * 每節高度 (52) = 772.0
+    // 計算總高度: Header (44) + 14 節 * 每節高度 (60) = 884
     final totalGridHeight = _headerHeight + _periods.length * _rowHeight;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         // 設定最小總寬度，確保螢幕過窄時也能正常滑動
-        const minGridWidth = _timeColumnWidth + 6 * 50.0;
+        const minGridWidth = _timeColumnWidth + 5 * 50.0; // 5 天 (移除週六)
         final gridWidth = constraints.maxWidth < minGridWidth ? minGridWidth : constraints.maxWidth;
-        final dayColumnWidth = (gridWidth - _timeColumnWidth) / 6; // 6 天 (含週六)
+        final dayColumnWidth = (gridWidth - _timeColumnWidth) / 5; // 5 天
 
-        // Table 只畫格線 + 標籤列 + 星期標題，不放課程內容
-        final gridTable = Table(
-          columnWidths: {
-            0: const FixedColumnWidth(_timeColumnWidth),
-            for (var i = 1; i <= 6; i++) i: FixedColumnWidth(dayColumnWidth),
-          },
-          // ❌ 移除這行: defaultVerticalAlignment: TableCellVerticalAlignment.fill,
-          border: TableBorder(
-            horizontalInside: BorderSide(color: theme.dividerColor, width: 0.5),
-            verticalInside: BorderSide(color: theme.dividerColor, width: 0.5),
-            top: BorderSide(color: theme.dividerColor, width: 0.5),
-            bottom: BorderSide(color: theme.dividerColor, width: 0.5),
-            left: BorderSide(color: theme.dividerColor, width: 0.5),
-            right: BorderSide(color: theme.dividerColor, width: 0.5),
-          ),
+        // 使用自定義佈局：更輕量、圓角、有間距的 M3 風格表格
+        final gridTable = Column(
           children: [
-            // 標題列 (高 _headerHeight)
-            TableRow(
-              decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest),
-              children: [
-                SizedBox(
-                  height: _headerHeight,
-                  child: _buildTimeHeaderCell(theme, '節次'),
+            // 標題列 - 獨立圓角容器，與下方完全分開
+            Container(
+              margin: const EdgeInsets.only(bottom: 4), // 與下方分開
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12), // 四角圓角
+              ),
+              child: SizedBox(
+                height: _headerHeight,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: _timeColumnWidth,
+                      child: _buildTimeHeaderCell(theme, '節次'),
+                    ),
+                    ...List.generate(5, (i) => Expanded(
+                      child: _buildDayHeaderCell(theme, _weekdayLabels[i], i + 1),
+                    )),
+                  ],
                 ),
-                ...List.generate(
-                  6,
-                  (i) => SizedBox(
-                    height: _headerHeight,
-                    child: _buildDayHeaderCell(theme, _weekdayLabels[i], i + 1),
-                  ),
-                ),
-              ],
+              ),
             ),
-            // 14 節次列 (每列高 _rowHeight)
-            ..._periods.map((p) => TableRow(
-              children: [
-                SizedBox(
-                  height: _rowHeight,
-                  child: _buildTimeLabelCell(theme, p),
+            // 14 節次列
+            ..._periods.asMap().entries.map((entry) {
+              final p = entry.value;
+              final rowIndex = entry.key;
+              final isLastRow = rowIndex == _periods.length - 1;
+              return SizedBox(
+                height: _rowHeight,
+                child: Stack(
+                  children: [
+                    // 背景 (斑馬紋)
+                    Positioned.fill(
+                      child: Row(
+                        children: [
+                          // 時間欄背景
+                          SizedBox(
+                            width: _timeColumnWidth,
+                            child: Container(
+                              color: rowIndex.isEven
+                                  ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.05)
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          // 5 天欄位背景
+                          ...List.generate(5, (dayIndex) {
+                            return Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                                color: rowIndex.isEven
+                                    ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.03)
+                                    : Colors.transparent,
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                    // 底部橫線 - 在行的底部 (節次之間的分界線)
+                    Positioned(
+                      bottom: 0,
+                      left: _timeColumnWidth,
+                      right: 0,
+                      child: Row(
+                        children: List.generate(5, (dayIndex) => Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                            height: 0.5,
+                            color: theme.dividerColor.withOpacity(0.15),
+                          ),
+                        )),
+                      ),
+                    ),
+                    // 內容層
+                    Row(
+                      children: [
+                        // 時間欄
+                        SizedBox(
+                          width: _timeColumnWidth,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: isLastRow ? const Radius.circular(12) : Radius.zero,
+                              ),
+                            ),
+                            child: _buildTimeLabelCell(theme, p),
+                          ),
+                        ),
+                        // 5 天欄位
+                        ...List.generate(5, (dayIndex) {
+                          final isLastDay = dayIndex == 4;
+                          return Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  bottomRight: isLastRow && isLastDay ? const Radius.circular(12) : Radius.zero,
+                                ),
+                              ),
+                              child: const SizedBox.shrink(),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
                 ),
-                ...List.generate(
-                  6,
-                  (_) => const SizedBox(height: _rowHeight),
-                ),
-              ],
-            )),
+              );
+            }),
           ],
         );
 
@@ -137,18 +203,22 @@ class WeekScheduleGrid extends StatelessWidget {
           ),
         );
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        // 雙向滾動 + 隱藏捲軸
+        return ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: SizedBox(
-              width: gridWidth,
-              height: totalGridHeight,
-              child: Stack(
-                children: [
-                  gridTable,
-                  courseStack,
-                ],
+            scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SizedBox(
+                width: gridWidth,
+                height: totalGridHeight,
+                child: Stack(
+                  children: [
+                    gridTable,
+                    courseStack,
+                  ],
+                ),
               ),
             ),
           ),
@@ -183,22 +253,62 @@ class WeekScheduleGrid extends StatelessWidget {
   }
 
   Widget _buildTimeLabelCell(ThemeData theme, KmuPeriod period) {
+    // 解析時間範圍
+    final parts = period.timeRange.split('-');
+    final startTime = parts.isNotEmpty ? parts[0] : '';
+    final endTime = parts.length > 1 ? parts[1] : '';
+
     return Container(
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.only(right: 8),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.1),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          // 節次代碼
           Text(
             period.code,
             style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
           ),
-          Text(
-            period.timeRange,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          const SizedBox(height: 2),
+          // 時間範圍：垂直堆疊 - 開始時間 / 直的 ~ / 結束時間
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                startTime,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 9,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 1),
+              RotatedBox(
+                quarterTurns: 3, // 逆時針 90 度 = 直的 ~
+                child: Text(
+                  '~',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                endTime,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 9,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ],
       ),
@@ -210,53 +320,85 @@ class WeekScheduleGrid extends StatelessWidget {
     final colorIndex = _getColorIndex(course);
     final bgColor = colors[colorIndex].withOpacity(0.9);
     final textColor = colors[colorIndex].computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
-    final subTextColor = colors[colorIndex].computeLuminance() > 0.5 ? Colors.black54 : Colors.white70;
+
+    // 解析教室與樓層
+    String? classroom = course.classroom;
+    String? building = course.building;
+    String displayRoom = '';
+    if (classroom != null && classroom.isNotEmpty) {
+      displayRoom = classroom;
+      if (building != null && building.isNotEmpty && !classroom.contains(building)) {
+        displayRoom = '$building $classroom';
+      }
+    } else if (building != null && building.isNotEmpty) {
+      displayRoom = building;
+    }
 
     return Container(
       margin: const EdgeInsets.all(2), // 與格線留 2px 間隙
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(8), // M3 圓角
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => onCourseTap(course),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center, // 垂直置中
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   course.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w600,
-                    fontSize: 11,
+                    fontSize: 12,
                     color: textColor,
+                    height: 1.2,
                   ),
                 ),
-                if (course.classroom != null && course.classroom!.isNotEmpty) ...[
+                // 教室 - 空一行
+                if (displayRoom.isNotEmpty) ...[
+                  const SizedBox(height: 6), // 空一行
+                  Text(
+                    displayRoom,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontSize: 9,
+                      color: textColor, // 深色
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                // 授課教授
+                if (course.teacher != null && course.teacher!.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(Icons.meeting_room, size: 10, color: subTextColor),
-                      const SizedBox(width: 3),
-                      Expanded(
-                        child: Text(
-                          course.classroom!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontSize: 9,
-                            color: subTextColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    course.teacher!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
                   ),
                 ],
               ],
@@ -272,16 +414,16 @@ class WeekScheduleGrid extends StatelessWidget {
   }
 
   static const List<Color> _courseColors = [
-    Color(0xFFE3F2FD), // Blue 50
-    Color(0xFFE8F5E9), // Green 50
-    Color(0xFFF3E5F5), // Purple 50
-    Color(0xFFFFF3E0), // Orange 50
-    Color(0xFFE0F2F1), // Teal 50
-    Color(0xFFFAF3DD), // Amber 50
-    Color(0xFFFCE4EC), // Pink 50
-    Color(0xFFF1F8E9), // Light Green 50
-    Color(0xFFEDE7F6), // Deep Purple 50
-    Color(0xFFE1F5FE), // Light Blue 50
+    Color(0xFFA8D8EA), // Macaron Blue
+    Color(0xFFAAE3E2), // Macaron Mint
+    Color(0xFFB8E0D2), // Macaron Seafoam
+    Color(0xFFFFD3B6), // Macaron Peach
+    Color(0xFFFFAAAA), // Macaron Salmon
+    Color(0xFFFFB3BA), // Macaron Pink
+    Color(0xFFFFDAC1), // Macaron Apricot
+    Color(0xFFE2F0CB), // Macaron Pistachio
+    Color(0xFFC7CEEA), // Macaron Lavender
+    Color(0xFFD8B4E2), // Macaron Lilac
   ];
 }
 
@@ -293,7 +435,7 @@ class _CourseCardInfo {
     required this.periodSpan,
   });
   final Course course;
-  final int weekday; // 1-6
+  final int weekday; // 1-5
   final int periodStartIdx; // 0-based
   final int periodSpan;
 }
@@ -344,11 +486,6 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
     // 用 scheduleMicrotask 確保在 build 完成後才執行
     scheduleMicrotask(() async {
       try {
-        // 主動清除舊版本 cache（包含舊格式無節次資料的 schedule_data）
-        final cache = ref.read(cacheServiceProvider);
-        await cache.remove(CacheBoxes.courses, 'schedule_data');
-        await cache.remove(CacheBoxes.courses, 'wac_catalog_115_1');
-        print('[ScheduleNotifier] 舊 cache 已清除');
         await _loadSchedule();
       } catch (e, st) {
         print('[ScheduleNotifier] microtask error: $e\n$st');
@@ -387,8 +524,21 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
         // 檢查 cache 是否包含新欄位 (periods / periodCode)
         final hasPeriods = data.courses.any((c) => c.periods.isNotEmpty);
         print('[ScheduleNotifier] hasPeriods: $hasPeriods');
-        if (!hasPeriods && data.courses.isNotEmpty) {
-          print('[ScheduleNotifier] 舊 cache 沒有節次資料，清除並重新載入');
+        // 檢查 cache 是否有效 (year/sem 不為 0)
+        final hasValidYearSem = data.courses.any((c) {
+          final parts = c.id.split('-');
+          return parts.length >= 2 && parts[0] != '0' && parts[1] != '0';
+        });
+        print('[ScheduleNotifier] hasValidYearSem: $hasValidYearSem');
+        // 若無課程資料 或 缺節次欄位 或 year/sem 無效 → 清除快取重抓
+        if (data.courses.isEmpty || (!hasPeriods && data.courses.isNotEmpty) || !hasValidYearSem) {
+          if (data.courses.isEmpty) {
+            print('[ScheduleNotifier] cache 課程為空，清除並重新載入');
+          } else if (!hasValidYearSem) {
+            print('[ScheduleNotifier] cache year/sem 無效 (0-0)，清除並重新載入');
+          } else {
+            print('[ScheduleNotifier] 舊 cache 沒有節次資料，清除並重新載入');
+          }
           await cache.remove(CacheBoxes.courses, cacheKey);
           state = state.copyWith(isLoading: true, error: null);
           // 不 return，讓下面走 network 流程
@@ -470,8 +620,17 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
     final cachedCatalog = cache.getSimple<Map<dynamic, dynamic>>(CacheBoxes.courses, catalogCacheKey);
     if (cachedCatalog != null) {
       catalog = WacCourseCatalog.fromJson(Map<String, dynamic>.from(cachedCatalog));
-      print('[ScheduleNotifier] wac 目錄從快取載入: ${catalog.length} 筆');
-    } else {
+      // 快取為空視為 miss，清除並重新下載
+      if (catalog.length == 0) {
+        print('[ScheduleNotifier] 快取目錄為空，清除並重新下載');
+        await cache.remove(CacheBoxes.courses, catalogCacheKey);
+        catalog = null;
+      } else {
+        print('[ScheduleNotifier] wac 目錄從快取載入: ${catalog.length} 筆');
+      }
+    }
+
+    if (catalog == null) {
       // 下載並解析 wac CSV (帶 timeout 避免卡死整個 UI)
       try {
         print('[ScheduleNotifier] 正在下載 wac 課表目錄: $year-$sem');
@@ -483,20 +642,24 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
           },
         );
         print('[ScheduleNotifier] wac 目錄載入完成: ${catalog.length} 筆');
-        // 快取 wac catalog (較長 TTL)
-        await cache.setSimple(
-          CacheBoxes.courses,
-          catalogCacheKey,
-          catalog.toJson(),
-          ttl: CacheTTL.courses,
-        );
+        // 快取 wac catalog (較長 TTL) - 只有非空才快取
+        if (catalog.length > 0) {
+          await cache.setSimple(
+            CacheBoxes.courses,
+            catalogCacheKey,
+            catalog.toJson(),
+            ttl: CacheTTL.courses,
+          );
+        } else {
+          print('[ScheduleNotifier] wac 目錄為空，不寫入快取');
+        }
       } catch (e) {
         print('[ScheduleNotifier] wac 目錄下載失敗: $e — 將以無節次模式顯示課表');
         catalog = null;
       }
     }
 
-    // 若 catalog 為 null（離線/失敗），仍以基礎資料顯示課表（星期會由 myclass API 的 wk 提供，節次會是空）
+    // 最終若仍為 null，以基礎資料顯示
     if (catalog == null) {
       _processScheduleData(data, semesters);
       return;
@@ -539,6 +702,8 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
         periods: periods,
         classroom: wac.room.isNotEmpty ? wac.room : course.classroom,
         teacher: wac.teacher.isNotEmpty ? wac.teacher : course.teacher,
+        // 更新中文課名 (優先用 WAC 的 chineseco)
+        name: wac.chineseco.isNotEmpty ? wac.chineseco : course.name,
       ));
     }
     print('[ScheduleNotifier] seqno join 完成: matched=$matched / total=${data.courses.length}');
@@ -548,6 +713,16 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
     }
 
     _processScheduleData(data.copyWith(courses: enrichedCourses), semesters);
+    // 將豐富後的資料（含 periods/教室/教授）寫回快取，下次直接讀取即有完整資料
+    try {
+      await cache.setSimple(
+        CacheBoxes.courses,
+        'schedule_data',
+        {'_schedule_data': true, 'data': data.copyWith(courses: enrichedCourses).toJson()},
+        ttl: CacheTTL.courses,
+      );
+      print('[ScheduleNotifier] 豐富後課表已寫入快取');
+    } catch (_) {}
   }
 
   void _processScheduleData(ScheduleData data, [List<SemesterInfo>? semesters]) {
@@ -605,203 +780,79 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
 
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => FutureBuilder<Map<String, dynamic>?>(
-        future: detailFuture,
-        builder: (context, snapshot) {
-          final detail = snapshot.data;
-          final d = detail ?? {};
-          final outline = (d['outline'] as List?)?.isNotEmpty == true ? d['outline'][0] as Map<String, dynamic>? : null;
-
-          final textbooks = (d['textbook'] as List?)?.isNotEmpty == true
-              ? d['textbook'].map((t) => t.toString()).join('\n')
-              : '無指定教科書 / 隨堂發放講義';
-
-          return AlertDialog(
-            title: Text(d['chineseco']?.toString() ?? course.name),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else ...[
-                      // 基本資訊
-                      _buildSection(context, '基本資訊', [
-                        _DetailRow('課程名稱 (中)', d['chineseco']?.toString() ?? '-'),
-                        _DetailRow('課程名稱 (英)', d['englishco']?.toString() ?? '-'),
-                        _DetailRow('開課單位', d['deptnam']?.toString() ?? d['edeptnam']?.toString() ?? '-'),
-                        _DetailRow('授課教師', d['teafnam']?.toString() ?? d['teafenam']?.toString() ?? '-'),
-                        _DetailRow('修習別 / 學分', '${_getTypeBadge(d['sm']?.toString() ?? '')} ${d['credit']?.toString() ?? '0'} 學分'),
-                        _DetailRow('學年 / 學期 / 年級', '${d['year']?.toString() ?? ''} 學年第 ${d['sem']?.toString() ?? ''} 學期 ( ${d['grade']?.toString() ?? '1'}年級 )'),
-                        _DetailRow('課程代碼 / 課號', '${d['cono']?.toString() ?? ''} / ${d['seqno']?.toString().trim() ?? ''}'),
-                        _DetailRow('教室 / 上課時間', '${d['roomNo']?.toString() ?? '依課表公告'} ${_formatWk(d['wk']?.toString())}'),
-                      ]),
-                     
-                      // 🎯 課程目標
-                      if (outline?['purpos']?.toString().isNotEmpty == true)
-                        _buildSection(context, '🎯 課程目標', [
-                          _DetailRow('', outline!['purpos'].toString(), isMultiline: true),
-                          if (outline['ePurpos']?.toString().isNotEmpty == true)
-                            _DetailRow('', outline['ePurpos'].toString(), isMultiline: true, isEnglish: true),
-                        ]),
-
-                      // 📖 授課方式
-                      if (outline?['method']?.toString().isNotEmpty == true)
-                        _buildSection(context, '📖 授課方式', [
-                          _DetailRow('', outline!['method'].toString(), isMultiline: true),
-                          if (outline['eMethod']?.toString().isNotEmpty == true)
-                            _DetailRow('', outline['eMethod'].toString(), isMultiline: true, isEnglish: true),
-                        ]),
-
-                      // 📅 課程大綱與進度
-                      if (outline?['syllabn']?.toString().isNotEmpty == true)
-                        _buildSection(context, '📅 課程大綱與進度', [
-                          _DetailRow('', outline!['syllabn'].toString(), isMultiline: true),
-                          if (outline['eSyllabn']?.toString().isNotEmpty == true)
-                            _DetailRow('', outline['eSyllabn'].toString(), isMultiline: true, isEnglish: true),
-                        ]),
-
-                      // ⚠️ 上課規範與注意事項
-                      if (outline?['seqnir']?.toString().isNotEmpty == true)
-                        _buildSection(context, '⚠️ 上課規範與注意事項', [
-                          _DetailRow('', outline!['seqnir'].toString(), isMultiline: true),
-                          if (outline['eSeqnir']?.toString().isNotEmpty == true)
-                            _DetailRow('', outline['eSeqnir'].toString(), isMultiline: true, isEnglish: true),
-                        ], isWarning: true),
-
-                      // ✉️ Office Hour / 諮詢聯絡
-                      if (outline?['officehour']?.toString().isNotEmpty == true)
-                        _buildSection(context, '✉️ Office Hour / 諮詢聯絡', [
-                          _DetailRow('', outline!['officehour'].toString(), isMultiline: true),
-                        ], isInfo: true),
-
-                      // 📚 教材與參考書目
-                      _buildSection(context, '📚 教材與參考書目', [
-                        _DetailRow('', textbooks, isMultiline: true),
-                      ]),
-
-                      // 📝 備註
-                      if (d['remark']?.toString().isNotEmpty == true)
-                        _buildSection(context, '📝 備註', [
-                          _DetailRow('', d['remark'].toString(), isMultiline: true),
-                        ]),
-                    ],
+      builder: (context) => AlertDialog(
+        title: Text(course.name),
+        content: FutureBuilder<Map<String, dynamic>?>(
+          future: detailFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 100,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data == null) {
+              return const Text('無詳細資料');
+            }
+            final detail = snapshot.data!;
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DetailRow('課程代碼', detail['cono']?.toString() ?? ''),
+                  _DetailRow('學分', detail['credit']?.toString() ?? ''),
+                  _DetailRow('必選修', detail['sm']?.toString() ?? ''),
+                  _DetailRow('開課系所', detail['deptnam']?.toString() ?? ''),
+                  _DetailRow('授課教師', detail['teafenam']?.toString() ?? ''),
+                  _DetailRow('教室', detail['roomNo']?.toString() ?? ''),
+                  if (detail['outline'] != null && detail['outline'] is List) ...[
+                    const SizedBox(height: 12),
+                    const Text('大綱', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ...List.generate(
+                      (detail['outline'] as List).length,
+                      (i) => Text((detail['outline'] as List)[i]['syllabn']?.toString() ?? ''),
+                    ),
                   ],
-                ),
+                  if (detail['textbook'] != null && detail['textbook'] is List) ...[
+                    const SizedBox(height: 12),
+                    const Text('教科書', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ...List.generate(
+                      (detail['textbook'] as List).length,
+                      (i) {
+                        final t = (detail['textbook'] as List)[i];
+                        return Text('${t['title']} (${t['author']}, ${t['pub']})');
+                      },
+                    ),
+                  ],
+                ],
               ),
-            ),
-            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('關閉'))],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSection(BuildContext context, String title, List<Widget> children, {bool isWarning = false, bool isInfo = false}) {
-    final theme = Theme.of(context);
-    final bgColor = isWarning
-        ? theme.colorScheme.errorContainer.withOpacity(0.3)
-        : isInfo
-            ? theme.colorScheme.tertiaryContainer.withOpacity(0.3)
-            : Colors.transparent;
-    final borderColor = isWarning 
-        ? theme.colorScheme.error
-        : isInfo
-            ? theme.colorScheme.tertiary
-            : Colors.transparent;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: borderColor != Colors.transparent
-            ? Border(
-                left: BorderSide(color: borderColor, width: 4),
-                top: BorderSide(color: borderColor, width: 1),
-                right: BorderSide(color: borderColor, width: 1),
-                bottom: BorderSide(color: borderColor, width: 1),
-              )
-            : Border.all(color: borderColor, width: 1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurfaceVariant,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...children,
+            );
+          },
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('關閉')),
         ],
       ),
     );
   }
-
-  String _getTypeBadge(String sm) {
-    if (sm.contains('必修')) return '必修';
-    if (sm.contains('選修')) return '選修';
-    if (sm.contains('通識')) return '通識';
-    return sm;
-  }
-
-  String _formatWk(String? wk) {
-    if (wk == null || wk.isEmpty || wk == '0') return '';
-    // Python API: 0=Sunday, 1=Monday, ..., 6=Saturday
-    // Flutter: 1=Monday, ..., 7=Sunday
-    const names = ['週一', '週二', '週三', '週四', '週五', '週六', '週日'];
-    return '(星期' + wk.split(',').map((s) {
-      final n = int.tryParse(s.trim()) ?? 0;
-      if (n == 0) return '週日'; // Python 0=Sunday
-      if (n >= 1 && n <= 6) return names[n - 1]; // Python 1-6=Monday-Saturday
-      return s;
-    }).join('、') + ')';
-  }
 }
 
 class _DetailRow extends StatelessWidget {
-  const _DetailRow(this.label, this.value, {this.isMultiline = false, this.isEnglish = false});
+  const _DetailRow(this.label, this.value);
   final String label;
   final String value;
-  final bool isMultiline;
-  final bool isEnglish;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = theme.textTheme.bodyMedium?.copyWith(
-      fontWeight: FontWeight.w500,
-      fontStyle: isEnglish ? FontStyle.italic : FontStyle.normal,
-      color: isEnglish ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
-      fontSize: isEnglish ? 13 : 14,
-    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (label.isNotEmpty)
-            SizedBox(width: 100, child: Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant))),
-          Expanded(
-            child: Text(
-              value,
-              style: style,
-              maxLines: isMultiline ? null : 1,
-              overflow: isMultiline ? TextOverflow.visible : TextOverflow.ellipsis,
-            ),
-          ),
+          SizedBox(width: 80, child: Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant))),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );
@@ -821,23 +872,6 @@ class MySchedulePage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('我的課表'),
         actions: [
-          if (state.semesters.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: DropdownButton<String>(
-                value: state.currentSemester,
-                items: state.semesters
-                    .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    notifier.state = state.copyWith(currentSemester: value);
-                  }
-                },
-                underline: const SizedBox(),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
           if (state.isLoading)
             const Padding(
               padding: EdgeInsets.all(16),
@@ -852,8 +886,6 @@ class MySchedulePage extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
-                      const SizedBox(height: 16),
                       Text(state.error!, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
@@ -869,48 +901,11 @@ class MySchedulePage extends ConsumerWidget {
   }
 
   Widget _buildScheduleView(BuildContext context, ScheduleState state, ScheduleNotifier notifier) {
-    // 檢查是否選了學期
-    if (state.currentSemester == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calendar_today, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
-            const SizedBox(height: 16),
-            Text('請先選擇學期', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-          ],
-        ),
-      );
-    }
-
     final allCourses = state.courses;
-    final semesterName = state.semesters.isNotEmpty
-        ? state.semesters.firstWhere((s) => s.id == state.currentSemester, orElse: () => state.semesters.first).name
-        : '載入中...';
 
     return Column(
       children: [
-        // 學期資訊
-        Container(
-          padding: const EdgeInsets.all(16),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Row(
-            children: [
-              Text(
-                semesterName,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const Spacer(),
-              if (state.scheduleData?.totalCredits != null)
-                Text(
-                  '共 ${state.scheduleData!.totalCredits!.toStringAsFixed(state.scheduleData!.totalCredits!.truncateToDouble() == state.scheduleData!.totalCredits! ? 0 : 1)} 學分',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
-                ),
-            ],
-          ),
-        ),
-
-        // 週課表表格 (主視圖)
+        // 週課表表格 (主視圖) - 直接佔滿全螢幕
         Expanded(
           child: WeekScheduleGrid(
             courses: allCourses,

@@ -293,6 +293,9 @@ class Course {
       'seqno': seqno,
       'periodCode': periodCode,
       'periods': periods,
+      // 新增：保存 year/sem 供 WAC 目錄下載使用
+      'year': id.split('-').isNotEmpty ? id.split('-')[0] : '',
+      'sem': id.split('-').length > 1 ? id.split('-')[1] : '',
     };
   }
 
@@ -505,8 +508,8 @@ class ScheduleData {
 
     if (items != null && items is List) {
       for (final item in items) {
-        if (item is Map<String, dynamic>) {
-          courses.add(Course.fromJson(item));
+        if (item is Map) {  // 接受 Map<dynamic, dynamic>
+          courses.add(Course.fromJson(Map<String, dynamic>.from(item)));
         }
       }
     }

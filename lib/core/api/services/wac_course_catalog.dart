@@ -253,8 +253,8 @@ class WacCourseCatalog {
       year: json['year'] as String? ?? '',
       sem: json['sem'] as String? ?? '',
       entries: raw
-          .whereType<Map<String, dynamic>>()
-          .map(WacCatalogEntry.fromMap)
+          .whereType<Map>()  // 接受 Map<dynamic, dynamic>
+          .map((m) => WacCatalogEntry.fromMap(Map<String, dynamic>.from(m)))
           .toList(),
     );
   }
