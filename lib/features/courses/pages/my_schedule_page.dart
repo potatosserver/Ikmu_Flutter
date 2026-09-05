@@ -58,7 +58,7 @@ class WeekScheduleGrid extends StatelessWidget {
     }
 
     // 計算總高度: Header (44) + 14 節 * 每節高度 (60) = 884
-    final totalGridHeight = _headerHeight + _periods.length * _rowHeight;
+    final totalGridHeight = _headerHeight + 4 + _periods.length * _rowHeight; // +4 為標題列 bottom margin
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -68,32 +68,34 @@ class WeekScheduleGrid extends StatelessWidget {
         final dayColumnWidth = (gridWidth - _timeColumnWidth) / 5; // 5 天
 
         // 使用自定義佈局：更輕量、圓角、有間距的 M3 風格表格
-        final gridTable = Column(
-          children: [
-            // 標題列 - 獨立圓角容器，與下方完全分開
-            Container(
-              margin: const EdgeInsets.only(bottom: 4), // 與下方分開
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12), // 四角圓角
-              ),
-              child: SizedBox(
-                height: _headerHeight,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: _timeColumnWidth,
-                      child: _buildTimeHeaderCell(theme, '節次'),
-                    ),
-                    ...List.generate(5, (i) => Expanded(
-                      child: _buildDayHeaderCell(theme, _weekdayLabels[i], i + 1),
-                    )),
-                  ],
+        final gridTable = SizedBox(
+          width: gridWidth, // 關鍵：給 Column 明確寬度約束，避免 Row Expanded 溢出
+          child: Column(
+            children: [
+              // 標題列 - 獨立圓角容器，與下方完全分開
+              Container(
+                margin: const EdgeInsets.only(bottom: 4), // 與下方分開
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12), // 四角圓角
+                ),
+                child: SizedBox(
+                  height: _headerHeight,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: _timeColumnWidth,
+                        child: _buildTimeHeaderCell(theme, '節次'),
+                      ),
+                      ...List.generate(5, (i) => Expanded(
+                        child: _buildDayHeaderCell(theme, _weekdayLabels[i], i + 1),
+                      )),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // 14 節次列
-            ..._periods.asMap().entries.map((entry) {
+              // 14 節次列
+              ..._periods.asMap().entries.map((entry) {
               final p = entry.value;
               final rowIndex = entry.key;
               final isLastRow = rowIndex == _periods.length - 1;
@@ -180,7 +182,8 @@ class WeekScheduleGrid extends StatelessWidget {
               );
             }),
           ],
-        );
+        ),
+      );
 
         // 疊加課程卡片 (用 SizedBox 給予明確的長寬約束，解決 Stack 的 size.isFinite 錯誤)
         final courseStack = SizedBox(
