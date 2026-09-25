@@ -209,388 +209,6 @@ abstract class _CalendarEventType implements CalendarEventType {
 }
 
 /// @nodoc
-mixin _$CalendarEvent {
-  String get id => throw _privateConstructorUsedError;
-  String get title => throw _privateConstructorUsedError;
-  String get typeCode => throw _privateConstructorUsedError;
-  String? get typeName => throw _privateConstructorUsedError;
-  String? get startTime => throw _privateConstructorUsedError;
-  String? get endTime => throw _privateConstructorUsedError;
-  bool get allDay => throw _privateConstructorUsedError;
-  String? get location => throw _privateConstructorUsedError;
-  String? get info => throw _privateConstructorUsedError;
-  String? get extendedInfo => throw _privateConstructorUsedError;
-  String? get color => throw _privateConstructorUsedError;
-  int? get sequence => throw _privateConstructorUsedError;
-  String? get date => throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $CalendarEventCopyWith<CalendarEvent> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $CalendarEventCopyWith<$Res> {
-  factory $CalendarEventCopyWith(
-          CalendarEvent value, $Res Function(CalendarEvent) then) =
-      _$CalendarEventCopyWithImpl<$Res, CalendarEvent>;
-  @useResult
-  $Res call(
-      {String id,
-      String title,
-      String typeCode,
-      String? typeName,
-      String? startTime,
-      String? endTime,
-      bool allDay,
-      String? location,
-      String? info,
-      String? extendedInfo,
-      String? color,
-      int? sequence,
-      String? date});
-}
-
-/// @nodoc
-class _$CalendarEventCopyWithImpl<$Res, $Val extends CalendarEvent>
-    implements $CalendarEventCopyWith<$Res> {
-  _$CalendarEventCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-    Object? typeCode = null,
-    Object? typeName = freezed,
-    Object? startTime = freezed,
-    Object? endTime = freezed,
-    Object? allDay = null,
-    Object? location = freezed,
-    Object? info = freezed,
-    Object? extendedInfo = freezed,
-    Object? color = freezed,
-    Object? sequence = freezed,
-    Object? date = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      typeCode: null == typeCode
-          ? _value.typeCode
-          : typeCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      typeName: freezed == typeName
-          ? _value.typeName
-          : typeName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      startTime: freezed == startTime
-          ? _value.startTime
-          : startTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      endTime: freezed == endTime
-          ? _value.endTime
-          : endTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      allDay: null == allDay
-          ? _value.allDay
-          : allDay // ignore: cast_nullable_to_non_nullable
-              as bool,
-      location: freezed == location
-          ? _value.location
-          : location // ignore: cast_nullable_to_non_nullable
-              as String?,
-      info: freezed == info
-          ? _value.info
-          : info // ignore: cast_nullable_to_non_nullable
-              as String?,
-      extendedInfo: freezed == extendedInfo
-          ? _value.extendedInfo
-          : extendedInfo // ignore: cast_nullable_to_non_nullable
-              as String?,
-      color: freezed == color
-          ? _value.color
-          : color // ignore: cast_nullable_to_non_nullable
-              as String?,
-      sequence: freezed == sequence
-          ? _value.sequence
-          : sequence // ignore: cast_nullable_to_non_nullable
-              as int?,
-      date: freezed == date
-          ? _value.date
-          : date // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$CalendarEventImplCopyWith<$Res>
-    implements $CalendarEventCopyWith<$Res> {
-  factory _$$CalendarEventImplCopyWith(
-          _$CalendarEventImpl value, $Res Function(_$CalendarEventImpl) then) =
-      __$$CalendarEventImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String id,
-      String title,
-      String typeCode,
-      String? typeName,
-      String? startTime,
-      String? endTime,
-      bool allDay,
-      String? location,
-      String? info,
-      String? extendedInfo,
-      String? color,
-      int? sequence,
-      String? date});
-}
-
-/// @nodoc
-class __$$CalendarEventImplCopyWithImpl<$Res>
-    extends _$CalendarEventCopyWithImpl<$Res, _$CalendarEventImpl>
-    implements _$$CalendarEventImplCopyWith<$Res> {
-  __$$CalendarEventImplCopyWithImpl(
-      _$CalendarEventImpl _value, $Res Function(_$CalendarEventImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-    Object? typeCode = null,
-    Object? typeName = freezed,
-    Object? startTime = freezed,
-    Object? endTime = freezed,
-    Object? allDay = null,
-    Object? location = freezed,
-    Object? info = freezed,
-    Object? extendedInfo = freezed,
-    Object? color = freezed,
-    Object? sequence = freezed,
-    Object? date = freezed,
-  }) {
-    return _then(_$CalendarEventImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      typeCode: null == typeCode
-          ? _value.typeCode
-          : typeCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      typeName: freezed == typeName
-          ? _value.typeName
-          : typeName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      startTime: freezed == startTime
-          ? _value.startTime
-          : startTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      endTime: freezed == endTime
-          ? _value.endTime
-          : endTime // ignore: cast_nullable_to_non_nullable
-              as String?,
-      allDay: null == allDay
-          ? _value.allDay
-          : allDay // ignore: cast_nullable_to_non_nullable
-              as bool,
-      location: freezed == location
-          ? _value.location
-          : location // ignore: cast_nullable_to_non_nullable
-              as String?,
-      info: freezed == info
-          ? _value.info
-          : info // ignore: cast_nullable_to_non_nullable
-              as String?,
-      extendedInfo: freezed == extendedInfo
-          ? _value.extendedInfo
-          : extendedInfo // ignore: cast_nullable_to_non_nullable
-              as String?,
-      color: freezed == color
-          ? _value.color
-          : color // ignore: cast_nullable_to_non_nullable
-              as String?,
-      sequence: freezed == sequence
-          ? _value.sequence
-          : sequence // ignore: cast_nullable_to_non_nullable
-              as int?,
-      date: freezed == date
-          ? _value.date
-          : date // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$CalendarEventImpl implements _CalendarEvent {
-  const _$CalendarEventImpl(
-      {required this.id,
-      required this.title,
-      required this.typeCode,
-      this.typeName,
-      this.startTime,
-      this.endTime,
-      this.allDay = false,
-      this.location,
-      this.info,
-      this.extendedInfo,
-      this.color,
-      this.sequence,
-      this.date});
-
-  @override
-  final String id;
-  @override
-  final String title;
-  @override
-  final String typeCode;
-  @override
-  final String? typeName;
-  @override
-  final String? startTime;
-  @override
-  final String? endTime;
-  @override
-  @JsonKey()
-  final bool allDay;
-  @override
-  final String? location;
-  @override
-  final String? info;
-  @override
-  final String? extendedInfo;
-  @override
-  final String? color;
-  @override
-  final int? sequence;
-  @override
-  final String? date;
-
-  @override
-  String toString() {
-    return 'CalendarEvent(id: $id, title: $title, typeCode: $typeCode, typeName: $typeName, startTime: $startTime, endTime: $endTime, allDay: $allDay, location: $location, info: $info, extendedInfo: $extendedInfo, color: $color, sequence: $sequence, date: $date)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CalendarEventImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.title, title) || other.title == title) &&
-            (identical(other.typeCode, typeCode) ||
-                other.typeCode == typeCode) &&
-            (identical(other.typeName, typeName) ||
-                other.typeName == typeName) &&
-            (identical(other.startTime, startTime) ||
-                other.startTime == startTime) &&
-            (identical(other.endTime, endTime) || other.endTime == endTime) &&
-            (identical(other.allDay, allDay) || other.allDay == allDay) &&
-            (identical(other.location, location) ||
-                other.location == location) &&
-            (identical(other.info, info) || other.info == info) &&
-            (identical(other.extendedInfo, extendedInfo) ||
-                other.extendedInfo == extendedInfo) &&
-            (identical(other.color, color) || other.color == color) &&
-            (identical(other.sequence, sequence) ||
-                other.sequence == sequence) &&
-            (identical(other.date, date) || other.date == date));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      title,
-      typeCode,
-      typeName,
-      startTime,
-      endTime,
-      allDay,
-      location,
-      info,
-      extendedInfo,
-      color,
-      sequence,
-      date);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$CalendarEventImplCopyWith<_$CalendarEventImpl> get copyWith =>
-      __$$CalendarEventImplCopyWithImpl<_$CalendarEventImpl>(this, _$identity);
-}
-
-abstract class _CalendarEvent implements CalendarEvent {
-  const factory _CalendarEvent(
-      {required final String id,
-      required final String title,
-      required final String typeCode,
-      final String? typeName,
-      final String? startTime,
-      final String? endTime,
-      final bool allDay,
-      final String? location,
-      final String? info,
-      final String? extendedInfo,
-      final String? color,
-      final int? sequence,
-      final String? date}) = _$CalendarEventImpl;
-
-  @override
-  String get id;
-  @override
-  String get title;
-  @override
-  String get typeCode;
-  @override
-  String? get typeName;
-  @override
-  String? get startTime;
-  @override
-  String? get endTime;
-  @override
-  bool get allDay;
-  @override
-  String? get location;
-  @override
-  String? get info;
-  @override
-  String? get extendedInfo;
-  @override
-  String? get color;
-  @override
-  int? get sequence;
-  @override
-  String? get date;
-  @override
-  @JsonKey(ignore: true)
-  _$$CalendarEventImplCopyWith<_$CalendarEventImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
 mixin _$CalendarState {
   CalendarView get currentView => throw _privateConstructorUsedError;
   DateTime? get currentMonth =>
@@ -1113,9 +731,9 @@ EventDetailData _$EventDetailDataFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$EventDetailData {
-  dynamic get event => throw _privateConstructorUsedError;
+  CalendarEvent get event => throw _privateConstructorUsedError;
   String get dateStr => throw _privateConstructorUsedError;
-  List<dynamic> get allDayEvents => throw _privateConstructorUsedError;
+  List<CalendarEvent> get allDayEvents => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -1129,7 +747,8 @@ abstract class $EventDetailDataCopyWith<$Res> {
           EventDetailData value, $Res Function(EventDetailData) then) =
       _$EventDetailDataCopyWithImpl<$Res, EventDetailData>;
   @useResult
-  $Res call({dynamic event, String dateStr, List<dynamic> allDayEvents});
+  $Res call(
+      {CalendarEvent event, String dateStr, List<CalendarEvent> allDayEvents});
 }
 
 /// @nodoc
@@ -1145,15 +764,15 @@ class _$EventDetailDataCopyWithImpl<$Res, $Val extends EventDetailData>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? event = freezed,
+    Object? event = null,
     Object? dateStr = null,
     Object? allDayEvents = null,
   }) {
     return _then(_value.copyWith(
-      event: freezed == event
+      event: null == event
           ? _value.event
           : event // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as CalendarEvent,
       dateStr: null == dateStr
           ? _value.dateStr
           : dateStr // ignore: cast_nullable_to_non_nullable
@@ -1161,7 +780,7 @@ class _$EventDetailDataCopyWithImpl<$Res, $Val extends EventDetailData>
       allDayEvents: null == allDayEvents
           ? _value.allDayEvents
           : allDayEvents // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<CalendarEvent>,
     ) as $Val);
   }
 }
@@ -1174,7 +793,8 @@ abstract class _$$EventDetailDataImplCopyWith<$Res>
       __$$EventDetailDataImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({dynamic event, String dateStr, List<dynamic> allDayEvents});
+  $Res call(
+      {CalendarEvent event, String dateStr, List<CalendarEvent> allDayEvents});
 }
 
 /// @nodoc
@@ -1188,15 +808,15 @@ class __$$EventDetailDataImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? event = freezed,
+    Object? event = null,
     Object? dateStr = null,
     Object? allDayEvents = null,
   }) {
     return _then(_$EventDetailDataImpl(
-      event: freezed == event
+      event: null == event
           ? _value.event
           : event // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as CalendarEvent,
       dateStr: null == dateStr
           ? _value.dateStr
           : dateStr // ignore: cast_nullable_to_non_nullable
@@ -1204,7 +824,7 @@ class __$$EventDetailDataImplCopyWithImpl<$Res>
       allDayEvents: null == allDayEvents
           ? _value._allDayEvents
           : allDayEvents // ignore: cast_nullable_to_non_nullable
-              as List<dynamic>,
+              as List<CalendarEvent>,
     ));
   }
 }
@@ -1215,19 +835,19 @@ class _$EventDetailDataImpl implements _EventDetailData {
   const _$EventDetailDataImpl(
       {required this.event,
       required this.dateStr,
-      required final List<dynamic> allDayEvents})
+      required final List<CalendarEvent> allDayEvents})
       : _allDayEvents = allDayEvents;
 
   factory _$EventDetailDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$EventDetailDataImplFromJson(json);
 
   @override
-  final dynamic event;
+  final CalendarEvent event;
   @override
   final String dateStr;
-  final List<dynamic> _allDayEvents;
+  final List<CalendarEvent> _allDayEvents;
   @override
-  List<dynamic> get allDayEvents {
+  List<CalendarEvent> get allDayEvents {
     if (_allDayEvents is EqualUnmodifiableListView) return _allDayEvents;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_allDayEvents);
@@ -1243,7 +863,7 @@ class _$EventDetailDataImpl implements _EventDetailData {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$EventDetailDataImpl &&
-            const DeepCollectionEquality().equals(other.event, event) &&
+            (identical(other.event, event) || other.event == event) &&
             (identical(other.dateStr, dateStr) || other.dateStr == dateStr) &&
             const DeepCollectionEquality()
                 .equals(other._allDayEvents, _allDayEvents));
@@ -1251,10 +871,7 @@ class _$EventDetailDataImpl implements _EventDetailData {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      const DeepCollectionEquality().hash(event),
-      dateStr,
+  int get hashCode => Object.hash(runtimeType, event, dateStr,
       const DeepCollectionEquality().hash(_allDayEvents));
 
   @JsonKey(ignore: true)
@@ -1274,19 +891,19 @@ class _$EventDetailDataImpl implements _EventDetailData {
 
 abstract class _EventDetailData implements EventDetailData {
   const factory _EventDetailData(
-      {required final dynamic event,
+      {required final CalendarEvent event,
       required final String dateStr,
-      required final List<dynamic> allDayEvents}) = _$EventDetailDataImpl;
+      required final List<CalendarEvent> allDayEvents}) = _$EventDetailDataImpl;
 
   factory _EventDetailData.fromJson(Map<String, dynamic> json) =
       _$EventDetailDataImpl.fromJson;
 
   @override
-  dynamic get event;
+  CalendarEvent get event;
   @override
   String get dateStr;
   @override
-  List<dynamic> get allDayEvents;
+  List<CalendarEvent> get allDayEvents;
   @override
   @JsonKey(ignore: true)
   _$$EventDetailDataImplCopyWith<_$EventDetailDataImpl> get copyWith =>

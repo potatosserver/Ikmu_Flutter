@@ -1458,10 +1458,6 @@ abstract class _BusStopResponse implements BusStopResponse {
       throw _privateConstructorUsedError;
 }
 
-BikeStation _$BikeStationFromJson(Map<String, dynamic> json) {
-  return _BikeStation.fromJson(json);
-}
-
 /// @nodoc
 mixin _$BikeStation {
   String get id => throw _privateConstructorUsedError;
@@ -1475,9 +1471,20 @@ mixin _$BikeStation {
   String? get status =>
       throw _privateConstructorUsedError; // normal, maintenance, closed
   String? get updatedAt => throw _privateConstructorUsedError;
-  String? get area => throw _privateConstructorUsedError;
+  String? get area =>
+      throw _privateConstructorUsedError; // YouBike 2.0 API 原始欄位
+  String? get stationNo => throw _privateConstructorUsedError;
+  String? get sna => throw _privateConstructorUsedError;
+  String? get ar => throw _privateConstructorUsedError;
+  String? get act => throw _privateConstructorUsedError;
+  String? get mday => throw _privateConstructorUsedError;
+  String? get sarea => throw _privateConstructorUsedError;
+  int? get tot => throw _privateConstructorUsedError;
+  int? get sbi => throw _privateConstructorUsedError;
+  int? get bemp => throw _privateConstructorUsedError;
+  int? get yb2 => throw _privateConstructorUsedError;
+  int? get eyb => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $BikeStationCopyWith<BikeStation> get copyWith =>
       throw _privateConstructorUsedError;
@@ -1500,7 +1507,18 @@ abstract class $BikeStationCopyWith<$Res> {
       String? address,
       String? status,
       String? updatedAt,
-      String? area});
+      String? area,
+      String? stationNo,
+      String? sna,
+      String? ar,
+      String? act,
+      String? mday,
+      String? sarea,
+      int? tot,
+      int? sbi,
+      int? bemp,
+      int? yb2,
+      int? eyb});
 }
 
 /// @nodoc
@@ -1527,6 +1545,17 @@ class _$BikeStationCopyWithImpl<$Res, $Val extends BikeStation>
     Object? status = freezed,
     Object? updatedAt = freezed,
     Object? area = freezed,
+    Object? stationNo = freezed,
+    Object? sna = freezed,
+    Object? ar = freezed,
+    Object? act = freezed,
+    Object? mday = freezed,
+    Object? sarea = freezed,
+    Object? tot = freezed,
+    Object? sbi = freezed,
+    Object? bemp = freezed,
+    Object? yb2 = freezed,
+    Object? eyb = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -1573,6 +1602,50 @@ class _$BikeStationCopyWithImpl<$Res, $Val extends BikeStation>
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
               as String?,
+      stationNo: freezed == stationNo
+          ? _value.stationNo
+          : stationNo // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sna: freezed == sna
+          ? _value.sna
+          : sna // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ar: freezed == ar
+          ? _value.ar
+          : ar // ignore: cast_nullable_to_non_nullable
+              as String?,
+      act: freezed == act
+          ? _value.act
+          : act // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mday: freezed == mday
+          ? _value.mday
+          : mday // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sarea: freezed == sarea
+          ? _value.sarea
+          : sarea // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tot: freezed == tot
+          ? _value.tot
+          : tot // ignore: cast_nullable_to_non_nullable
+              as int?,
+      sbi: freezed == sbi
+          ? _value.sbi
+          : sbi // ignore: cast_nullable_to_non_nullable
+              as int?,
+      bemp: freezed == bemp
+          ? _value.bemp
+          : bemp // ignore: cast_nullable_to_non_nullable
+              as int?,
+      yb2: freezed == yb2
+          ? _value.yb2
+          : yb2 // ignore: cast_nullable_to_non_nullable
+              as int?,
+      eyb: freezed == eyb
+          ? _value.eyb
+          : eyb // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 }
@@ -1596,7 +1669,18 @@ abstract class _$$BikeStationImplCopyWith<$Res>
       String? address,
       String? status,
       String? updatedAt,
-      String? area});
+      String? area,
+      String? stationNo,
+      String? sna,
+      String? ar,
+      String? act,
+      String? mday,
+      String? sarea,
+      int? tot,
+      int? sbi,
+      int? bemp,
+      int? yb2,
+      int? eyb});
 }
 
 /// @nodoc
@@ -1621,6 +1705,17 @@ class __$$BikeStationImplCopyWithImpl<$Res>
     Object? status = freezed,
     Object? updatedAt = freezed,
     Object? area = freezed,
+    Object? stationNo = freezed,
+    Object? sna = freezed,
+    Object? ar = freezed,
+    Object? act = freezed,
+    Object? mday = freezed,
+    Object? sarea = freezed,
+    Object? tot = freezed,
+    Object? sbi = freezed,
+    Object? bemp = freezed,
+    Object? yb2 = freezed,
+    Object? eyb = freezed,
   }) {
     return _then(_$BikeStationImpl(
       id: null == id
@@ -1667,12 +1762,56 @@ class __$$BikeStationImplCopyWithImpl<$Res>
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
               as String?,
+      stationNo: freezed == stationNo
+          ? _value.stationNo
+          : stationNo // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sna: freezed == sna
+          ? _value.sna
+          : sna // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ar: freezed == ar
+          ? _value.ar
+          : ar // ignore: cast_nullable_to_non_nullable
+              as String?,
+      act: freezed == act
+          ? _value.act
+          : act // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mday: freezed == mday
+          ? _value.mday
+          : mday // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sarea: freezed == sarea
+          ? _value.sarea
+          : sarea // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tot: freezed == tot
+          ? _value.tot
+          : tot // ignore: cast_nullable_to_non_nullable
+              as int?,
+      sbi: freezed == sbi
+          ? _value.sbi
+          : sbi // ignore: cast_nullable_to_non_nullable
+              as int?,
+      bemp: freezed == bemp
+          ? _value.bemp
+          : bemp // ignore: cast_nullable_to_non_nullable
+              as int?,
+      yb2: freezed == yb2
+          ? _value.yb2
+          : yb2 // ignore: cast_nullable_to_non_nullable
+              as int?,
+      eyb: freezed == eyb
+          ? _value.eyb
+          : eyb // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$BikeStationImpl implements _BikeStation {
   const _$BikeStationImpl(
       {required this.id,
@@ -1685,10 +1824,18 @@ class _$BikeStationImpl implements _BikeStation {
       this.address,
       this.status,
       this.updatedAt,
-      this.area});
-
-  factory _$BikeStationImpl.fromJson(Map<String, dynamic> json) =>
-      _$$BikeStationImplFromJson(json);
+      this.area,
+      this.stationNo,
+      this.sna,
+      this.ar,
+      this.act,
+      this.mday,
+      this.sarea,
+      this.tot,
+      this.sbi,
+      this.bemp,
+      this.yb2,
+      this.eyb});
 
   @override
   final String id;
@@ -1713,10 +1860,33 @@ class _$BikeStationImpl implements _BikeStation {
   final String? updatedAt;
   @override
   final String? area;
+// YouBike 2.0 API 原始欄位
+  @override
+  final String? stationNo;
+  @override
+  final String? sna;
+  @override
+  final String? ar;
+  @override
+  final String? act;
+  @override
+  final String? mday;
+  @override
+  final String? sarea;
+  @override
+  final int? tot;
+  @override
+  final int? sbi;
+  @override
+  final int? bemp;
+  @override
+  final int? yb2;
+  @override
+  final int? eyb;
 
   @override
   String toString() {
-    return 'BikeStation(id: $id, name: $name, latitude: $latitude, longitude: $longitude, totalDocks: $totalDocks, availableBikes: $availableBikes, availableDocks: $availableDocks, address: $address, status: $status, updatedAt: $updatedAt, area: $area)';
+    return 'BikeStation(id: $id, name: $name, latitude: $latitude, longitude: $longitude, totalDocks: $totalDocks, availableBikes: $availableBikes, availableDocks: $availableDocks, address: $address, status: $status, updatedAt: $updatedAt, area: $area, stationNo: $stationNo, sna: $sna, ar: $ar, act: $act, mday: $mday, sarea: $sarea, tot: $tot, sbi: $sbi, bemp: $bemp, yb2: $yb2, eyb: $eyb)';
   }
 
   @override
@@ -1740,37 +1910,53 @@ class _$BikeStationImpl implements _BikeStation {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
-            (identical(other.area, area) || other.area == area));
+            (identical(other.area, area) || other.area == area) &&
+            (identical(other.stationNo, stationNo) ||
+                other.stationNo == stationNo) &&
+            (identical(other.sna, sna) || other.sna == sna) &&
+            (identical(other.ar, ar) || other.ar == ar) &&
+            (identical(other.act, act) || other.act == act) &&
+            (identical(other.mday, mday) || other.mday == mday) &&
+            (identical(other.sarea, sarea) || other.sarea == sarea) &&
+            (identical(other.tot, tot) || other.tot == tot) &&
+            (identical(other.sbi, sbi) || other.sbi == sbi) &&
+            (identical(other.bemp, bemp) || other.bemp == bemp) &&
+            (identical(other.yb2, yb2) || other.yb2 == yb2) &&
+            (identical(other.eyb, eyb) || other.eyb == eyb));
   }
 
-  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      latitude,
-      longitude,
-      totalDocks,
-      availableBikes,
-      availableDocks,
-      address,
-      status,
-      updatedAt,
-      area);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        name,
+        latitude,
+        longitude,
+        totalDocks,
+        availableBikes,
+        availableDocks,
+        address,
+        status,
+        updatedAt,
+        area,
+        stationNo,
+        sna,
+        ar,
+        act,
+        mday,
+        sarea,
+        tot,
+        sbi,
+        bemp,
+        yb2,
+        eyb
+      ]);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$BikeStationImplCopyWith<_$BikeStationImpl> get copyWith =>
       __$$BikeStationImplCopyWithImpl<_$BikeStationImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$BikeStationImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _BikeStation implements BikeStation {
@@ -1785,10 +1971,18 @@ abstract class _BikeStation implements BikeStation {
       final String? address,
       final String? status,
       final String? updatedAt,
-      final String? area}) = _$BikeStationImpl;
-
-  factory _BikeStation.fromJson(Map<String, dynamic> json) =
-      _$BikeStationImpl.fromJson;
+      final String? area,
+      final String? stationNo,
+      final String? sna,
+      final String? ar,
+      final String? act,
+      final String? mday,
+      final String? sarea,
+      final int? tot,
+      final int? sbi,
+      final int? bemp,
+      final int? yb2,
+      final int? eyb}) = _$BikeStationImpl;
 
   @override
   String get id;
@@ -1812,6 +2006,28 @@ abstract class _BikeStation implements BikeStation {
   String? get updatedAt;
   @override
   String? get area;
+  @override // YouBike 2.0 API 原始欄位
+  String? get stationNo;
+  @override
+  String? get sna;
+  @override
+  String? get ar;
+  @override
+  String? get act;
+  @override
+  String? get mday;
+  @override
+  String? get sarea;
+  @override
+  int? get tot;
+  @override
+  int? get sbi;
+  @override
+  int? get bemp;
+  @override
+  int? get yb2;
+  @override
+  int? get eyb;
   @override
   @JsonKey(ignore: true)
   _$$BikeStationImplCopyWith<_$BikeStationImpl> get copyWith =>
@@ -2514,18 +2730,592 @@ abstract class _TrafficInfoResponse implements TrafficInfoResponse {
       throw _privateConstructorUsedError;
 }
 
+MetroStation _$MetroStationFromJson(Map<String, dynamic> json) {
+  return _MetroStation.fromJson(json);
+}
+
+/// @nodoc
+mixin _$MetroStation {
+  String get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String get nameEn => throw _privateConstructorUsedError;
+  double get latitude => throw _privateConstructorUsedError;
+  double get longitude => throw _privateConstructorUsedError;
+  String get line => throw _privateConstructorUsedError; // 'red', 'orange'
+  int get sequence => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+  String? get transfer => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $MetroStationCopyWith<MetroStation> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MetroStationCopyWith<$Res> {
+  factory $MetroStationCopyWith(
+          MetroStation value, $Res Function(MetroStation) then) =
+      _$MetroStationCopyWithImpl<$Res, MetroStation>;
+  @useResult
+  $Res call(
+      {String id,
+      String name,
+      String nameEn,
+      double latitude,
+      double longitude,
+      String line,
+      int sequence,
+      String? address,
+      String? transfer});
+}
+
+/// @nodoc
+class _$MetroStationCopyWithImpl<$Res, $Val extends MetroStation>
+    implements $MetroStationCopyWith<$Res> {
+  _$MetroStationCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? nameEn = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? line = null,
+    Object? sequence = null,
+    Object? address = freezed,
+    Object? transfer = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      nameEn: null == nameEn
+          ? _value.nameEn
+          : nameEn // ignore: cast_nullable_to_non_nullable
+              as String,
+      latitude: null == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      longitude: null == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      line: null == line
+          ? _value.line
+          : line // ignore: cast_nullable_to_non_nullable
+              as String,
+      sequence: null == sequence
+          ? _value.sequence
+          : sequence // ignore: cast_nullable_to_non_nullable
+              as int,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      transfer: freezed == transfer
+          ? _value.transfer
+          : transfer // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$MetroStationImplCopyWith<$Res>
+    implements $MetroStationCopyWith<$Res> {
+  factory _$$MetroStationImplCopyWith(
+          _$MetroStationImpl value, $Res Function(_$MetroStationImpl) then) =
+      __$$MetroStationImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String name,
+      String nameEn,
+      double latitude,
+      double longitude,
+      String line,
+      int sequence,
+      String? address,
+      String? transfer});
+}
+
+/// @nodoc
+class __$$MetroStationImplCopyWithImpl<$Res>
+    extends _$MetroStationCopyWithImpl<$Res, _$MetroStationImpl>
+    implements _$$MetroStationImplCopyWith<$Res> {
+  __$$MetroStationImplCopyWithImpl(
+      _$MetroStationImpl _value, $Res Function(_$MetroStationImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? nameEn = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? line = null,
+    Object? sequence = null,
+    Object? address = freezed,
+    Object? transfer = freezed,
+  }) {
+    return _then(_$MetroStationImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      nameEn: null == nameEn
+          ? _value.nameEn
+          : nameEn // ignore: cast_nullable_to_non_nullable
+              as String,
+      latitude: null == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      longitude: null == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      line: null == line
+          ? _value.line
+          : line // ignore: cast_nullable_to_non_nullable
+              as String,
+      sequence: null == sequence
+          ? _value.sequence
+          : sequence // ignore: cast_nullable_to_non_nullable
+              as int,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      transfer: freezed == transfer
+          ? _value.transfer
+          : transfer // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$MetroStationImpl implements _MetroStation {
+  const _$MetroStationImpl(
+      {required this.id,
+      required this.name,
+      required this.nameEn,
+      required this.latitude,
+      required this.longitude,
+      required this.line,
+      required this.sequence,
+      this.address,
+      this.transfer});
+
+  factory _$MetroStationImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MetroStationImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String nameEn;
+  @override
+  final double latitude;
+  @override
+  final double longitude;
+  @override
+  final String line;
+// 'red', 'orange'
+  @override
+  final int sequence;
+  @override
+  final String? address;
+  @override
+  final String? transfer;
+
+  @override
+  String toString() {
+    return 'MetroStation(id: $id, name: $name, nameEn: $nameEn, latitude: $latitude, longitude: $longitude, line: $line, sequence: $sequence, address: $address, transfer: $transfer)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MetroStationImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.nameEn, nameEn) || other.nameEn == nameEn) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.line, line) || other.line == line) &&
+            (identical(other.sequence, sequence) ||
+                other.sequence == sequence) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.transfer, transfer) ||
+                other.transfer == transfer));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, nameEn, latitude,
+      longitude, line, sequence, address, transfer);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MetroStationImplCopyWith<_$MetroStationImpl> get copyWith =>
+      __$$MetroStationImplCopyWithImpl<_$MetroStationImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MetroStationImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _MetroStation implements MetroStation {
+  const factory _MetroStation(
+      {required final String id,
+      required final String name,
+      required final String nameEn,
+      required final double latitude,
+      required final double longitude,
+      required final String line,
+      required final int sequence,
+      final String? address,
+      final String? transfer}) = _$MetroStationImpl;
+
+  factory _MetroStation.fromJson(Map<String, dynamic> json) =
+      _$MetroStationImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get name;
+  @override
+  String get nameEn;
+  @override
+  double get latitude;
+  @override
+  double get longitude;
+  @override
+  String get line;
+  @override // 'red', 'orange'
+  int get sequence;
+  @override
+  String? get address;
+  @override
+  String? get transfer;
+  @override
+  @JsonKey(ignore: true)
+  _$$MetroStationImplCopyWith<_$MetroStationImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+LRTStation _$LRTStationFromJson(Map<String, dynamic> json) {
+  return _LRTStation.fromJson(json);
+}
+
+/// @nodoc
+mixin _$LRTStation {
+  String get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String get nameEn => throw _privateConstructorUsedError;
+  double get latitude => throw _privateConstructorUsedError;
+  double get longitude => throw _privateConstructorUsedError;
+  int get sequence => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $LRTStationCopyWith<LRTStation> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LRTStationCopyWith<$Res> {
+  factory $LRTStationCopyWith(
+          LRTStation value, $Res Function(LRTStation) then) =
+      _$LRTStationCopyWithImpl<$Res, LRTStation>;
+  @useResult
+  $Res call(
+      {String id,
+      String name,
+      String nameEn,
+      double latitude,
+      double longitude,
+      int sequence,
+      String? address});
+}
+
+/// @nodoc
+class _$LRTStationCopyWithImpl<$Res, $Val extends LRTStation>
+    implements $LRTStationCopyWith<$Res> {
+  _$LRTStationCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? nameEn = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? sequence = null,
+    Object? address = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      nameEn: null == nameEn
+          ? _value.nameEn
+          : nameEn // ignore: cast_nullable_to_non_nullable
+              as String,
+      latitude: null == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      longitude: null == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      sequence: null == sequence
+          ? _value.sequence
+          : sequence // ignore: cast_nullable_to_non_nullable
+              as int,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$LRTStationImplCopyWith<$Res>
+    implements $LRTStationCopyWith<$Res> {
+  factory _$$LRTStationImplCopyWith(
+          _$LRTStationImpl value, $Res Function(_$LRTStationImpl) then) =
+      __$$LRTStationImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String name,
+      String nameEn,
+      double latitude,
+      double longitude,
+      int sequence,
+      String? address});
+}
+
+/// @nodoc
+class __$$LRTStationImplCopyWithImpl<$Res>
+    extends _$LRTStationCopyWithImpl<$Res, _$LRTStationImpl>
+    implements _$$LRTStationImplCopyWith<$Res> {
+  __$$LRTStationImplCopyWithImpl(
+      _$LRTStationImpl _value, $Res Function(_$LRTStationImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? nameEn = null,
+    Object? latitude = null,
+    Object? longitude = null,
+    Object? sequence = null,
+    Object? address = freezed,
+  }) {
+    return _then(_$LRTStationImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      nameEn: null == nameEn
+          ? _value.nameEn
+          : nameEn // ignore: cast_nullable_to_non_nullable
+              as String,
+      latitude: null == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      longitude: null == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      sequence: null == sequence
+          ? _value.sequence
+          : sequence // ignore: cast_nullable_to_non_nullable
+              as int,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$LRTStationImpl implements _LRTStation {
+  const _$LRTStationImpl(
+      {required this.id,
+      required this.name,
+      required this.nameEn,
+      required this.latitude,
+      required this.longitude,
+      required this.sequence,
+      this.address});
+
+  factory _$LRTStationImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LRTStationImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String nameEn;
+  @override
+  final double latitude;
+  @override
+  final double longitude;
+  @override
+  final int sequence;
+  @override
+  final String? address;
+
+  @override
+  String toString() {
+    return 'LRTStation(id: $id, name: $name, nameEn: $nameEn, latitude: $latitude, longitude: $longitude, sequence: $sequence, address: $address)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LRTStationImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.nameEn, nameEn) || other.nameEn == nameEn) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.sequence, sequence) ||
+                other.sequence == sequence) &&
+            (identical(other.address, address) || other.address == address));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, id, name, nameEn, latitude, longitude, sequence, address);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$LRTStationImplCopyWith<_$LRTStationImpl> get copyWith =>
+      __$$LRTStationImplCopyWithImpl<_$LRTStationImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LRTStationImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _LRTStation implements LRTStation {
+  const factory _LRTStation(
+      {required final String id,
+      required final String name,
+      required final String nameEn,
+      required final double latitude,
+      required final double longitude,
+      required final int sequence,
+      final String? address}) = _$LRTStationImpl;
+
+  factory _LRTStation.fromJson(Map<String, dynamic> json) =
+      _$LRTStationImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get name;
+  @override
+  String get nameEn;
+  @override
+  double get latitude;
+  @override
+  double get longitude;
+  @override
+  int get sequence;
+  @override
+  String? get address;
+  @override
+  @JsonKey(ignore: true)
+  _$$LRTStationImplCopyWith<_$LRTStationImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 /// @nodoc
 mixin _$TransportState {
   List<BusRoute> get busRoutes => throw _privateConstructorUsedError;
   List<BusRealtime> get busRealtime => throw _privateConstructorUsedError;
   List<BikeStation> get bikeStations => throw _privateConstructorUsedError;
   List<TrafficInfo> get trafficInfos => throw _privateConstructorUsedError;
+  List<MetroStation> get metroStations => throw _privateConstructorUsedError;
+  List<LRTStation> get lrtStations => throw _privateConstructorUsedError;
   String? get selectedRouteId => throw _privateConstructorUsedError;
   String? get selectedStopId => throw _privateConstructorUsedError;
   bool get isLoadingRoutes => throw _privateConstructorUsedError;
   bool get isLoadingRealtime => throw _privateConstructorUsedError;
   bool get isLoadingBikes => throw _privateConstructorUsedError;
   bool get isLoadingTraffic => throw _privateConstructorUsedError;
+  bool get isLoadingMetro => throw _privateConstructorUsedError;
+  bool get isLoadingLRT => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -2544,12 +3334,16 @@ abstract class $TransportStateCopyWith<$Res> {
       List<BusRealtime> busRealtime,
       List<BikeStation> bikeStations,
       List<TrafficInfo> trafficInfos,
+      List<MetroStation> metroStations,
+      List<LRTStation> lrtStations,
       String? selectedRouteId,
       String? selectedStopId,
       bool isLoadingRoutes,
       bool isLoadingRealtime,
       bool isLoadingBikes,
       bool isLoadingTraffic,
+      bool isLoadingMetro,
+      bool isLoadingLRT,
       String? error});
 }
 
@@ -2570,12 +3364,16 @@ class _$TransportStateCopyWithImpl<$Res, $Val extends TransportState>
     Object? busRealtime = null,
     Object? bikeStations = null,
     Object? trafficInfos = null,
+    Object? metroStations = null,
+    Object? lrtStations = null,
     Object? selectedRouteId = freezed,
     Object? selectedStopId = freezed,
     Object? isLoadingRoutes = null,
     Object? isLoadingRealtime = null,
     Object? isLoadingBikes = null,
     Object? isLoadingTraffic = null,
+    Object? isLoadingMetro = null,
+    Object? isLoadingLRT = null,
     Object? error = freezed,
   }) {
     return _then(_value.copyWith(
@@ -2595,6 +3393,14 @@ class _$TransportStateCopyWithImpl<$Res, $Val extends TransportState>
           ? _value.trafficInfos
           : trafficInfos // ignore: cast_nullable_to_non_nullable
               as List<TrafficInfo>,
+      metroStations: null == metroStations
+          ? _value.metroStations
+          : metroStations // ignore: cast_nullable_to_non_nullable
+              as List<MetroStation>,
+      lrtStations: null == lrtStations
+          ? _value.lrtStations
+          : lrtStations // ignore: cast_nullable_to_non_nullable
+              as List<LRTStation>,
       selectedRouteId: freezed == selectedRouteId
           ? _value.selectedRouteId
           : selectedRouteId // ignore: cast_nullable_to_non_nullable
@@ -2618,6 +3424,14 @@ class _$TransportStateCopyWithImpl<$Res, $Val extends TransportState>
       isLoadingTraffic: null == isLoadingTraffic
           ? _value.isLoadingTraffic
           : isLoadingTraffic // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoadingMetro: null == isLoadingMetro
+          ? _value.isLoadingMetro
+          : isLoadingMetro // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoadingLRT: null == isLoadingLRT
+          ? _value.isLoadingLRT
+          : isLoadingLRT // ignore: cast_nullable_to_non_nullable
               as bool,
       error: freezed == error
           ? _value.error
@@ -2640,12 +3454,16 @@ abstract class _$$TransportStateImplCopyWith<$Res>
       List<BusRealtime> busRealtime,
       List<BikeStation> bikeStations,
       List<TrafficInfo> trafficInfos,
+      List<MetroStation> metroStations,
+      List<LRTStation> lrtStations,
       String? selectedRouteId,
       String? selectedStopId,
       bool isLoadingRoutes,
       bool isLoadingRealtime,
       bool isLoadingBikes,
       bool isLoadingTraffic,
+      bool isLoadingMetro,
+      bool isLoadingLRT,
       String? error});
 }
 
@@ -2664,12 +3482,16 @@ class __$$TransportStateImplCopyWithImpl<$Res>
     Object? busRealtime = null,
     Object? bikeStations = null,
     Object? trafficInfos = null,
+    Object? metroStations = null,
+    Object? lrtStations = null,
     Object? selectedRouteId = freezed,
     Object? selectedStopId = freezed,
     Object? isLoadingRoutes = null,
     Object? isLoadingRealtime = null,
     Object? isLoadingBikes = null,
     Object? isLoadingTraffic = null,
+    Object? isLoadingMetro = null,
+    Object? isLoadingLRT = null,
     Object? error = freezed,
   }) {
     return _then(_$TransportStateImpl(
@@ -2689,6 +3511,14 @@ class __$$TransportStateImplCopyWithImpl<$Res>
           ? _value._trafficInfos
           : trafficInfos // ignore: cast_nullable_to_non_nullable
               as List<TrafficInfo>,
+      metroStations: null == metroStations
+          ? _value._metroStations
+          : metroStations // ignore: cast_nullable_to_non_nullable
+              as List<MetroStation>,
+      lrtStations: null == lrtStations
+          ? _value._lrtStations
+          : lrtStations // ignore: cast_nullable_to_non_nullable
+              as List<LRTStation>,
       selectedRouteId: freezed == selectedRouteId
           ? _value.selectedRouteId
           : selectedRouteId // ignore: cast_nullable_to_non_nullable
@@ -2713,6 +3543,14 @@ class __$$TransportStateImplCopyWithImpl<$Res>
           ? _value.isLoadingTraffic
           : isLoadingTraffic // ignore: cast_nullable_to_non_nullable
               as bool,
+      isLoadingMetro: null == isLoadingMetro
+          ? _value.isLoadingMetro
+          : isLoadingMetro // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoadingLRT: null == isLoadingLRT
+          ? _value.isLoadingLRT
+          : isLoadingLRT // ignore: cast_nullable_to_non_nullable
+              as bool,
       error: freezed == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
@@ -2729,17 +3567,23 @@ class _$TransportStateImpl implements _TransportState {
       final List<BusRealtime> busRealtime = const [],
       final List<BikeStation> bikeStations = const [],
       final List<TrafficInfo> trafficInfos = const [],
+      final List<MetroStation> metroStations = const [],
+      final List<LRTStation> lrtStations = const [],
       this.selectedRouteId,
       this.selectedStopId,
       this.isLoadingRoutes = false,
       this.isLoadingRealtime = false,
       this.isLoadingBikes = false,
       this.isLoadingTraffic = false,
+      this.isLoadingMetro = false,
+      this.isLoadingLRT = false,
       this.error})
       : _busRoutes = busRoutes,
         _busRealtime = busRealtime,
         _bikeStations = bikeStations,
-        _trafficInfos = trafficInfos;
+        _trafficInfos = trafficInfos,
+        _metroStations = metroStations,
+        _lrtStations = lrtStations;
 
   final List<BusRoute> _busRoutes;
   @override
@@ -2777,6 +3621,24 @@ class _$TransportStateImpl implements _TransportState {
     return EqualUnmodifiableListView(_trafficInfos);
   }
 
+  final List<MetroStation> _metroStations;
+  @override
+  @JsonKey()
+  List<MetroStation> get metroStations {
+    if (_metroStations is EqualUnmodifiableListView) return _metroStations;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_metroStations);
+  }
+
+  final List<LRTStation> _lrtStations;
+  @override
+  @JsonKey()
+  List<LRTStation> get lrtStations {
+    if (_lrtStations is EqualUnmodifiableListView) return _lrtStations;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_lrtStations);
+  }
+
   @override
   final String? selectedRouteId;
   @override
@@ -2794,11 +3656,17 @@ class _$TransportStateImpl implements _TransportState {
   @JsonKey()
   final bool isLoadingTraffic;
   @override
+  @JsonKey()
+  final bool isLoadingMetro;
+  @override
+  @JsonKey()
+  final bool isLoadingLRT;
+  @override
   final String? error;
 
   @override
   String toString() {
-    return 'TransportState(busRoutes: $busRoutes, busRealtime: $busRealtime, bikeStations: $bikeStations, trafficInfos: $trafficInfos, selectedRouteId: $selectedRouteId, selectedStopId: $selectedStopId, isLoadingRoutes: $isLoadingRoutes, isLoadingRealtime: $isLoadingRealtime, isLoadingBikes: $isLoadingBikes, isLoadingTraffic: $isLoadingTraffic, error: $error)';
+    return 'TransportState(busRoutes: $busRoutes, busRealtime: $busRealtime, bikeStations: $bikeStations, trafficInfos: $trafficInfos, metroStations: $metroStations, lrtStations: $lrtStations, selectedRouteId: $selectedRouteId, selectedStopId: $selectedStopId, isLoadingRoutes: $isLoadingRoutes, isLoadingRealtime: $isLoadingRealtime, isLoadingBikes: $isLoadingBikes, isLoadingTraffic: $isLoadingTraffic, isLoadingMetro: $isLoadingMetro, isLoadingLRT: $isLoadingLRT, error: $error)';
   }
 
   @override
@@ -2814,6 +3682,10 @@ class _$TransportStateImpl implements _TransportState {
                 .equals(other._bikeStations, _bikeStations) &&
             const DeepCollectionEquality()
                 .equals(other._trafficInfos, _trafficInfos) &&
+            const DeepCollectionEquality()
+                .equals(other._metroStations, _metroStations) &&
+            const DeepCollectionEquality()
+                .equals(other._lrtStations, _lrtStations) &&
             (identical(other.selectedRouteId, selectedRouteId) ||
                 other.selectedRouteId == selectedRouteId) &&
             (identical(other.selectedStopId, selectedStopId) ||
@@ -2826,6 +3698,10 @@ class _$TransportStateImpl implements _TransportState {
                 other.isLoadingBikes == isLoadingBikes) &&
             (identical(other.isLoadingTraffic, isLoadingTraffic) ||
                 other.isLoadingTraffic == isLoadingTraffic) &&
+            (identical(other.isLoadingMetro, isLoadingMetro) ||
+                other.isLoadingMetro == isLoadingMetro) &&
+            (identical(other.isLoadingLRT, isLoadingLRT) ||
+                other.isLoadingLRT == isLoadingLRT) &&
             (identical(other.error, error) || other.error == error));
   }
 
@@ -2836,12 +3712,16 @@ class _$TransportStateImpl implements _TransportState {
       const DeepCollectionEquality().hash(_busRealtime),
       const DeepCollectionEquality().hash(_bikeStations),
       const DeepCollectionEquality().hash(_trafficInfos),
+      const DeepCollectionEquality().hash(_metroStations),
+      const DeepCollectionEquality().hash(_lrtStations),
       selectedRouteId,
       selectedStopId,
       isLoadingRoutes,
       isLoadingRealtime,
       isLoadingBikes,
       isLoadingTraffic,
+      isLoadingMetro,
+      isLoadingLRT,
       error);
 
   @JsonKey(ignore: true)
@@ -2858,12 +3738,16 @@ abstract class _TransportState implements TransportState {
       final List<BusRealtime> busRealtime,
       final List<BikeStation> bikeStations,
       final List<TrafficInfo> trafficInfos,
+      final List<MetroStation> metroStations,
+      final List<LRTStation> lrtStations,
       final String? selectedRouteId,
       final String? selectedStopId,
       final bool isLoadingRoutes,
       final bool isLoadingRealtime,
       final bool isLoadingBikes,
       final bool isLoadingTraffic,
+      final bool isLoadingMetro,
+      final bool isLoadingLRT,
       final String? error}) = _$TransportStateImpl;
 
   @override
@@ -2874,6 +3758,10 @@ abstract class _TransportState implements TransportState {
   List<BikeStation> get bikeStations;
   @override
   List<TrafficInfo> get trafficInfos;
+  @override
+  List<MetroStation> get metroStations;
+  @override
+  List<LRTStation> get lrtStations;
   @override
   String? get selectedRouteId;
   @override
@@ -2886,6 +3774,10 @@ abstract class _TransportState implements TransportState {
   bool get isLoadingBikes;
   @override
   bool get isLoadingTraffic;
+  @override
+  bool get isLoadingMetro;
+  @override
+  bool get isLoadingLRT;
   @override
   String? get error;
   @override

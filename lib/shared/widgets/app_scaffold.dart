@@ -10,8 +10,7 @@ import '../../core.dart';
 /// 應用主 Scaffold - 底部導航 + 頁面內容
 class AppScaffold extends ConsumerStatefulWidget {
   const AppScaffold({
-    super.key,
-    required this.child,
+    required this.child, super.key,
   });
 
   final Widget child;
@@ -45,7 +44,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
       label: '課表',
     ),
     _NavItem(
-      path: RoutePaths.bus,
+      path: RoutePaths.transport,
       icon: Icons.directions_bus_outlined,
       activeIcon: Icons.directions_bus,
       label: '交通',

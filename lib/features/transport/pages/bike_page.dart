@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core.dart';
+import '../../../../core/constants/location_constants.dart';
 
 /// YouBike 狀態
 @immutable
@@ -68,28 +69,33 @@ class BikeNotifier extends AutoDisposeNotifier<BikeState> {
   }
 
   Future<void> _loadStations() async {
-    state = state.copyWith(isLoading: true, error: null);
+      state = state.copyWith(isLoading: true, error: null);
 
-    try {
-      final cacheKey = 'bike_stations';
-      final cached = _cache.getSimple<List<BikeStation>>(CacheBoxes.transport, cacheKey);
-      if (cached != null) {
-        _applyFilters(cached);
-        return;
-      }
+      try {
+        const cacheKey = 'bike_stations';
+        final cached = _cache.getSimple<List<BikeStation>>(CacheBoxes.transport, cacheKey);
+        if (cached != null) {
+          _applyFilters(cached);
+          return;
+        }
 
-      final stations = await _endpoints.transport.getBikeStations();
-      
-      if (stations.isNotEmpty) {
-        await _cache.setSimple(CacheBoxes.transport, cacheKey, stations, ttl: CacheTTL.transport);
-        _applyFilters(stations);
-      } else {
-        throw Exception('載入站點失敗');
+        // 使用統一的學校中心點座標 (高醫主校區) 查詢 YouBike 即時資料
+        final stations = await _endpoints.transport.getBikeRealtime(
+          lat: KmuLocation.latitude,
+          lng: KmuLocation.longitude,
+          maxDistance: 2000, // 2公里範圍
+        );
+
+        if (stations.isNotEmpty) {
+          await _cache.setSimple(CacheBoxes.transport, cacheKey, stations, ttl: CacheTTL.transport);
+          _applyFilters(stations);
+        } else {
+          throw Exception('載入站點失敗');
+        }
+      } catch (e) {
+        state = state.copyWith(isLoading: false, error: '載入站點失敗: $e');
       }
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: '載入站點失敗: $e');
     }
-  }
 
   Future<void> _loadFavorites() async {
     // TODO: 從本地儲存載入
@@ -295,7 +301,7 @@ class BikePage extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.directions_bike_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+          Icon(Icons.directions_bike_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text('找不到符合條件的站點', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
@@ -439,7 +445,7 @@ class _StationCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isAvailable ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                      color: isAvailable ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(isAvailable ? '可使用' : '滿車/無位', style: theme.textTheme.labelSmall?.copyWith(color: isAvailable ? Colors.green : Colors.red, fontWeight: FontWeight.w600)),

@@ -76,6 +76,13 @@ analyzer:
     - "**/*.gr.dart"
     - "lib/**.gen.dart"
     - "test/**.gen.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
   errors:
     # 將特定警告提升為錯誤
     invalid_annotation_target: error

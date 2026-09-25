@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core.dart';
 
@@ -28,6 +29,30 @@ class LoginPage extends HookConsumerWidget {
           password: passwordController.text,
           rememberMe: rememberMe.value,
         );
+      }
+    }
+
+    /// 測試模式：不登入直接進入 App (僅限不需認證的功能)
+    Future<void> handleGuestMode() async {
+      // 使用 AuthController 新增的 setAuthState 方法
+      authController.setAuthState(
+        isLoggedIn: true,
+        token: 'guest-token',
+        userId: 'guest',
+        password: '',
+        userProfile: const UserProfile(
+          userId: 'guest',
+          userName: '測試用戶 (Guest)',
+          userType: 'guest',
+        ),
+      );
+      
+      // 同步設定 KmuClient token (供 API 呼叫使用)
+      final kmuClient = ref.read(kmuClientProvider);
+      kmuClient.setCredentials(userId: 'guest', token: 'guest-token');
+      
+      if (context.mounted) {
+        context.go(RoutePaths.calendar);
       }
     }
 
@@ -93,12 +118,12 @@ class LoginPage extends HookConsumerWidget {
                         TextFormField(
                           controller: userIdController,
                           decoration: const InputDecoration(
-                            labelText: '學號/工號',
+                            labelText: '學號',
                             prefixIcon: Icon(Icons.person_outline),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return '請輸入學號/工號';
+                              return '請輸入學號';
                             }
                             return null;
                           },
@@ -144,7 +169,7 @@ class LoginPage extends HookConsumerWidget {
                                   ? null 
                                   : (value) => rememberMe.value = value ?? false,
                             ),
-                            Text('記住我'),
+                            const Text('記住我'),
                             const Spacer(),
                             TextButton(
                               onPressed: () {
@@ -171,6 +196,20 @@ class LoginPage extends HookConsumerWidget {
                                     ),
                                   )
                                 : const Text('登入'),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // 測試模式按鈕 (不需登入)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: authState.isLoading ? null : handleGuestMode,
+                            icon: const Icon(Icons.science_outlined),
+                            label: const Text('測試模式 (不登入)'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                            ),
                           ),
                         ),
                       ],

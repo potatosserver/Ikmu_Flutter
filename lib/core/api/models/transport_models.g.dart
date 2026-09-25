@@ -134,36 +134,6 @@ Map<String, dynamic> _$$BusStopResponseImplToJson(
       'stops': instance.stops,
     };
 
-_$BikeStationImpl _$$BikeStationImplFromJson(Map<String, dynamic> json) =>
-    _$BikeStationImpl(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      totalDocks: (json['totalDocks'] as num).toInt(),
-      availableBikes: (json['availableBikes'] as num).toInt(),
-      availableDocks: (json['availableDocks'] as num).toInt(),
-      address: json['address'] as String?,
-      status: json['status'] as String?,
-      updatedAt: json['updatedAt'] as String?,
-      area: json['area'] as String?,
-    );
-
-Map<String, dynamic> _$$BikeStationImplToJson(_$BikeStationImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'totalDocks': instance.totalDocks,
-      'availableBikes': instance.availableBikes,
-      'availableDocks': instance.availableDocks,
-      'address': instance.address,
-      'status': instance.status,
-      'updatedAt': instance.updatedAt,
-      'area': instance.area,
-    };
-
 _$BikeStationResponseImpl _$$BikeStationResponseImplFromJson(
         Map<String, dynamic> json) =>
     _$BikeStationResponseImpl(
@@ -222,4 +192,52 @@ Map<String, dynamic> _$$TrafficInfoResponseImplToJson(
       'success': instance.success,
       'message': instance.message,
       'data': instance.data,
+    };
+
+_$MetroStationImpl _$$MetroStationImplFromJson(Map<String, dynamic> json) =>
+    _$MetroStationImpl(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      nameEn: json['nameEn'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      line: json['line'] as String,
+      sequence: (json['sequence'] as num).toInt(),
+      address: json['address'] as String?,
+      transfer: json['transfer'] as String?,
+    );
+
+Map<String, dynamic> _$$MetroStationImplToJson(_$MetroStationImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'nameEn': instance.nameEn,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'line': instance.line,
+      'sequence': instance.sequence,
+      'address': instance.address,
+      'transfer': instance.transfer,
+    };
+
+_$LRTStationImpl _$$LRTStationImplFromJson(Map<String, dynamic> json) =>
+    _$LRTStationImpl(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      nameEn: json['nameEn'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      sequence: (json['sequence'] as num).toInt(),
+      address: json['address'] as String?,
+    );
+
+Map<String, dynamic> _$$LRTStationImplToJson(_$LRTStationImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'nameEn': instance.nameEn,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'sequence': instance.sequence,
+      'address': instance.address,
     };

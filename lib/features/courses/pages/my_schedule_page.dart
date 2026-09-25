@@ -13,9 +13,7 @@ import '../../../core/api/services/wac_course_catalog.dart';
 /// 高醫節次：1~9 (日間), A~D (夜間)；星期：一~五 (移除週六)
 class WeekScheduleGrid extends StatelessWidget {
   const WeekScheduleGrid({
-    super.key,
-    required this.courses,
-    required this.onCourseTap,
+    required this.courses, required this.onCourseTap, super.key,
   });
 
   final List<Course> courses;
@@ -112,7 +110,7 @@ class WeekScheduleGrid extends StatelessWidget {
                             width: _timeColumnWidth,
                             child: Container(
                               color: rowIndex.isEven
-                                  ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.05)
+                                  ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.05)
                                   : Colors.transparent,
                             ),
                           ),
@@ -122,7 +120,7 @@ class WeekScheduleGrid extends StatelessWidget {
                               child: Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 0.5),
                                 color: rowIndex.isEven
-                                    ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.03)
+                                    ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.03)
                                     : Colors.transparent,
                               ),
                             );
@@ -140,7 +138,7 @@ class WeekScheduleGrid extends StatelessWidget {
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 0.5),
                             height: 0.5,
-                            color: theme.dividerColor.withOpacity(0.15),
+                            color: theme.dividerColor.withValues(alpha: 0.15),
                           ),
                         )),
                       ),
@@ -244,7 +242,7 @@ class WeekScheduleGrid extends StatelessWidget {
     final isToday = now.weekday == weekday && now.weekday <= 6;
     return Container(
       alignment: Alignment.center,
-      color: isToday ? theme.colorScheme.primaryContainer.withOpacity(0.3) : Colors.transparent,
+      color: isToday ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3) : Colors.transparent,
       child: Text(
         text,
         style: theme.textTheme.titleSmall?.copyWith(
@@ -264,7 +262,7 @@ class WeekScheduleGrid extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.1),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -319,14 +317,14 @@ class WeekScheduleGrid extends StatelessWidget {
   }
 
   Widget _buildCourseCard(ThemeData theme, Course course) {
-    final colors = _courseColors;
+    const colors = _courseColors;
     final colorIndex = _getColorIndex(course);
-    final bgColor = colors[colorIndex].withOpacity(0.9);
+    final bgColor = colors[colorIndex].withValues(alpha: 0.9);
     final textColor = colors[colorIndex].computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
 
     // 解析教室與樓層
-    String? classroom = course.classroom;
-    String? building = course.building;
+    final String? classroom = course.classroom;
+    final String? building = course.building;
     String displayRoom = '';
     if (classroom != null && classroom.isNotEmpty) {
       displayRoom = classroom;
@@ -344,7 +342,7 @@ class WeekScheduleGrid extends StatelessWidget {
         borderRadius: BorderRadius.circular(8), // M3 圓角
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),

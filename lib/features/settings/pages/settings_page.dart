@@ -135,9 +135,9 @@ class SettingsPage extends ConsumerWidget {
           Card(
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('版本資訊'),
+                const ListTile(
+                  leading: Icon(Icons.info_outline),
+                  title: Text('版本資訊'),
                   subtitle: Text('${AppConstants.appName} v${AppConstants.version} (Build ${AppConstants.buildNumber})'),
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),

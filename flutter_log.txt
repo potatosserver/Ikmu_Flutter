@@ -1,0 +1,28 @@
+Launching lib/main.dart on Linux in debug mode...
+Building Linux application...                                   
+✓ Built build/linux/x64/debug/bundle/ikmu_flutter
+Syncing files to device Linux...                                   185ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on Linux is available at: http://127.0.0.1:35313/SI0zGhA2Ppk=/
+The Flutter DevTools debugger and profiler on Linux is available at: http://127.0.0.1:35313/SI0zGhA2Ppk=/devtools/?uri=ws://127.0.0.1:35313/SI0zGhA2Ppk=/ws
+[router] redirect: location=/, isLoggedIn=false, isAuthRoute=false, isSplashRoute=true, isHomeRoute=false
+[router] -> redirect to login
+[router] redirect: location=/login, isLoggedIn=false, isAuthRoute=true, isSplashRoute=false, isHomeRoute=false
+[router] -> already at login, no redirect
+[KmuClient] Login POST https://mbms.kmu.edu.tw/appwsv3/verify
+[KmuClient] Headers: uevw=9a3d63ff734764c196e7ab5667940a5b32856b59, uevw2=d60c543f1fe79b52b4176aaa0414eaf3@fqU0NCrFGfiv9JNlZCrQU0ny, akfw=wCNDaoyYPRFU0Vg5EMNqcEvXKtRc4s33
+[KmuClient] Request body: {id: f744a5c6bd7099d19ba0981cc25a36d8, pw: 5f81eddcdebb3f7874039be63a62729e, os: android, t: clYnahsdT5s:APA91bEqL49atesEi9rXDtrD_8a0zVkVM18p-nYnfhECBGqgx1VcscbF3NJt6mlpF-qptS2rcK9TByn8FMXYQYWnLKLoLQ3UDRJAJer4b_IolxOEZWASKCE, lang: 0, device: AOSP on IA Emulator, deviceid: flutter_1788871469329}
+[KmuClient] Response status: 200
+[KmuClient] Response data: {result: true, reason: , ereason: , items: {userType: 學生, userName: 卓稟鈞, userId: 115029028, token: e6cbed82817740d09a3817a8099c360e37511a374f7a4929a600c7ee6dc5831bfdf00985878042aea4962837a31c56b4f29e3040ebdf428a9e224addd4839722}}
+[router] redirect: location=/login, isLoggedIn=true, isAuthRoute=true, isSplashRoute=false, isHomeRoute=false
+[router] -> redirect to home
+[router] redirect: location=/home, isLoggedIn=true, isAuthRoute=false, isSplashRoute=false, isHomeRoute=true
+[router] redirect: location=/transport, isLoggedIn=true, isAuthRoute=false, isSplashRoute=false, isHomeRoute=false

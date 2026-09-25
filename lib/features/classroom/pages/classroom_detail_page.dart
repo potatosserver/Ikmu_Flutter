@@ -239,8 +239,7 @@ final classroomDetailProvider = AutoDisposeNotifierProvider<ClassroomDetailNotif
 /// 場地詳情頁面
 class ClassroomDetailPage extends HookConsumerWidget {
   const ClassroomDetailPage({
-    super.key,
-    required this.roomId,
+    required this.roomId, super.key,
     this.initialDate,
   });
 
@@ -329,7 +328,7 @@ class ClassroomDetailPage extends HookConsumerWidget {
             Icon(
               Icons.meeting_room_outlined,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -452,7 +451,7 @@ class ClassroomDetailPage extends HookConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         border: Border(
           bottom: BorderSide(
             color: theme.colorScheme.outlineVariant,
@@ -540,7 +539,7 @@ class ClassroomDetailPage extends HookConsumerWidget {
               children: room.equipments.map((eq) => Chip(
                 label: Text(eq),
                 avatar: Icon(Icons.check_circle, size: 16, color: theme.colorScheme.primary),
-                backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                 labelStyle: TextStyle(color: theme.colorScheme.onPrimaryContainer),
               )).toList(),
             ),
@@ -699,7 +698,7 @@ class ClassroomDetailPage extends HookConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -837,13 +836,13 @@ class _TimeSlotCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: slot.isAvailable
-              ? theme.colorScheme.primaryContainer.withOpacity(0.3)
-              : theme.colorScheme.errorContainer.withOpacity(0.3),
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : theme.colorScheme.errorContainer.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: slot.isAvailable
-                ? theme.colorScheme.primary.withOpacity(0.5)
-                : theme.colorScheme.error.withOpacity(0.5),
+                ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                : theme.colorScheme.error.withValues(alpha: 0.5),
           ),
         ),
         child: Row(
@@ -867,8 +866,8 @@ class _TimeSlotCard extends StatelessWidget {
                   width: 2,
                   height: 20,
                   color: slot.isAvailable
-                      ? theme.colorScheme.primary.withOpacity(0.5)
-                      : theme.colorScheme.error.withOpacity(0.5),
+                      ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                      : theme.colorScheme.error.withValues(alpha: 0.5),
                 ),
                 Container(
                   width: 10,

@@ -10,6 +10,7 @@ import '../core/api/kmu_client.dart';
 import '../core/api/endpoints/endpoints.dart';
 import '../core/auth/auth_controller.dart';
 import '../core/cache/cache_service.dart';
+import '../core/api/services/weather_service.dart';
 import 'constants/api_constants.dart';
 
 /// Dio Provider - 全域單例
@@ -75,7 +76,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier() : super(ThemeMode.system) {
     _loadSavedTheme();
   }
-  
+
   Future<void> _loadSavedTheme() async {
     try {
       // 這裡會在 Hive 初始化後使用
@@ -85,9 +86,71 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
       state = ThemeMode.system;
     }
   }
-  
+
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
     // TODO: 儲存到 Hive
   }
 }
+
+/// 天氣服務 Provider
+final weatherServiceProvider = Provider<WeatherService>((ref) {
+  return WeatherService();
+}, name: 'weatherServiceProvider');
+
+/// 天氣狀態
+class WeatherState {
+  const WeatherState({
+    this.data,
+    this.isLoading = false,
+    this.error,
+  });
+
+  final WeatherData? data;
+  final bool isLoading;
+  final String? error;
+
+  WeatherState copyWith({
+    WeatherData? data,
+    bool? isLoading,
+    String? error,
+  }) {
+    return WeatherState(
+      data: data ?? this.data,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+/// 天氣 Notifier
+class WeatherNotifier extends AutoDisposeNotifier<WeatherState> {
+  @override
+  WeatherState build() {
+    return const WeatherState(isLoading: true);
+  }
+
+  Future<void> fetchWeather() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final weatherService = ref.read(weatherServiceProvider);
+      final data = await weatherService.fetchCurrentWeather();
+      state = state.copyWith(data: data, isLoading: false, error: null);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: '載入天氣失敗: $e',
+      );
+    }
+  }
+
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+}
+
+/// 天氣 Provider
+final weatherProvider = AutoDisposeNotifierProvider<WeatherNotifier, WeatherState>(() {
+  return WeatherNotifier();
+}, name: 'weatherProvider');

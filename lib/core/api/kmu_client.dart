@@ -54,7 +54,7 @@ class KmuClient {
   }
 
   /// 安全解析 Response 為 Map<String, dynamic>
-  Map<String, dynamic> _parseResponseData(dynamic rawData) {
+  Map<String, dynamic> _parseResponseData(rawData) {
     if (rawData == null) {
       return {'result': false, 'reason': '伺服器未回傳資料', 'items': null};
     }
@@ -119,7 +119,7 @@ class KmuClient {
     _dio.options.headers['User-Agent'] = 'Dalvik/2.1.0 (Linux; U; Android 10; AOSP on IA Emulator Build/QSR1.190920.001)';
 
     if (kDebugMode) {
-      print('[KmuClient] Login POST ${kKmuApiBaseUrl}${ApiEndpoints.login}');
+      print('[KmuClient] Login POST $kKmuApiBaseUrl${ApiEndpoints.login}');
     }
     print('[KmuClient] Headers: uevw=$uevw, uevw2=$uevw2, akfw=$kAkfw');
 
@@ -216,6 +216,22 @@ class KmuClient {
     try {
       print('[KmuClient] POST $path data: $data');
       final response = await _dio.post(path, data: data);
+      print('[KmuClient] POST response: ${response.data}');
+      return _handleResponse(response);
+    } catch (e) {
+      throw ApiException.fromError(e);
+    }
+  }
+
+  /// POST 請求 - 支援自定義 Options (headers 等)
+  Future<Map<String, dynamic>> postWithOptions(
+    String path, {
+    Map<String, dynamic>? data,
+    Options? options,
+  }) async {
+    try {
+      print('[KmuClient] POST $path data: $data options: ${options?.headers}');
+      final response = await _dio.post(path, data: data, options: options);
       print('[KmuClient] POST response: ${response.data}');
       return _handleResponse(response);
     } catch (e) {

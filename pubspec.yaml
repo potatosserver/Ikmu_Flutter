@@ -39,9 +39,13 @@ dependencies:
   logger: ^2.0.2
   equatable: ^2.0.5
   marquee: ^2.3.0
+  intl: ^0.20.0
 
-  # Maps - Platform specific
-  maplibre: ^0.3.6          # 跨平台向量瓦片地圖 (Web/Android/iOS)
+  # Maps - flutter_map with vector tiles
+  flutter_map: ^8.3.2
+  vector_map_tiles: ^9.0.0-beta.8
+  vector_tile_renderer: ^6.1.0
+  latlong2: ^0.9.0
   # google_maps_flutter: ^2.9.0  # Mobile 原生地圖 (Android/iOS) - 可選替代方案
 
   # Firebase (可選，啟用後取消註解)
@@ -67,6 +71,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/maps/
 
   # fonts:
   #   - family: NotoSansTC

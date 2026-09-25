@@ -1,6 +1,8 @@
 // API 端點介面定義
 // 使用 KmuClient 封裝加密/解密、認證管理
 
+import 'package:dio/dio.dart';
+import 'package:logger/logger.dart';
 import 'package:ikmu_flutter/core/api/kmu_client.dart';
 import 'package:ikmu_flutter/core/constants/api_constants.dart';
 import 'package:ikmu_flutter/core/api/models.dart';
@@ -448,6 +450,7 @@ class TransportEndpoint {
   TransportEndpoint(this._client);
 
   final KmuClient _client;
+  final logger = Logger();
 
   /// 取得公車路線
   Future<List<BusRoute>> getBusRoutes() async {
@@ -480,7 +483,7 @@ class TransportEndpoint {
     return [];
   }
 
-  /// 取得 YouBike 站點
+  /// 取得 YouBike 站點 (靜態清單 - 所有站點基本資料)
   Future<List<BikeStation>> getBikeStations() async {
     final response = await _client.get(ApiEndpoints.bikeStation);
 
@@ -490,6 +493,57 @@ class TransportEndpoint {
           .toList();
       return dataList;
     }
+    return [];
+  }
+
+  /// 取得 YouBike 即時車位資訊 (依經緯度與距離查詢)
+  /// 參考: https://apis.youbike.com.tw/tw2/parkingInfo
+  Future<List<BikeStation>> getBikeRealtime({
+    required double lat,
+    required double lng,
+    double maxDistance = 1500, // 預設 1500m
+  }) async {
+    // YouBike API 回傳格式不同於 KMU API，需直接處理
+    final rawResponse = await _client.dio.post<Map<String, dynamic>>(
+      'https://apis.youbike.com.tw/tw2/parkingInfo',
+      data: {
+        'lat': lat,
+        'lng': lng,
+        'maxDistance': maxDistance,
+      },
+      options: Options(
+        headers: {
+          'accept': '*/*',
+          'accept-language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+          'cache-control': 'no-cache',
+          'content-type': 'application/json',
+          'origin': 'https://www.youbike.com.tw',
+          'pragma': 'no-cache',
+          'referer': 'https://www.youbike.com.tw/',
+          'sec-ch-ua': '"Chromium";v="152", "Not?A_Brand";v="24", "Google Chrome";v="152"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Linux"',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-site',
+          'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36',
+        },
+        responseType: ResponseType.json,
+      ),
+    );
+
+    final data = rawResponse.data;
+    if (data == null) return [];
+
+    // YouBike 2.0 API 格式: { "retCode": 1, "retMsg": "...", "retVal": [...] }
+    if (data['retCode'] == 1 && data['retVal'] is List) {
+      final stations = data['retVal'] as List;
+      return stations
+          .whereType<Map>()
+          .map((e) => BikeStation.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+
     return [];
   }
 
@@ -503,6 +557,123 @@ class TransportEndpoint {
       return BusStopResponse.fromJson(response['data'] as Map<String, dynamic>);
     }
     return const BusStopResponse(success: false, message: '載入站牌失敗', stops: []);
+  }
+
+  /// 取得捷運站點 (高雄捷運 紅/橘線) - 高雄市政府交通局 API
+  /// 來源: https://traffic.tbkc.gov.tw/api/metro/stations
+  Future<List<MetroStation>> getMetroStations() async {
+    try {
+      final rawResponse = await _client.dio.get<List<dynamic>>(
+        'https://traffic.tbkc.gov.tw/api/metro/stations',
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+          },
+          responseType: ResponseType.json,
+        ),
+      );
+
+      final data = rawResponse.data;
+      if (data == null) return [];
+
+      return data
+          .whereType<Map>()
+          .map((e) => _transformMetroStation(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      logger.e('載入捷運站點失敗: $e');
+      return [];
+    }
+  }
+
+  /// 轉換捷運站點資料格式
+  MetroStation _transformMetroStation(Map<String, dynamic> json) {
+    final position = json['position'] as Map<String, dynamic>?;
+    final lat = (position?['lat'] as num?)?.toDouble() ?? 0.0;
+    final lng = (position?['lng'] as num?)?.toDouble() ?? 0.0;
+    final id = json['id'] as String? ?? '';
+    final name = json['name'] as String? ?? '';
+    
+    // 從 ID 推斷路線與序號
+    // 紅線: R開頭, 橘線: O開頭, 紅線延伸: RK, 橘線延伸: OT
+    String line = 'red';
+    int sequence = 0;
+    if (id.startsWith('O') || id.startsWith('OT')) {
+      line = 'orange';
+    } else if (id.startsWith('R') || id.startsWith('RK')) {
+      line = 'red';
+    }
+    
+    // 提取序號數字
+    final numMatch = RegExp(r'(\d+)').firstMatch(id);
+    if (numMatch != null) {
+      sequence = int.tryParse(numMatch.group(1)!) ?? 0;
+    }
+
+    return MetroStation(
+      id: id,
+      name: name,
+      nameEn: '',
+      latitude: lat,
+      longitude: lng,
+      line: line,
+      sequence: sequence,
+      address: json['address'] as String?,
+      transfer: null,
+    );
+  }
+
+  /// 取得輕軌站點 (環狀輕軌) - 高雄市政府交通局 API
+  /// 來源: https://traffic.tbkc.gov.tw/api/lrts
+  Future<List<LRTStation>> getLRTStations() async {
+    try {
+      final rawResponse = await _client.dio.get<List<dynamic>>(
+        'https://traffic.tbkc.gov.tw/api/lrts',
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+          },
+          responseType: ResponseType.json,
+        ),
+      );
+
+      final data = rawResponse.data;
+      if (data == null) return [];
+
+      return data
+          .whereType<Map>()
+          .map((e) => _transformLRTStation(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      logger.e('載入輕軌站點失敗: $e');
+      return [];
+    }
+  }
+
+  /// 轉換輕軌站點資料格式
+  LRTStation _transformLRTStation(Map<String, dynamic> json) {
+    final position = json['position'] as Map<String, dynamic>?;
+    final lat = (position?['lat'] as num?)?.toDouble() ?? 0.0;
+    final lng = (position?['lng'] as num?)?.toDouble() ?? 0.0;
+    final id = json['id'] as String? ?? '';
+    final name = json['name'] as String? ?? '';
+    
+    // 從 ID 提取序號 (C1, C2, ..., C37)
+    int sequence = 0;
+    final numMatch = RegExp(r'(\d+)').firstMatch(id);
+    if (numMatch != null) {
+      sequence = int.tryParse(numMatch.group(1)!) ?? 0;
+    }
+
+    return LRTStation(
+      id: id,
+      name: name,
+      nameEn: '',
+      latitude: lat,
+      longitude: lng,
+      sequence: sequence,
+      address: null,
+    );
   }
 }
 

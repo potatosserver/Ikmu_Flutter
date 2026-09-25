@@ -229,6 +229,25 @@ class AuthController extends AutoDisposeNotifier<AuthState> {
     state = state.copyWith(userProfile: profile);
   }
 
+  /// 手動設定認證狀態 (供測試模式使用)
+  void setAuthState({
+    required bool isLoggedIn,
+    String? token,
+    String? userId,
+    String? password,
+    UserProfile? userProfile,
+  }) {
+    state = state.copyWith(
+      isLoading: false,
+      isLoggedIn: isLoggedIn,
+      token: token,
+      userId: userId,
+      password: password,
+      userProfile: userProfile,
+      error: null,
+    );
+  }
+
   // ===========================================
   // 私有方法
   // ===========================================

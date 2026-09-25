@@ -14,9 +14,7 @@ import '../../../core.dart';
 /// 自動判斷是否需要跑馬燈的文字組件
 class AutoMarquee extends StatelessWidget {
   const AutoMarquee({
-    super.key,
-    required this.text,
-    required this.style,
+    required this.text, required this.style, super.key,
     this.velocity = 30.0,
     this.blankSpace = 20.0,
   });
@@ -358,220 +356,6 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     return events;
   }
 
-  Future<List<CalendarEvent>> _loadWeekEvents() async {
-    final selected = state.selectedDate ?? DateTime.now();
-    final yearMonth =
-        '${selected.year}-${selected.month.toString().padLeft(2, '0')}';
-    final weekStart = getWeekStart(selected);
-    final weekStartStr =
-        '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
-    final weekCacheKey = 'calendar_week_$weekStartStr';
-
-    final weekCached = _cache.get<List<dynamic>>(
-      CacheBoxes.calendar,
-      weekCacheKey,
-      fromJson: (json) => json as List<dynamic>,
-    );
-    if (weekCached != null) {
-      return weekCached
-          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
-          .toList();
-    }
-
-    final monthCacheKey = 'calendar_month_$yearMonth';
-    final monthCached = _cache.get<List<dynamic>>(
-      CacheBoxes.calendar,
-      monthCacheKey,
-      fromJson: (json) => json as List<dynamic>,
-    );
-    if (monthCached != null) {
-      final allEvents = monthCached
-          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
-          .toList();
-      final weekEvents = allEvents.where((e) {
-        final ed = e.eventDate;
-        return ed != null &&
-            !ed.isBefore(weekStart) &&
-            ed.isBefore(weekStart.add(const Duration(days: 7)));
-      }).toList();
-      try {
-        final serializable = weekEvents
-            .map((e) => {
-                  'id': e.id,
-                  'title': e.title,
-                  'atype': e.typeCode,
-                  'atype_name': e.typeName,
-                  'start_time': e.startTime,
-                  'end_time': e.endTime,
-                  'all_day': e.allDay,
-                  'location': e.location,
-                  'info': e.info,
-                  'einfo': e.extendedInfo,
-                  'color': e.color,
-                  'seq': e.sequence,
-                  'dateFrom': e.date,
-                })
-            .toList();
-        await _cache.set(CacheBoxes.calendar, weekCacheKey, serializable,
-            fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
-      } catch (_) {}
-      return weekEvents;
-    }
-
-    final events = await _endpoints.calendar.getWeekEvents(weekStart: weekStartStr);
-    try {
-      final serializable = events
-          .map((e) => {
-                'id': e.id,
-                'title': e.title,
-                'atype': e.typeCode,
-                'atype_name': e.typeName,
-                'start_time': e.startTime,
-                'end_time': e.endTime,
-                'all_day': e.allDay,
-                'location': e.location,
-                'info': e.info,
-                'einfo': e.extendedInfo,
-                'color': e.color,
-                'seq': e.sequence,
-                'dateFrom': e.date,
-              })
-          .toList();
-      await _cache.set(CacheBoxes.calendar, weekCacheKey, serializable,
-          fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
-    } catch (_) {}
-    return events;
-  }
-
-  Future<List<CalendarEvent>> _loadDayEvents() async {
-    final selected = state.selectedDate ?? DateTime.now();
-    final yearMonth =
-        '${selected.year}-${selected.month.toString().padLeft(2, '0')}';
-    final dateStr =
-        '${selected.year}-${selected.month.toString().padLeft(2, '0')}-${selected.day.toString().padLeft(2, '0')}';
-    final dayCacheKey = 'calendar_day_$dateStr';
-
-    final dayCached = _cache.get<List<dynamic>>(
-      CacheBoxes.calendar,
-      dayCacheKey,
-      fromJson: (json) => json as List<dynamic>,
-    );
-    if (dayCached != null) {
-      return dayCached
-          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
-          .toList();
-    }
-
-    final weekStart = getWeekStart(selected);
-    final weekStartStr =
-        '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
-    final weekCacheKey = 'calendar_week_$weekStartStr';
-    final weekCached = _cache.get<List<dynamic>>(
-      CacheBoxes.calendar,
-      weekCacheKey,
-      fromJson: (json) => json as List<dynamic>,
-    );
-    if (weekCached != null) {
-      final allEvents = weekCached
-          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
-          .toList();
-      final dayEvents = allEvents.where((e) {
-        final ed = e.eventDate;
-        return ed != null &&
-            ed.year == selected.year &&
-            ed.month == selected.month &&
-            ed.day == selected.day;
-      }).toList();
-      try {
-        final serializable = dayEvents
-            .map((e) => {
-                  'id': e.id,
-                  'title': e.title,
-                  'typeCode': e.typeCode,
-                  'typeName': e.typeName,
-                  'startTime': e.startTime,
-                  'endTime': e.endTime,
-                  'allDay': e.allDay,
-                  'location': e.location,
-                  'info': e.info,
-                  'extendedInfo': e.extendedInfo,
-                  'color': e.color,
-                  'sequence': e.sequence,
-                  'date': e.date,
-                })
-            .toList();
-        await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
-            fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
-      } catch (_) {}
-      return dayEvents;
-    }
-
-    final monthCacheKey = 'calendar_month_$yearMonth';
-    final monthCached = _cache.get<List<dynamic>>(
-      CacheBoxes.calendar,
-      monthCacheKey,
-      fromJson: (json) => json as List<dynamic>,
-    );
-    if (monthCached != null) {
-      final allEvents = monthCached
-          .map((e) => CalendarEvent.fromApi(Map<String, dynamic>.from(e as Map)))
-          .toList();
-      final dayEvents = allEvents.where((e) {
-        final ed = e.eventDate;
-        return ed != null &&
-            ed.year == selected.year &&
-            ed.month == selected.month &&
-            ed.day == selected.day;
-      }).toList();
-      try {
-        final serializable = dayEvents
-            .map((e) => {
-                  'id': e.id,
-                  'title': e.title,
-                  'atype': e.typeCode,
-                  'atype_name': e.typeName,
-                  'start_time': e.startTime,
-                  'end_time': e.endTime,
-                  'all_day': e.allDay,
-                  'location': e.location,
-                  'info': e.info,
-                  'einfo': e.extendedInfo,
-                  'color': e.color,
-                  'seq': e.sequence,
-                  'dateFrom': e.date,
-                })
-            .toList();
-        await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
-            fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
-      } catch (_) {}
-      return dayEvents;
-    }
-
-    final events = await _endpoints.calendar.getDayEvents(date: dateStr);
-    try {
-      final serializable = events
-          .map((e) => {
-                'id': e.id,
-                'title': e.title,
-                'atype': e.typeCode,
-                'atype_name': e.typeName,
-                'start_time': e.startTime,
-                'end_time': e.endTime,
-                'all_day': e.allDay,
-                'location': e.location,
-                'info': e.info,
-                'einfo': e.extendedInfo,
-                'color': e.color,
-                'seq': e.sequence,
-                'dateFrom': e.date,
-              })
-          .toList();
-      await _cache.set(CacheBoxes.calendar, dayCacheKey, serializable,
-          fromJson: (json) => json as List<dynamic>, ttl: CacheTTL.calendar);
-    } catch (_) {}
-    return events;
-  }
-
   Future<void> refresh() async {
     final month = state.currentMonth ?? DateTime.now();
     await _cache.delete(CacheBoxes.calendar,
@@ -897,7 +681,7 @@ class _MonthViewState extends State<_MonthView> {
 
   @override
   Widget build(BuildContext context) {
-    final weekdayNames = WeekdayMap.shortName;
+    const weekdayNames = WeekdayMap.shortName;
 
     return Column(
       children: [
@@ -907,7 +691,7 @@ class _MonthViewState extends State<_MonthView> {
             color: Theme.of(context)
                 .colorScheme
                 .surfaceContainerHighest
-                .withOpacity(0.5),
+                .withValues(alpha: 0.5),
             border: Border(
               bottom: BorderSide(
                 color: Theme.of(context).colorScheme.outlineVariant,
@@ -1088,7 +872,7 @@ class _MonthDayCell extends StatelessWidget {
           color: isSelected
               ? theme.colorScheme.primaryContainer
               : isToday
-                  ? theme.colorScheme.primary.withOpacity(0.1)
+                  ? theme.colorScheme.primary.withValues(alpha: 0.1)
                   : null,
           borderRadius: BorderRadius.circular(12),
           border: isToday && !isSelected
@@ -1407,9 +1191,9 @@ class _WeekDayColumn extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
               : isToday
-                  ? theme.colorScheme.primary.withOpacity(0.05)
+                  ? theme.colorScheme.primary.withValues(alpha: 0.05)
                   : null,
           border: Border(
             bottom: BorderSide(
@@ -1625,7 +1409,7 @@ class _DayViewState extends State<_DayView> {
           Icon(
             Icons.event_available,
             size: 80,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1675,7 +1459,7 @@ class _EventCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
+                      color: color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -1789,7 +1573,7 @@ class _EventCard extends StatelessWidget {
 
 /// 事件詳細資訊頁面
 class EventDetailPage extends ConsumerWidget {
-  const EventDetailPage({super.key, required this.event});
+  const EventDetailPage({required this.event, super.key});
 
   final CalendarEvent event;
 
@@ -1824,9 +1608,9 @@ class EventDetailPage extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: color.withOpacity(0.5)),
+                border: Border.all(color: color.withValues(alpha: 0.5)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -2098,9 +1882,9 @@ class _EventChip extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.5)),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Row(
           children: [

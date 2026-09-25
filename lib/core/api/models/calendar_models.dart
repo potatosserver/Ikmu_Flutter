@@ -71,23 +71,37 @@ abstract class CalendarEventType with _$CalendarEventType {
 /// Python API 欄位: sno(序號), atype(類型), atypeName, title, etitle,
 ///                 location, elocation, dateFrom(yyymmdd), dateTo(yyymmdd),
 ///                 info, einfo, ...
-@freezed
-abstract class CalendarEvent with _$CalendarEvent {
-  const factory CalendarEvent({
-    required String id,
-    required String title,
-    required String typeCode,
-    String? typeName,
-    String? startTime,
-    String? endTime,
-    @Default(false) bool allDay,
-    String? location,
-    String? info,
-    String? extendedInfo,
-    String? color,
-    int? sequence,
-    String? date, // YYYY-MM-DD
-  }) = _CalendarEvent;
+@JsonSerializable(explicitToJson: true)
+class CalendarEvent {
+  CalendarEvent({
+    required this.id,
+    required this.title,
+    required this.typeCode,
+    this.typeName,
+    this.startTime,
+    this.endTime,
+    this.allDay = false,
+    this.location,
+    this.info,
+    this.extendedInfo,
+    this.color,
+    this.sequence,
+    this.date, // YYYY-MM-DD
+  });
+
+  final String id;
+  final String title;
+  final String typeCode;
+  final String? typeName;
+  final String? startTime;
+  final String? endTime;
+  final bool allDay;
+  final String? location;
+  final String? info;
+  final String? extendedInfo;
+  final String? color;
+  final int? sequence;
+  final String? date;
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
     return CalendarEvent(
@@ -115,7 +129,7 @@ abstract class CalendarEvent with _$CalendarEvent {
   /// 解析 ROC 日期 (yyyymmdd 或 yymmdd) 為 YYYY-MM-DD
   static String? _parseRocDate(String? s) {
     if (s == null || s.isEmpty) return null;
-    final digits = s.replaceAll(RegExp(r'[^0-9]'), '');
+    final digits = s.replaceAll(RegExp('[^0-9]'), '');
     if (digits.length == 7) {
       // yyyymmdd -> 西元 4 位年
       final y = digits.substring(0, 3);
@@ -133,6 +147,24 @@ abstract class CalendarEvent with _$CalendarEvent {
       return '${rocY + 1911}-$m-$d';
     }
     return s;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'typeCode': typeCode,
+      'typeName': typeName,
+      'startTime': startTime,
+      'endTime': endTime,
+      'allDay': allDay,
+      'location': location,
+      'info': info,
+      'extendedInfo': extendedInfo,
+      'color': color,
+      'sequence': sequence,
+      'date': date,
+    };
   }
 }
 
@@ -251,9 +283,9 @@ abstract class CalendarMonthResponse with _$CalendarMonthResponse {
 @freezed
 abstract class EventDetailData with _$EventDetailData {
   const factory EventDetailData({
-    required dynamic event,
+    required CalendarEvent event,
     required String dateStr,
-    required List<dynamic> allDayEvents,
+    required List<CalendarEvent> allDayEvents,
   }) = _EventDetailData;
 
   factory EventDetailData.fromJson(Map<String, dynamic> json) =>

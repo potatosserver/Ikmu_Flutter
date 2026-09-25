@@ -68,7 +68,7 @@ class BusNotifier extends AutoDisposeNotifier<BusState> {
 
   Future<void> _loadRoutes() async {
     try {
-      final cacheKey = 'bus_routes';
+      const cacheKey = 'bus_routes';
       final cached = _cache.get<List<dynamic>>(
         CacheBoxes.transport,
         cacheKey,
@@ -305,7 +305,7 @@ class BusPage extends ConsumerWidget {
         itemCount: state.stops.length,
         itemBuilder: (context, index) {
           final stop = state.stops[index];
-          final realtime = state.realtime.firstWhere((r) => r.stopId == stop.id, orElse: () => BusRealtime(routeId: '', stopId: '', stopName: '', estimateTime: null));
+          final realtime = state.realtime.firstWhere((r) => r.stopId == stop.id, orElse: () => const BusRealtime(routeId: '', stopId: '', stopName: '', estimateTime: null));
           final isFav = notifier.isFavorite(stop.id);
 
           return _StopCard(
@@ -344,9 +344,7 @@ class BusPage extends ConsumerWidget {
 class _StopCard extends StatelessWidget {
   const _StopCard({
     required this.stop,
-    this.realtime,
-    required this.isFavorite,
-    required this.onFavoriteToggle,
+    required this.isFavorite, required this.onFavoriteToggle, this.realtime,
   });
 
   final BusStop stop;

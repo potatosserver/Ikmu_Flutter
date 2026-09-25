@@ -15,6 +15,9 @@ class RoutePaths {
   /// 登入頁
   static const String login = '/login';
 
+  /// 主畫面
+  static const String home = '/home';
+
   // ===========================================
   // 主要功能頁面
   // ===========================================
@@ -41,11 +44,8 @@ class RoutePaths {
   // 交通
   // ===========================================
 
-  /// 公車
-  static const String bus = '/bus';
-
-  /// YouBike
-  static const String bike = '/bike';
+  /// 交通整合頁面 (地圖 + YouBike + 公車 + 捷運)
+  static const String transport = '/transport';
 
   // ===========================================
   // 校園資訊

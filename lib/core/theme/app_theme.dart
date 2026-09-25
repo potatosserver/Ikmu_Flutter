@@ -254,13 +254,13 @@ class AppTheme {
       // Card
       cardTheme: CardThemeData(
         elevation: 1,
-        shadowColor: scheme.shadow.withOpacity(0.1),
+        shadowColor: scheme.shadow.withValues(alpha: 0.1),
         surfaceTintColor: scheme.surfaceTint,
         color: scheme.surfaceContainerLow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: scheme.outlineVariant.withOpacity(0.5),
+            color: scheme.outlineVariant.withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -274,8 +274,8 @@ class AppTheme {
           shadowColor: Colors.transparent,
           backgroundColor: scheme.primary,
           foregroundColor: scheme.onPrimary,
-          disabledBackgroundColor: scheme.onSurface.withOpacity(0.12),
-          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
+          disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
+          disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -334,7 +334,7 @@ class AppTheme {
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: scheme.surfaceContainerHigh,
-        disabledColor: scheme.onSurface.withOpacity(0.12),
+        disabledColor: scheme.onSurface.withValues(alpha: 0.12),
         selectedColor: scheme.primaryContainer,
         secondarySelectedColor: scheme.secondaryContainer,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -354,7 +354,7 @@ class AppTheme {
       // InputDecoration (TextField)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceContainerHighest.withOpacity(0.5),
+        fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -378,10 +378,10 @@ class AppTheme {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: scheme.outlineVariant.withOpacity(0.5)),
+          borderSide: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
         ),
         labelStyle: tt.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
-        hintStyle: tt.bodyLarge?.copyWith(color: scheme.onSurfaceVariant.withOpacity(0.6)),
+        hintStyle: tt.bodyLarge?.copyWith(color: scheme.onSurfaceVariant.withValues(alpha: 0.6)),
         errorStyle: tt.bodySmall?.copyWith(color: scheme.error),
         floatingLabelStyle: tt.bodyMedium?.copyWith(color: scheme.primary),
       ),
@@ -389,7 +389,7 @@ class AppTheme {
       // Dialog
       dialogTheme: DialogThemeData(
         elevation: 8,
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         surfaceTintColor: scheme.surfaceTint,
         backgroundColor: scheme.surface,
         shape: RoundedRectangleBorder(
@@ -406,7 +406,7 @@ class AppTheme {
 
       // BottomSheet
       bottomSheetTheme: BottomSheetThemeData(
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         surfaceTintColor: scheme.surfaceTint,
         backgroundColor: scheme.surface,
         shape: const RoundedRectangleBorder(
@@ -419,7 +419,7 @@ class AppTheme {
       // NavigationBar
       navigationBarTheme: NavigationBarThemeData(
         elevation: 8,
-        shadowColor: scheme.shadow.withOpacity(0.2),
+        shadowColor: scheme.shadow.withValues(alpha: 0.2),
         surfaceTintColor: scheme.surfaceTint,
         backgroundColor: scheme.surface,
         indicatorColor: scheme.primaryContainer,
@@ -578,7 +578,7 @@ class AppTheme {
       // PopupMenu
       popupMenuTheme: PopupMenuThemeData(
         elevation: 8,
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         surfaceTintColor: scheme.surfaceTint,
         color: scheme.surface,
         shape: RoundedRectangleBorder(
@@ -608,7 +608,7 @@ class AppTheme {
         headerBackgroundColor: scheme.primaryContainer,
         headerForegroundColor: scheme.onPrimaryContainer,
         surfaceTintColor: scheme.surfaceTint,
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         elevation: 8,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -664,13 +664,13 @@ class AppTheme {
       // Card
       cardTheme: CardThemeData( // 👈 修正: CardTheme -> CardThemeData
         elevation: 1,
-        shadowColor: scheme.shadow.withOpacity(0.1),
+        shadowColor: scheme.shadow.withValues(alpha: 0.1),
         surfaceTintColor: scheme.surfaceTint,
         color: scheme.surfaceContainerLow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: scheme.outlineVariant.withOpacity(0.5),
+            color: scheme.outlineVariant.withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -684,8 +684,8 @@ class AppTheme {
           shadowColor: Colors.transparent,
           backgroundColor: scheme.primary,
           foregroundColor: scheme.onPrimary,
-          disabledBackgroundColor: scheme.onSurface.withOpacity(0.12),
-          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
+          disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
+          disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -744,7 +744,7 @@ class AppTheme {
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: scheme.surfaceContainerHigh,
-        disabledColor: scheme.onSurface.withOpacity(0.12),
+        disabledColor: scheme.onSurface.withValues(alpha: 0.12),
         selectedColor: scheme.primaryContainer,
         secondarySelectedColor: scheme.secondaryContainer,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -764,7 +764,7 @@ class AppTheme {
       // InputDecoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceContainerHighest.withOpacity(0.5),
+        fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -788,10 +788,10 @@ class AppTheme {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: scheme.outlineVariant.withOpacity(0.5)),
+          borderSide: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
         ),
         labelStyle: tt.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
-        hintStyle: tt.bodyLarge?.copyWith(color: scheme.onSurfaceVariant.withOpacity(0.6)),
+        hintStyle: tt.bodyLarge?.copyWith(color: scheme.onSurfaceVariant.withValues(alpha: 0.6)),
         errorStyle: tt.bodySmall?.copyWith(color: scheme.error),
         floatingLabelStyle: tt.bodyMedium?.copyWith(color: scheme.primary),
       ),
@@ -799,7 +799,7 @@ class AppTheme {
       // Dialog
       dialogTheme: DialogThemeData( // 👈 修正: DialogTheme -> DialogThemeData
         elevation: 8,
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         surfaceTintColor: scheme.surfaceTint,
         backgroundColor: scheme.surface,
         shape: RoundedRectangleBorder(
@@ -816,7 +816,7 @@ class AppTheme {
 
       // BottomSheet
       bottomSheetTheme: BottomSheetThemeData(
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         surfaceTintColor: scheme.surfaceTint,
         backgroundColor: scheme.surface,
         shape: const RoundedRectangleBorder(
@@ -829,7 +829,7 @@ class AppTheme {
       // NavigationBar
       navigationBarTheme: NavigationBarThemeData(
         elevation: 8,
-        shadowColor: scheme.shadow.withOpacity(0.2),
+        shadowColor: scheme.shadow.withValues(alpha: 0.2),
         surfaceTintColor: scheme.surfaceTint,
         backgroundColor: scheme.surface,
         indicatorColor: scheme.primaryContainer,
@@ -988,7 +988,7 @@ class AppTheme {
       // PopupMenu
       popupMenuTheme: PopupMenuThemeData(
         elevation: 8,
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         surfaceTintColor: scheme.surfaceTint,
         color: scheme.surface,
         shape: RoundedRectangleBorder(
@@ -1018,7 +1018,7 @@ class AppTheme {
         headerBackgroundColor: scheme.primaryContainer,
         headerForegroundColor: scheme.onPrimaryContainer,
         surfaceTintColor: scheme.surfaceTint,
-        shadowColor: scheme.shadow.withOpacity(0.3),
+        shadowColor: scheme.shadow.withValues(alpha: 0.3),
         elevation: 8,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),

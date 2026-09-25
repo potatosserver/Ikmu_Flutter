@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core.dart';
 import '../../features/auth/pages/login_page.dart';
+import '../../features/home/pages/home_page.dart';
 import '../../features/calendar/pages/calendar_page.dart';
 import '../../features/classroom/pages/classroom_detail_page.dart';
 import '../../features/classroom/pages/classroom_list_page.dart';
@@ -16,8 +17,7 @@ import '../../features/campus_info/pages/news_detail_page.dart';
 import '../../features/campus_info/pages/news_page.dart';
 import '../../features/campus_info/pages/traffic_page.dart';
 import '../../features/settings/pages/settings_page.dart';
-import '../../features/transport/pages/bike_page.dart';
-import '../../features/transport/pages/bus_page.dart';
+import '../../features/transport/pages/transport_page.dart';
 import '../../shared/widgets/app_scaffold.dart';
 
 /// 路由 Provider
@@ -34,58 +34,65 @@ final routerProvider = Provider<GoRouter>((ref) {
   });
 
   return GoRouter(
-    initialLocation: RoutePaths.splash,
-    refreshListenable: authStateNotifier,
-    redirect: (context, state) {
-      final isLoggedIn = authStateNotifier.value;
-      final isAuthRoute = state.matchedLocation == RoutePaths.login;
-      final isSplashRoute = state.matchedLocation == RoutePaths.splash;
+      initialLocation: RoutePaths.splash,
+      refreshListenable: authStateNotifier,
+      redirect: (context, state) {
+        final isLoggedIn = authStateNotifier.value;
+        final isAuthRoute = state.matchedLocation == RoutePaths.login;
+        final isSplashRoute = state.matchedLocation == RoutePaths.splash;
+        final isHomeRoute = state.matchedLocation == RoutePaths.home;
 
-      print('[router] redirect: location=${state.matchedLocation}, isLoggedIn=$isLoggedIn, isAuthRoute=$isAuthRoute, isSplashRoute=$isSplashRoute');
+        print('[router] redirect: location=${state.matchedLocation}, isLoggedIn=$isLoggedIn, isAuthRoute=$isAuthRoute, isSplashRoute=$isSplashRoute, isHomeRoute=$isHomeRoute');
 
-      // 已登入 -> 導向行事曆（包含從 splash 來的情況）
-      if (isLoggedIn) {
-        if (isAuthRoute || isSplashRoute) {
-          print('[router] -> redirect to calendar');
-          return RoutePaths.calendar;
+        // 已登入 -> 導向主畫面 (包含從 splash 來的情況)
+        if (isLoggedIn) {
+          if (isAuthRoute || isSplashRoute) {
+            print('[router] -> redirect to home');
+            return RoutePaths.home;
+          }
+          return null; // 已登入且在其他頁面，不攔截
         }
-        return null; // 已登入且在其他頁面，不攔截
-      }
 
-      // 未登入 -> 導向登入（包含從 splash 來的情況）
-      if (!isLoggedIn) {
-        if (isAuthRoute) {
-          print('[router] -> already at login, no redirect');
-          return null; // 已在登入頁，不攔截
+        // 未登入 -> 導向登入 (包含從 splash 來的情況)
+        if (!isLoggedIn) {
+          if (isAuthRoute) {
+            print('[router] -> already at login, no redirect');
+            return null; // 已在登入頁，不攔截
+          }
+          print('[router] -> redirect to login');
+          return RoutePaths.login; // 在 splash 或其他頁面，導向登入
         }
-        print('[router] -> redirect to login');
-        return RoutePaths.login; // 在 splash 或其他頁面，導向登入
-      }
 
-      return null;
-    },
-    routes: [
-      // 啟動頁
-      GoRoute(
-        path: RoutePaths.splash,
-        builder: (context, state) => const _SplashPage(),
-      ),
+        return null;
+      },
+      routes: [
+        // 啟動頁
+        GoRoute(
+          path: RoutePaths.splash,
+          builder: (context, state) => const _SplashPage(),
+        ),
 
-      // 登入頁
-      GoRoute(
-        path: RoutePaths.login,
-        builder: (context, state) => const LoginPage(),
-      ),
+        // 登入頁
+        GoRoute(
+          path: RoutePaths.login,
+          builder: (context, state) => const LoginPage(),
+        ),
 
-      // 主要功能頁面 (需登入)
-      ShellRoute(
-        builder: (context, state, child) => AppScaffold(child: child),
-        routes: [
-          // 行事曆
-          GoRoute(
-            path: RoutePaths.calendar,
-            builder: (context, state) => const CalendarPage(),
-          ),
+        // 主畫面 (需登入)
+        GoRoute(
+          path: RoutePaths.home,
+          builder: (context, state) => const HomePage(),
+        ),
+
+        // 主要功能頁面 (需登入，包含底部導航)
+        ShellRoute(
+          builder: (context, state, child) => AppScaffold(child: child),
+          routes: [
+            // 行事曆
+            GoRoute(
+              path: RoutePaths.calendar,
+              builder: (context, state) => const CalendarPage(),
+            ),
 
           // 場地查詢
           GoRoute(
@@ -120,12 +127,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
           // 交通
           GoRoute(
-            path: RoutePaths.bus,
-            builder: (context, state) => const BusPage(),
-          ),
-          GoRoute(
-            path: RoutePaths.bike,
-            builder: (context, state) => const BikePage(),
+            path: RoutePaths.transport,
+            builder: (context, state) => const TransportPage(),
           ),
 
           // 校園資訊
@@ -263,24 +266,5 @@ class _ScoreDetailPage extends StatelessWidget {
       appBar: AppBar(title: const Text('成績詳情')),
       body: Center(child: Text('科目 ID: $subjectId (待實作)')),
     );
-  }
-}
-
-/// AuthState 的 Listenable 包裝器，供 GoRouter refreshListenable 使用
-class _AuthStateListenable extends ChangeNotifier {
-  _AuthStateListenable(this._ref) {
-    // 監聽 authState 變化
-    _subscription = _ref.listen<AuthState>(authControllerProvider, (previous, next) {
-      notifyListeners();
-    });
-  }
-
-  final Ref _ref;
-  late final ProviderSubscription<AuthState> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.close();
-    super.dispose();
   }
 }

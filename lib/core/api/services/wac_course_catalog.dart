@@ -23,6 +23,40 @@ class WacCatalogEntry {
     required this.room,
   });
 
+  factory WacCatalogEntry.fromCsv(Map<String, String> row) {
+    String strip(String? v) {
+      if (v == null) return '';
+      // 移除 HTML span 標籤
+      return v
+          .replaceAll(RegExp('<[^>]+>'), '')
+          .trim();
+    }
+
+    return WacCatalogEntry(
+      seqno: strip(row['開課序號']),
+      year: strip(row['學年']),
+      sem: strip(row['學期']),
+      chineseco: strip(row['科目名稱']),
+      teacher: strip(row['教師姓名']),
+      weekday: strip(row['星期']),
+      bcl: strip(row['節次']).toUpperCase(),
+      ecl: strip(row['節次迄']).toUpperCase(),
+      room: strip(row['教室']),
+    );
+  }
+
+  factory WacCatalogEntry.fromMap(Map<String, dynamic> m) => WacCatalogEntry(
+        seqno: m['seqno'] as String? ?? '',
+        year: m['year'] as String? ?? '',
+        sem: m['sem'] as String? ?? '',
+        chineseco: m['chineseco'] as String? ?? '',
+        teacher: m['teacher'] as String? ?? '',
+        weekday: m['weekday'] as String? ?? '',
+        bcl: m['bcl'] as String? ?? '',
+        ecl: m['ecl'] as String? ?? '',
+        room: m['room'] as String? ?? '',
+      );
+
   final String seqno; // 開課序號 (對應 Course.seqno)
   final String year;
   final String sem;
@@ -39,28 +73,6 @@ class WacCatalogEntry {
   /// 完整鍵 (用於 dedupe)
   String get uniqueKey => '$seqno|$weekday|$bcl|$ecl|$room';
 
-  factory WacCatalogEntry.fromCsv(Map<String, String> row) {
-    String _strip(String? v) {
-      if (v == null) return '';
-      // 移除 HTML span 標籤
-      return v
-          .replaceAll(RegExp(r'<[^>]+>'), '')
-          .trim();
-    }
-
-    return WacCatalogEntry(
-      seqno: _strip(row['開課序號']),
-      year: _strip(row['學年']),
-      sem: _strip(row['學期']),
-      chineseco: _strip(row['科目名稱']),
-      teacher: _strip(row['教師姓名']),
-      weekday: _strip(row['星期']),
-      bcl: _strip(row['節次']).toUpperCase(),
-      ecl: _strip(row['節次迄']).toUpperCase(),
-      room: _strip(row['教室']),
-    );
-  }
-
   Map<String, dynamic> toMap() => {
         'seqno': seqno,
         'year': year,
@@ -72,18 +84,6 @@ class WacCatalogEntry {
         'ecl': ecl,
         'room': room,
       };
-
-  factory WacCatalogEntry.fromMap(Map<String, dynamic> m) => WacCatalogEntry(
-        seqno: m['seqno'] as String? ?? '',
-        year: m['year'] as String? ?? '',
-        sem: m['sem'] as String? ?? '',
-        chineseco: m['chineseco'] as String? ?? '',
-        teacher: m['teacher'] as String? ?? '',
-        weekday: m['weekday'] as String? ?? '',
-        bcl: m['bcl'] as String? ?? '',
-        ecl: m['ecl'] as String? ?? '',
-        room: m['room'] as String? ?? '',
-      );
 }
 
 /// 高醫全校課表目錄
@@ -91,6 +91,18 @@ class WacCatalogEntry {
 ///   final catalog = await WacCourseCatalog.load('114', '2');
 ///   for (final entry in catalog.findBySeqno('0001001')) { ... }
 class WacCourseCatalog {
+
+  factory WacCourseCatalog.fromJson(Map<String, dynamic> json) {
+    final raw = (json['entries'] as List?) ?? const [];
+    return WacCourseCatalog._(
+      year: json['year'] as String? ?? '',
+      sem: json['sem'] as String? ?? '',
+      entries: raw
+          .whereType<Map>()  // 接受 Map<dynamic, dynamic>
+          .map((m) => WacCatalogEntry.fromMap(Map<String, dynamic>.from(m)))
+          .toList(),
+    );
+  }
   WacCourseCatalog._({
     required this.year,
     required this.sem,
@@ -176,7 +188,7 @@ class WacCourseCatalog {
     Duration timeout = const Duration(seconds: 60),
   }) async {
     final client = dio ?? Dio();
-    final url = 'https://wac.kmu.edu.tw/qur/qurq0006.php';
+    const url = 'https://wac.kmu.edu.tw/qur/qurq0006.php';
 
     final headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -246,16 +258,4 @@ class WacCourseCatalog {
         'sem': sem,
         'entries': _entries.map((e) => e.toMap()).toList(),
       };
-
-  factory WacCourseCatalog.fromJson(Map<String, dynamic> json) {
-    final raw = (json['entries'] as List?) ?? const [];
-    return WacCourseCatalog._(
-      year: json['year'] as String? ?? '',
-      sem: json['sem'] as String? ?? '',
-      entries: raw
-          .whereType<Map>()  // 接受 Map<dynamic, dynamic>
-          .map((m) => WacCatalogEntry.fromMap(Map<String, dynamic>.from(m)))
-          .toList(),
-    );
-  }
 }

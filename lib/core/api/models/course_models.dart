@@ -100,47 +100,6 @@ class Course {
     this.periods = const [],
   });
 
-  final String id;
-  final String name;
-  final int weekday;
-  final String startTime;
-  final String endTime;
-  final int startWeek;
-  final int endWeek;
-  final double credit;
-  final String? teacher;
-  final String? classroom;
-  final String? building;
-  final String? weeks;
-  final String? type;
-  final String? color;
-  final String? department;
-  final String? semester;
-  // Python API 詳細欄位
-  final String? cm;
-  final String? cono;
-  final String? deptnam;
-  final String? edeptnam;
-  final String? englishco;
-  final String? esm;
-  final String? ecsk;
-  final String? furcm;
-  final String? grade;
-  final String? mteafno;
-  final String? noryn;
-  final String? pid;
-  final String? secnam;
-  final String? secqty;
-  final String? sm;
-  final String? teafenam;
-  final String? teafnam;
-  final String? textbook;
-  final String? xdeptno;
-  final String? seqno;
-  // 高醫 wac CSV 節次欄位 (從 qurq0006.php 取得)
-  final String? periodCode;
-  final List<String> periods;
-
   factory Course.fromJson(Map<String, dynamic> json) {
     // Python API 欄位對應
     final year = json['year']?.toString() ?? '0';
@@ -252,6 +211,47 @@ class Course {
       periods: periods,
     );
   }
+
+  final String id;
+  final String name;
+  final int weekday;
+  final String startTime;
+  final String endTime;
+  final int startWeek;
+  final int endWeek;
+  final double credit;
+  final String? teacher;
+  final String? classroom;
+  final String? building;
+  final String? weeks;
+  final String? type;
+  final String? color;
+  final String? department;
+  final String? semester;
+  // Python API 詳細欄位
+  final String? cm;
+  final String? cono;
+  final String? deptnam;
+  final String? edeptnam;
+  final String? englishco;
+  final String? esm;
+  final String? ecsk;
+  final String? furcm;
+  final String? grade;
+  final String? mteafno;
+  final String? noryn;
+  final String? pid;
+  final String? secnam;
+  final String? secqty;
+  final String? sm;
+  final String? teafenam;
+  final String? teafnam;
+  final String? textbook;
+  final String? xdeptno;
+  final String? seqno;
+  // 高醫 wac CSV 節次欄位 (從 qurq0006.php 取得)
+  final String? periodCode;
+  final List<String> periods;
 
   Map<String, dynamic> toJson() {
     return {
@@ -438,10 +438,6 @@ class MyScheduleResponse {
     this.data,
   });
 
-  final bool success;
-  final String message;
-  final ScheduleData? data;
-
   factory MyScheduleResponse.fromJson(Map<String, dynamic> json) {
     final data = json['data'];
     ScheduleData? scheduleData;
@@ -474,6 +470,10 @@ class MyScheduleResponse {
     );
   }
 
+  final bool success;
+  final String message;
+  final ScheduleData? data;
+
   Map<String, dynamic> toJson() {
     return {
       'success': success,
@@ -492,13 +492,9 @@ class ScheduleData {
     this.totalCredits,
   });
 
-  final List<Course> courses;
-  final String? semester;
-  final double? totalCredits;
-
   factory ScheduleData.fromJson(Map<String, dynamic> json) {
     // Python API: items 是 List<課堂>，需要轉成 Course
-    List<Course> courses = [];
+    final List<Course> courses = [];
     String? semester;
 
     // 處理兩種格式：
@@ -517,7 +513,7 @@ class ScheduleData {
     // 從第一門課程取得學期 (year-sem 格式，不是 year-sem-seqno)
     if (courses.isNotEmpty) {
       final first = courses.first;
-      semester = '${first.id.split('-').take(2).join('-')}';
+      semester = first.id.split('-').take(2).join('-');
     } else if (json['semester'] is String) {
       semester = json['semester'] as String?;
     }
@@ -528,6 +524,10 @@ class ScheduleData {
       totalCredits: (json['totalCredits'] as num?)?.toDouble(),
     );
   }
+
+  final List<Course> courses;
+  final String? semester;
+  final double? totalCredits;
 
   Map<String, dynamic> toJson() {
     return {
@@ -575,25 +575,6 @@ class ScoreSubject {
     this.department,
   });
 
-  final String id;
-  final String name;
-  final double credit;
-  final String? courseCode;
-  final double? score;
-  final String? grade;
-  final int? rank;
-  final int? totalStudents;
-  final double? average;
-  final double? midterm;
-  final double? finalExam;
-  final double? homework;
-  final double? attendance;
-  final double? other;
-  final String? teacher;
-  final String? semester;
-  final String? type;
-  final String? department;
-
   factory ScoreSubject.fromJson(Map<String, dynamic> json) {
     return ScoreSubject(
       id: json['id']?.toString() ?? json['courseCode']?.toString() ?? '',
@@ -616,6 +597,25 @@ class ScoreSubject {
       department: json['department']?.toString() ?? json['deptnam']?.toString(),
     );
   }
+
+  final String id;
+  final String name;
+  final double credit;
+  final String? courseCode;
+  final double? score;
+  final String? grade;
+  final int? rank;
+  final int? totalStudents;
+  final double? average;
+  final double? midterm;
+  final double? finalExam;
+  final double? homework;
+  final double? attendance;
+  final double? other;
+  final String? teacher;
+  final String? semester;
+  final String? type;
+  final String? department;
 
   Map<String, dynamic> toJson() {
     return {
@@ -640,14 +640,14 @@ class ScoreSubject {
     };
   }
 
-  static double? _parseDouble(dynamic v) {
+  static double? _parseDouble(v) {
     if (v == null) return null;
     if (v is num) return v.toDouble();
     if (v is String) return double.tryParse(v);
     return null;
   }
 
-  static int? _parseInt(dynamic v) {
+  static int? _parseInt(v) {
     if (v == null) return null;
     if (v is num) return v.toInt();
     if (v is String) return int.tryParse(v);
@@ -685,10 +685,6 @@ class MyScoresResponse {
     this.data,
   });
 
-  final bool success;
-  final String message;
-  final ScoresData? data;
-
   factory MyScoresResponse.fromJson(Map<String, dynamic> json) {
     return MyScoresResponse(
       success: json['success'] as bool? ?? false,
@@ -696,6 +692,10 @@ class MyScoresResponse {
       data: json['data'] != null ? ScoresData.fromJson(json['data'] as Map<String, dynamic>) : null,
     );
   }
+
+  final bool success;
+  final String message;
+  final ScoresData? data;
 
   Map<String, dynamic> toJson() {
     return {
@@ -720,16 +720,6 @@ class ScoresData {
     this.totalStudents,
     this.gpaTrend = const [],
   });
-
-  final List<ScoreSubject> subjects;
-  final List<SemesterInfo> semesters;
-  final String? currentSemester;
-  final double? gpa;
-  final double? totalCredits;
-  final double? earnedCredits;
-  final int? rank;
-  final int? totalStudents;
-  final List<GPATrendPoint> gpaTrend;
 
   factory ScoresData.fromJson(Map<String, dynamic> json) {
     final subjects = <ScoreSubject>[];
@@ -760,6 +750,16 @@ class ScoresData {
       gpaTrend: [],
     );
   }
+
+  final List<ScoreSubject> subjects;
+  final List<SemesterInfo> semesters;
+  final String? currentSemester;
+  final double? gpa;
+  final double? totalCredits;
+  final double? earnedCredits;
+  final int? rank;
+  final int? totalStudents;
+  final List<GPATrendPoint> gpaTrend;
 
   Map<String, dynamic> toJson() {
     return {
@@ -828,23 +828,6 @@ class CourseOutline {
     this.eSeqnir,
   });
 
-  final String? pid;
-  final String? year;
-  final String? sem;
-  final String? seqno;
-  final String? refurl;
-  final String? officehour;
-  final String? syllabn;
-  final String? eSyllabn;
-  final String? purpos;
-  final String? ePurpos;
-  final String? method;
-  final String? eMethod;
-  final String? asses;
-  final String? eAsses;
-  final String? seqnir;
-  final String? eSeqnir;
-
   factory CourseOutline.fromJson(Map<String, dynamic> json) {
     return CourseOutline(
       pid: json['pid']?.toString(),
@@ -865,6 +848,23 @@ class CourseOutline {
       eSeqnir: json['eSeqnir']?.toString(),
     );
   }
+
+  final String? pid;
+  final String? year;
+  final String? sem;
+  final String? seqno;
+  final String? refurl;
+  final String? officehour;
+  final String? syllabn;
+  final String? eSyllabn;
+  final String? purpos;
+  final String? ePurpos;
+  final String? method;
+  final String? eMethod;
+  final String? asses;
+  final String? eAsses;
+  final String? seqnir;
+  final String? eSeqnir;
 
   Map<String, dynamic> toJson() {
     return {
@@ -895,9 +895,6 @@ class CourseDetail {
     this.textbook,
   });
 
-  final List<CourseOutline> outlines;
-  final String? textbook;
-
   factory CourseDetail.fromJson(Map<String, dynamic> json) {
     final outlines = <CourseOutline>[];
     if (json['outline'] is List) {
@@ -912,6 +909,9 @@ class CourseDetail {
       textbook: json['textbook']?.toString(),
     );
   }
+
+  final List<CourseOutline> outlines;
+  final String? textbook;
 
   Map<String, dynamic> toJson() {
     return {
@@ -930,11 +930,6 @@ class GPATrendPoint {
     required this.subjectCount,
   });
 
-  final String semester;
-  final double gpa;
-  final double credits;
-  final int subjectCount;
-
   factory GPATrendPoint.fromJson(Map<String, dynamic> json) {
     return GPATrendPoint(
       semester: json['semester']?.toString() ?? '',
@@ -943,6 +938,11 @@ class GPATrendPoint {
       subjectCount: (json['subjectCount'] as num?)?.toInt() ?? 0,
     );
   }
+
+  final String semester;
+  final double gpa;
+  final double credits;
+  final int subjectCount;
 
   Map<String, dynamic> toJson() {
     return {
@@ -966,6 +966,8 @@ class CourseState {
     this.error,
   });
 
+  factory CourseState.initial() => const CourseState();
+
   final List<Course> courses;
   final ScheduleData? scheduleData;
   final ScoresData? scoresData;
@@ -973,8 +975,6 @@ class CourseState {
   final bool isLoadingSchedule;
   final bool isLoadingScores;
   final String? error;
-
-  factory CourseState.initial() => const CourseState();
 
   CourseState copyWith({
     List<Course>? courses,
