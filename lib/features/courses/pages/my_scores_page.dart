@@ -66,7 +66,7 @@ class ScoresNotifier extends AutoDisposeNotifier<ScoresState> {
 
     try {
       const cacheKey = 'scores_data';
-      final cached = _cache.getSimple<ScoresData>(CacheBoxes.courses, cacheKey);
+      final cached = await _cache.getSimple<ScoresData>(CacheBoxes.courses, cacheKey);
 
       if (cached != null) {
         _processScoresData(cached);
@@ -168,7 +168,7 @@ class ScoresNotifier extends AutoDisposeNotifier<ScoresState> {
 
   /// 刷新
   Future<void> refresh() async {
-    await _cache.remove(CacheBoxes.courses, 'scores_data');
+    await _cache.delete(CacheBoxes.courses, 'scores_data');
     await _loadScores();
   }
 }

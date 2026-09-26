@@ -74,7 +74,7 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
 
     try {
       const cacheKey = 'classroom_categories';
-      final cached = _cache.getSimple<List<dynamic>>(CacheBoxes.classroom, cacheKey);
+      final cached = await _cache.getSimple<List<dynamic>>(CacheBoxes.classroom, cacheKey);
 
       List<ClassroomCategory> categories = [];
       if (cached != null && cached.isNotEmpty) {
@@ -83,7 +83,7 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
               .map((e) => ClassroomCategory.fromJson(Map<String, dynamic>.from(e as Map)))
               .toList();
         } catch (_) {
-          await _cache.remove(CacheBoxes.classroom, cacheKey);
+          await _cache.delete(CacheBoxes.classroom, cacheKey);
         }
       }
 
@@ -118,7 +118,7 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
     try {
       final selectedCategory = state.selectedCategory;
       final cacheKey = 'classroom_rooms_${selectedCategory?.id ?? "all"}';
-      final cached = _cache.getSimple<List<dynamic>>(CacheBoxes.classroom, cacheKey);
+      final cached = await _cache.getSimple<List<dynamic>>(CacheBoxes.classroom, cacheKey);
 
       List<ClassroomRoom> rooms = [];
       if (cached != null && cached.isNotEmpty) {
@@ -127,7 +127,7 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
               .map((e) => ClassroomRoom.fromJson(Map<String, dynamic>.from(e as Map)))
               .toList();
         } catch (_) {
-          await _cache.remove(CacheBoxes.classroom, cacheKey);
+          await _cache.delete(CacheBoxes.classroom, cacheKey);
         }
       }
 
@@ -199,10 +199,10 @@ class ClassroomListNotifier extends AutoDisposeNotifier<ClassroomListState> {
 
   /// 刷新
   Future<void> refresh() async {
-    await _cache.remove(CacheBoxes.classroom, 'classroom_categories');
-    await _cache.remove(CacheBoxes.classroom, 'classroom_rooms_all');
+    await _cache.delete(CacheBoxes.classroom, 'classroom_categories');
+    await _cache.delete(CacheBoxes.classroom, 'classroom_rooms_all');
     if (state.selectedCategory != null) {
-      await _cache.remove(CacheBoxes.classroom, 'classroom_rooms_${state.selectedCategory!.id}');
+      await _cache.delete(CacheBoxes.classroom, 'classroom_rooms_${state.selectedCategory!.id}');
     }
     await _loadCategories();
   }

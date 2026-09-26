@@ -1,16 +1,17 @@
 // App 入口點
-// 初始化 Hive、Riverpod、GoRouter、主題
+// 初始化 Riverpod、GoRouter、主題、快取服務
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 
 import 'core.dart';
 import 'routing/app_router.dart';
+import 'core/ui/responsive.dart';
 
 /// 全域錯誤處理
 void _setupErrorHandling() {
@@ -24,10 +25,19 @@ void _setupErrorHandling() {
   };
 }
 
+/// 初始化 sqflite (Linux 需要 ffi)
+void _initSqflite() {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+}
+
 /// 主函式
 Future<void> main() async {
   // 確保 Flutter binding 初始化
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 初始化 sqflite (Linux)
+  _initSqflite();
   
   // 設定錯誤處理
   _setupErrorHandling();
@@ -39,23 +49,12 @@ Future<void> main() async {
   ]);
   
   // 啟用邊緣到邊緣 (Android)
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   
   // 初始化時區資料
   tz_data.initializeTimeZones();
   
-  // 初始化 Hive (本地快取)
-  await Hive.initFlutter();
-  
-  // 註冊 Hive Adapters (需先執行 build_runner 生成)
-  // Hive.registerAdapter(CacheItemAdapter());
-  // Hive.registerAdapter(AuthCacheAdapter());
-  // ... 其他 adapters
-  
-  // 開啟預設 Box
-  await _openDefaultBoxes();
-  
-  // 初始化快取服務
+  // 初始化快取服務 (sqflite + shared_preferences)
   await CacheService.instance.initialize();
   
   // 執行 App
@@ -64,16 +63,6 @@ Future<void> main() async {
       child: IKmuApp(),
     ),
   );
-}
-
-/// 開啟預設 Box
-Future<void> _openDefaultBoxes() async {
-  final boxes = CacheBoxes.values.toList();
-  for (final boxName in boxes) {
-    if (!Hive.isBoxOpen(boxName.name)) {
-      await Hive.openBox<Map>(boxName.name);
-    }
-  }
 }
 
 /// 主應用程式 Widget
@@ -111,14 +100,18 @@ class IKmuApp extends ConsumerWidget {
       
       // Builder 可在此包裹全域 Provider、錯誤邊界等
       builder: (context, child) {
-        return MediaQuery(
-          // 限制文字縮放最大倍率
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(
-              MediaQuery.of(context).textScaler.scale(1.0).clamp(0.8, 1.3),
+        return ResponsiveLayout(
+          child: TextScaleClamp(
+            child: MediaQuery(
+              // 限制文字縮放最大倍率
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(
+                  MediaQuery.of(context).textScaler.scale(1.0).clamp(0.8, 1.3),
+                ),
+              ),
+              child: child!,
             ),
           ),
-          child: child!,
         );
       },
     );

@@ -67,67 +67,67 @@ class BusNotifier extends AutoDisposeNotifier<BusState> {
   }
 
   Future<void> _loadRoutes() async {
-    try {
-      const cacheKey = 'bus_routes';
-      final cached = _cache.get<List<dynamic>>(
-        CacheBoxes.transport,
-        cacheKey,
-        fromJson: (json) => json as List<dynamic>,
-      );
-      if (cached != null) {
-        state = state.copyWith(routes: cached.map((e) => BusRoute.fromJson(e as Map<String, dynamic>)).toList());
-        return;
-      }
+      try {
+        const cacheKey = 'bus_routes';
+        final cached = await _cache.getAsync<List<dynamic>>(
+          CacheBoxes.transport,
+          cacheKey,
+          fromJson: (json) => json as List<dynamic>,
+        );
+        if (cached != null) {
+          state = state.copyWith(routes: cached.map((e) => BusRoute.fromJson(e as Map<String, dynamic>)).toList());
+          return;
+        }
 
-      final response = await _endpoints.transport.getBusRoutes();
-      if (response.isNotEmpty) {
-        await _cache.set(CacheBoxes.transport, cacheKey, response,
-            fromJson: (json) => json as List<dynamic>,
-            ttl: CacheTTL.transport);
-        state = state.copyWith(routes: response);
+        final response = await _endpoints.transport.getBusRoutes();
+        if (response.isNotEmpty) {
+          await _cache.set(CacheBoxes.transport, cacheKey, response,
+              fromJson: (json) => json as List<dynamic>,
+              ttl: CacheTTL.transport);
+          state = state.copyWith(routes: response);
+        }
+      } catch (e) {
+        debugPrint('載入公車路線失敗: $e');
       }
-    } catch (e) {
-      debugPrint('載入公車路線失敗: $e');
     }
-  }
 
-  Future<void> _loadFavorites() async {
-    // TODO: 從本地儲存載入收藏站牌
-  }
-
-  void selectRoute(BusRoute route) {
-    state = state.copyWith(selectedRoute: route);
-    _loadStopsAndRealtime(route.id);
-  }
-
-  Future<void> _loadStopsAndRealtime(String routeId) async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final stopsCacheKey = 'bus_stops_$routeId';
-      final cachedStops = _cache.get<List<dynamic>>(
-        CacheBoxes.transport,
-        stopsCacheKey,
-        fromJson: (json) => json as List<dynamic>,
-      );
-      if (cachedStops != null) {
-        state = state.copyWith(stops: cachedStops.map((e) => BusStop.fromJson(e as Map<String, dynamic>)).toList());
-      }
-
-      final response = await _endpoints.transport.getBusStops(routeId);
-      if (response.success && response.stops.isNotEmpty) {
-        await _cache.set(CacheBoxes.transport, stopsCacheKey, response.stops,
-            fromJson: (json) => BusStop.fromJson(json as Map<String, dynamic>),
-            ttl: CacheTTL.classroom);
-        state = state.copyWith(stops: response.stops);
-      }
-
-      // 載入即時資訊
-      _loadRealtime(routeId);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: '載入站牌失敗: $e');
+    Future<void> _loadFavorites() async {
+      // TODO: 從本地儲存載入收藏站牌
     }
-  }
+
+    void selectRoute(BusRoute route) {
+      state = state.copyWith(selectedRoute: route);
+      _loadStopsAndRealtime(route.id);
+    }
+
+    Future<void> _loadStopsAndRealtime(String routeId) async {
+      state = state.copyWith(isLoading: true, error: null);
+
+      try {
+        final stopsCacheKey = 'bus_stops_$routeId';
+        final cachedStops = await _cache.getAsync<List<dynamic>>(
+          CacheBoxes.transport,
+          stopsCacheKey,
+          fromJson: (json) => json as List<dynamic>,
+        );
+        if (cachedStops != null) {
+          state = state.copyWith(stops: cachedStops.map((e) => BusStop.fromJson(e as Map<String, dynamic>)).toList());
+        }
+
+        final response = await _endpoints.transport.getBusStops(routeId);
+        if (response.success && response.stops.isNotEmpty) {
+          await _cache.set(CacheBoxes.transport, stopsCacheKey, response.stops,
+              fromJson: (json) => BusStop.fromJson(json as Map<String, dynamic>),
+              ttl: CacheTTL.classroom);
+          state = state.copyWith(stops: response.stops);
+        }
+
+        // 載入即時資訊
+        await _loadRealtime(routeId);
+      } catch (e) {
+        state = state.copyWith(isLoading: false, error: '載入站牌失敗: $e');
+      }
+    }
 
   Future<void> _loadRealtime(String routeId) async {
     try {

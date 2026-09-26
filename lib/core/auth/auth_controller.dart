@@ -142,7 +142,7 @@ class AuthController extends AutoDisposeNotifier<AuthState> {
       final response = await _endpoints.auth.login(
         userId: userId,
         password: password,
-        fcmToken: null, // TODO: 取得 FCM Token
+        fcmToken: null,
       );
 
       if (response.success) {
@@ -216,8 +216,39 @@ class AuthController extends AutoDisposeNotifier<AuthState> {
     required String oldPassword,
     required String newPassword,
   }) async {
-    // TODO: 實作修改密碼 API
-    return false;
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await _endpoints.auth.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+
+      if (response.success) {
+        state = state.copyWith(isLoading: false, error: null);
+        return true;
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        error: response.message,
+      );
+      return false;
+    } on DioException catch (e) {
+      final errorMsg = _handleDioError(e);
+      state = state.copyWith(
+        isLoading: false,
+        error: errorMsg,
+      );
+      return false;
+    } catch (e) {
+      debugPrint('修改密碼異常: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: '修改密碼失敗: $e',
+      );
+      return false;
+    }
   }
 
   /// 更新使用者資訊

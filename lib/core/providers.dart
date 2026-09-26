@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api/kmu_client.dart';
 import '../core/api/endpoints/endpoints.dart';
@@ -79,9 +80,9 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
   Future<void> _loadSavedTheme() async {
     try {
-      // 這裡會在 Hive 初始化後使用
-      // 暫時使用預設值
-      state = ThemeMode.system;
+      final prefs = await SharedPreferences.getInstance();
+      final themeIndex = prefs.getInt('theme_mode') ?? 0;
+      state = ThemeMode.values[themeIndex];
     } catch (_) {
       state = ThemeMode.system;
     }
@@ -89,7 +90,8 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
-    // TODO: 儲存到 Hive
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('theme_mode', mode.index);
   }
 }
 

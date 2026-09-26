@@ -55,6 +55,32 @@ class AuthEndpoint {
       message: '已登出',
     );
   }
+
+  /// 修改密碼
+  Future<ApiResponse> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final response = await _client.post(
+      'changePassword', // API 端點需確認
+      data: {
+        'old_password': oldPassword,
+        'new_password': newPassword,
+      },
+    );
+
+    if (response['success'] == true) {
+      return ApiResponse(
+        success: true,
+        message: response['message']?.toString() ?? '密碼修改成功',
+      );
+    }
+
+    return ApiResponse(
+      success: false,
+      message: response['message']?.toString() ?? '密碼修改失敗',
+    );
+  }
 }
 
 /// 行事曆端點
@@ -620,6 +646,116 @@ class TransportEndpoint {
       sequence: sequence,
       address: json['address'] as String?,
       transfer: null,
+    );
+  }
+
+  /// 取得捷運即時到站資訊 (PTX LiveBoard)
+  /// 來源: https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/LiveBoard/KRTC
+  Future<List<MetroRealtime>> getMetroRealtime() async {
+    try {
+      final rawResponse = await _client.dio.get<List<dynamic>>(
+        'https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/LiveBoard/KRTC',
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+          },
+          responseType: ResponseType.json,
+        ),
+      );
+
+      final data = rawResponse.data;
+      if (data == null) return [];
+
+      return data
+          .whereType<Map>()
+          .map((e) => _transformMetroRealtime(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      logger.e('載入捷運即時到站失敗: $e');
+      return [];
+    }
+  }
+
+  /// 轉換捷運即時到站資料格式 (PTX LiveBoard)
+  MetroRealtime _transformMetroRealtime(Map<String, dynamic> json) {
+    final lineId = json['LineID'] as String? ?? '';
+    final lineName = (json['LineName'] as Map<String, dynamic>?)?['Zh_tw'] as String? ?? lineId;
+    final stationId = json['StationID'] as String? ?? '';
+    final stationName = (json['StationName'] as Map<String, dynamic>?)?['Zh_tw'] as String? ?? '';
+    final tripHeadSign = json['TripHeadSign'] as String? ?? '';
+    final destinationStationId = json['DestinationStationID'] as String? ?? '';
+    final destinationStationName = (json['DestinationStationName'] as Map<String, dynamic>?)?['Zh_tw'] as String? ?? '';
+    final estimateTime = (json['EstimateTime'] as num?)?.toInt() ?? 0;
+    final serviceStatus = (json['ServiceStatus'] as num?)?.toInt() ?? 0;
+    final srcUpdateTime = json['SrcUpdateTime'] as String?;
+
+    return MetroRealtime(
+      lineId: lineId,
+      lineName: lineName,
+      stationId: stationId,
+      stationName: stationName,
+      tripHeadSign: tripHeadSign,
+      destinationStationId: destinationStationId,
+      destinationStationName: destinationStationName,
+      estimateTime: estimateTime,
+      serviceStatus: serviceStatus,
+      srcUpdateTime: srcUpdateTime,
+    );
+  }
+
+  /// 取得輕軌即時到站資訊 (高雄市政府交通局 API)
+  /// 來源: https://traffic.tbkc.gov.tw/api/lrts/live-boards?language=zh-TW
+  Future<List<MetroRealtime>> getLRTRealtime() async {
+    try {
+      final rawResponse = await _client.dio.get<List<dynamic>>(
+        'https://traffic.tbkc.gov.tw/api/lrts/live-boards?language=zh-TW',
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+          },
+          responseType: ResponseType.json,
+        ),
+      );
+
+      final data = rawResponse.data;
+      if (data == null) return [];
+
+      return data
+          .whereType<Map>()
+          .map((e) => _transformLRTRealtime(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      logger.e('載入輕軌即時到站失敗: $e');
+      return [];
+    }
+  }
+
+  /// 轉換輕軌即時到站資料格式 (高雄市政府交通局 API - 不同於 PTX 格式)
+  MetroRealtime _transformLRTRealtime(Map<String, dynamic> json) {
+    // LRT API 格式: lineId, lineName, stationId, stationName, tripHeadSign, 
+    // destinationStationId, destinationStationName, estimateTime, srcUpdateTime
+    final lineId = json['lineId'] as String? ?? '';
+    final lineName = json['lineName'] as String? ?? '';
+    final stationId = json['stationId'] as String? ?? '';
+    final stationName = json['stationName'] as String? ?? '';
+    final tripHeadSign = json['tripHeadSign'] as String? ?? '';
+    final destinationStationId = json['destinationStationId'] as String? ?? '';
+    final destinationStationName = json['destinationStationName'] as String? ?? '';
+    final estimateTime = (json['estimateTime'] as num?)?.toInt() ?? 0;
+    const serviceStatus = 0; // LRT API 沒有 serviceStatus，預設正常
+    final srcUpdateTime = json['srcUpdateTime'] as String?;
+
+    return MetroRealtime(
+      lineId: lineId,
+      lineName: lineName,
+      stationId: stationId,
+      stationName: stationName,
+      tripHeadSign: tripHeadSign,
+      destinationStationId: destinationStationId,
+      destinationStationName: destinationStationName,
+      estimateTime: estimateTime,
+      serviceStatus: serviceStatus,
+      srcUpdateTime: srcUpdateTime,
     );
   }
 

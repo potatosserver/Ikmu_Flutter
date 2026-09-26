@@ -26,3 +26,37 @@ The Flutter DevTools debugger and profiler on Linux is available at: http://127.
 [router] -> redirect to home
 [router] redirect: location=/home, isLoggedIn=true, isAuthRoute=false, isSplashRoute=false, isHomeRoute=true
 [router] redirect: location=/transport, isLoggedIn=true, isAuthRoute=false, isSplashRoute=false, isHomeRoute=false
+
+Performing hot restart...                                       
+Restarted application in 1,535ms.
+[ERROR] Platform Error: FileSystemException: lock failed, path = '/home/user/文件/auth.lock' (OS Error: 資源暫時無法取得, errno = 11)
+#0      _checkForErrorResponse (dart:io/common.dart:58:9)
+#1      _RandomAccessFile.lock.<anonymous closure> (dart:io/file_impl.dart:1116:7)
+<asynchronous suspension>
+#2      StorageBackendVm.initialize (package:hive/src/backend/vm/storage_backend_vm.dart:81:5)
+<asynchronous suspension>
+#3      HiveImpl._openBox (package:hive/src/hive_impl.dart:111:9)
+<asynchronous suspension>
+#4      HiveImpl.openBox (package:hive/src/hive_impl.dart:142:12)
+<asynchronous suspension>
+#5      _openDefaultBoxes (package:ikmu_flutter/main.dart:74:7)
+<asynchronous suspension>
+#6      main (package:ikmu_flutter/main.dart:56:3)
+<asynchronous suspension>
+
+[ERROR] Platform Error: FileSystemException: lock failed, path = '/home/user/文件/auth.lock' (OS Error: 資源暫時無法取得, errno = 11)
+#0      _checkForErrorResponse (dart:io/common.dart:58:9)
+#1      _RandomAccessFile.lock.<anonymous closure> (dart:io/file_impl.dart:1116:7)
+<asynchronous suspension>
+#2      StorageBackendVm.initialize (package:hive/src/backend/vm/storage_backend_vm.dart:81:5)
+<asynchronous suspension>
+#3      HiveImpl._openBox (package:hive/src/hive_impl.dart:111:9)
+<asynchronous suspension>
+#4      HiveImpl.openBox (package:hive/src/hive_impl.dart:142:12)
+<asynchronous suspension>
+#5      _openDefaultBoxes (package:ikmu_flutter/main.dart:74:7)
+<asynchronous suspension>
+#6      main (package:ikmu_flutter/main.dart:56:3)
+<asynchronous suspension>
+
+Application finished.

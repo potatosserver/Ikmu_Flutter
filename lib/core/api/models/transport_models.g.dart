@@ -220,6 +220,34 @@ Map<String, dynamic> _$$MetroStationImplToJson(_$MetroStationImpl instance) =>
       'transfer': instance.transfer,
     };
 
+_$MetroRealtimeImpl _$$MetroRealtimeImplFromJson(Map<String, dynamic> json) =>
+    _$MetroRealtimeImpl(
+      lineId: json['lineId'] as String,
+      lineName: json['lineName'] as String,
+      stationId: json['stationId'] as String,
+      stationName: json['stationName'] as String,
+      tripHeadSign: json['tripHeadSign'] as String,
+      destinationStationId: json['destinationStationId'] as String,
+      destinationStationName: json['destinationStationName'] as String,
+      estimateTime: (json['estimateTime'] as num).toInt(),
+      serviceStatus: (json['serviceStatus'] as num).toInt(),
+      srcUpdateTime: json['srcUpdateTime'] as String?,
+    );
+
+Map<String, dynamic> _$$MetroRealtimeImplToJson(_$MetroRealtimeImpl instance) =>
+    <String, dynamic>{
+      'lineId': instance.lineId,
+      'lineName': instance.lineName,
+      'stationId': instance.stationId,
+      'stationName': instance.stationName,
+      'tripHeadSign': instance.tripHeadSign,
+      'destinationStationId': instance.destinationStationId,
+      'destinationStationName': instance.destinationStationName,
+      'estimateTime': instance.estimateTime,
+      'serviceStatus': instance.serviceStatus,
+      'srcUpdateTime': instance.srcUpdateTime,
+    };
+
 _$LRTStationImpl _$$LRTStationImplFromJson(Map<String, dynamic> json) =>
     _$LRTStationImpl(
       id: json['id'] as String,

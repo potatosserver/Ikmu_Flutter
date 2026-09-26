@@ -3036,6 +3036,351 @@ abstract class _MetroStation implements MetroStation {
       throw _privateConstructorUsedError;
 }
 
+MetroRealtime _$MetroRealtimeFromJson(Map<String, dynamic> json) {
+  return _MetroRealtime.fromJson(json);
+}
+
+/// @nodoc
+mixin _$MetroRealtime {
+  String get lineId =>
+      throw _privateConstructorUsedError; // 'R', 'O', 'RK', 'OT'
+  String get lineName => throw _privateConstructorUsedError;
+  String get stationId => throw _privateConstructorUsedError;
+  String get stationName => throw _privateConstructorUsedError;
+  String get tripHeadSign => throw _privateConstructorUsedError; // 往程方向
+  String get destinationStationId => throw _privateConstructorUsedError;
+  String get destinationStationName => throw _privateConstructorUsedError;
+  int get estimateTime => throw _privateConstructorUsedError; // 秒
+  int get serviceStatus => throw _privateConstructorUsedError; // 0: 正常, 其他: 異常
+  String? get srcUpdateTime => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $MetroRealtimeCopyWith<MetroRealtime> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MetroRealtimeCopyWith<$Res> {
+  factory $MetroRealtimeCopyWith(
+          MetroRealtime value, $Res Function(MetroRealtime) then) =
+      _$MetroRealtimeCopyWithImpl<$Res, MetroRealtime>;
+  @useResult
+  $Res call(
+      {String lineId,
+      String lineName,
+      String stationId,
+      String stationName,
+      String tripHeadSign,
+      String destinationStationId,
+      String destinationStationName,
+      int estimateTime,
+      int serviceStatus,
+      String? srcUpdateTime});
+}
+
+/// @nodoc
+class _$MetroRealtimeCopyWithImpl<$Res, $Val extends MetroRealtime>
+    implements $MetroRealtimeCopyWith<$Res> {
+  _$MetroRealtimeCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? lineId = null,
+    Object? lineName = null,
+    Object? stationId = null,
+    Object? stationName = null,
+    Object? tripHeadSign = null,
+    Object? destinationStationId = null,
+    Object? destinationStationName = null,
+    Object? estimateTime = null,
+    Object? serviceStatus = null,
+    Object? srcUpdateTime = freezed,
+  }) {
+    return _then(_value.copyWith(
+      lineId: null == lineId
+          ? _value.lineId
+          : lineId // ignore: cast_nullable_to_non_nullable
+              as String,
+      lineName: null == lineName
+          ? _value.lineName
+          : lineName // ignore: cast_nullable_to_non_nullable
+              as String,
+      stationId: null == stationId
+          ? _value.stationId
+          : stationId // ignore: cast_nullable_to_non_nullable
+              as String,
+      stationName: null == stationName
+          ? _value.stationName
+          : stationName // ignore: cast_nullable_to_non_nullable
+              as String,
+      tripHeadSign: null == tripHeadSign
+          ? _value.tripHeadSign
+          : tripHeadSign // ignore: cast_nullable_to_non_nullable
+              as String,
+      destinationStationId: null == destinationStationId
+          ? _value.destinationStationId
+          : destinationStationId // ignore: cast_nullable_to_non_nullable
+              as String,
+      destinationStationName: null == destinationStationName
+          ? _value.destinationStationName
+          : destinationStationName // ignore: cast_nullable_to_non_nullable
+              as String,
+      estimateTime: null == estimateTime
+          ? _value.estimateTime
+          : estimateTime // ignore: cast_nullable_to_non_nullable
+              as int,
+      serviceStatus: null == serviceStatus
+          ? _value.serviceStatus
+          : serviceStatus // ignore: cast_nullable_to_non_nullable
+              as int,
+      srcUpdateTime: freezed == srcUpdateTime
+          ? _value.srcUpdateTime
+          : srcUpdateTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$MetroRealtimeImplCopyWith<$Res>
+    implements $MetroRealtimeCopyWith<$Res> {
+  factory _$$MetroRealtimeImplCopyWith(
+          _$MetroRealtimeImpl value, $Res Function(_$MetroRealtimeImpl) then) =
+      __$$MetroRealtimeImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String lineId,
+      String lineName,
+      String stationId,
+      String stationName,
+      String tripHeadSign,
+      String destinationStationId,
+      String destinationStationName,
+      int estimateTime,
+      int serviceStatus,
+      String? srcUpdateTime});
+}
+
+/// @nodoc
+class __$$MetroRealtimeImplCopyWithImpl<$Res>
+    extends _$MetroRealtimeCopyWithImpl<$Res, _$MetroRealtimeImpl>
+    implements _$$MetroRealtimeImplCopyWith<$Res> {
+  __$$MetroRealtimeImplCopyWithImpl(
+      _$MetroRealtimeImpl _value, $Res Function(_$MetroRealtimeImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? lineId = null,
+    Object? lineName = null,
+    Object? stationId = null,
+    Object? stationName = null,
+    Object? tripHeadSign = null,
+    Object? destinationStationId = null,
+    Object? destinationStationName = null,
+    Object? estimateTime = null,
+    Object? serviceStatus = null,
+    Object? srcUpdateTime = freezed,
+  }) {
+    return _then(_$MetroRealtimeImpl(
+      lineId: null == lineId
+          ? _value.lineId
+          : lineId // ignore: cast_nullable_to_non_nullable
+              as String,
+      lineName: null == lineName
+          ? _value.lineName
+          : lineName // ignore: cast_nullable_to_non_nullable
+              as String,
+      stationId: null == stationId
+          ? _value.stationId
+          : stationId // ignore: cast_nullable_to_non_nullable
+              as String,
+      stationName: null == stationName
+          ? _value.stationName
+          : stationName // ignore: cast_nullable_to_non_nullable
+              as String,
+      tripHeadSign: null == tripHeadSign
+          ? _value.tripHeadSign
+          : tripHeadSign // ignore: cast_nullable_to_non_nullable
+              as String,
+      destinationStationId: null == destinationStationId
+          ? _value.destinationStationId
+          : destinationStationId // ignore: cast_nullable_to_non_nullable
+              as String,
+      destinationStationName: null == destinationStationName
+          ? _value.destinationStationName
+          : destinationStationName // ignore: cast_nullable_to_non_nullable
+              as String,
+      estimateTime: null == estimateTime
+          ? _value.estimateTime
+          : estimateTime // ignore: cast_nullable_to_non_nullable
+              as int,
+      serviceStatus: null == serviceStatus
+          ? _value.serviceStatus
+          : serviceStatus // ignore: cast_nullable_to_non_nullable
+              as int,
+      srcUpdateTime: freezed == srcUpdateTime
+          ? _value.srcUpdateTime
+          : srcUpdateTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$MetroRealtimeImpl implements _MetroRealtime {
+  const _$MetroRealtimeImpl(
+      {required this.lineId,
+      required this.lineName,
+      required this.stationId,
+      required this.stationName,
+      required this.tripHeadSign,
+      required this.destinationStationId,
+      required this.destinationStationName,
+      required this.estimateTime,
+      required this.serviceStatus,
+      this.srcUpdateTime});
+
+  factory _$MetroRealtimeImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MetroRealtimeImplFromJson(json);
+
+  @override
+  final String lineId;
+// 'R', 'O', 'RK', 'OT'
+  @override
+  final String lineName;
+  @override
+  final String stationId;
+  @override
+  final String stationName;
+  @override
+  final String tripHeadSign;
+// 往程方向
+  @override
+  final String destinationStationId;
+  @override
+  final String destinationStationName;
+  @override
+  final int estimateTime;
+// 秒
+  @override
+  final int serviceStatus;
+// 0: 正常, 其他: 異常
+  @override
+  final String? srcUpdateTime;
+
+  @override
+  String toString() {
+    return 'MetroRealtime(lineId: $lineId, lineName: $lineName, stationId: $stationId, stationName: $stationName, tripHeadSign: $tripHeadSign, destinationStationId: $destinationStationId, destinationStationName: $destinationStationName, estimateTime: $estimateTime, serviceStatus: $serviceStatus, srcUpdateTime: $srcUpdateTime)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MetroRealtimeImpl &&
+            (identical(other.lineId, lineId) || other.lineId == lineId) &&
+            (identical(other.lineName, lineName) ||
+                other.lineName == lineName) &&
+            (identical(other.stationId, stationId) ||
+                other.stationId == stationId) &&
+            (identical(other.stationName, stationName) ||
+                other.stationName == stationName) &&
+            (identical(other.tripHeadSign, tripHeadSign) ||
+                other.tripHeadSign == tripHeadSign) &&
+            (identical(other.destinationStationId, destinationStationId) ||
+                other.destinationStationId == destinationStationId) &&
+            (identical(other.destinationStationName, destinationStationName) ||
+                other.destinationStationName == destinationStationName) &&
+            (identical(other.estimateTime, estimateTime) ||
+                other.estimateTime == estimateTime) &&
+            (identical(other.serviceStatus, serviceStatus) ||
+                other.serviceStatus == serviceStatus) &&
+            (identical(other.srcUpdateTime, srcUpdateTime) ||
+                other.srcUpdateTime == srcUpdateTime));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      lineId,
+      lineName,
+      stationId,
+      stationName,
+      tripHeadSign,
+      destinationStationId,
+      destinationStationName,
+      estimateTime,
+      serviceStatus,
+      srcUpdateTime);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MetroRealtimeImplCopyWith<_$MetroRealtimeImpl> get copyWith =>
+      __$$MetroRealtimeImplCopyWithImpl<_$MetroRealtimeImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MetroRealtimeImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _MetroRealtime implements MetroRealtime {
+  const factory _MetroRealtime(
+      {required final String lineId,
+      required final String lineName,
+      required final String stationId,
+      required final String stationName,
+      required final String tripHeadSign,
+      required final String destinationStationId,
+      required final String destinationStationName,
+      required final int estimateTime,
+      required final int serviceStatus,
+      final String? srcUpdateTime}) = _$MetroRealtimeImpl;
+
+  factory _MetroRealtime.fromJson(Map<String, dynamic> json) =
+      _$MetroRealtimeImpl.fromJson;
+
+  @override
+  String get lineId;
+  @override // 'R', 'O', 'RK', 'OT'
+  String get lineName;
+  @override
+  String get stationId;
+  @override
+  String get stationName;
+  @override
+  String get tripHeadSign;
+  @override // 往程方向
+  String get destinationStationId;
+  @override
+  String get destinationStationName;
+  @override
+  int get estimateTime;
+  @override // 秒
+  int get serviceStatus;
+  @override // 0: 正常, 其他: 異常
+  String? get srcUpdateTime;
+  @override
+  @JsonKey(ignore: true)
+  _$$MetroRealtimeImplCopyWith<_$MetroRealtimeImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 LRTStation _$LRTStationFromJson(Map<String, dynamic> json) {
   return _LRTStation.fromJson(json);
 }
@@ -3307,6 +3652,7 @@ mixin _$TransportState {
   List<BikeStation> get bikeStations => throw _privateConstructorUsedError;
   List<TrafficInfo> get trafficInfos => throw _privateConstructorUsedError;
   List<MetroStation> get metroStations => throw _privateConstructorUsedError;
+  List<MetroRealtime> get metroRealtime => throw _privateConstructorUsedError;
   List<LRTStation> get lrtStations => throw _privateConstructorUsedError;
   String? get selectedRouteId => throw _privateConstructorUsedError;
   String? get selectedStopId => throw _privateConstructorUsedError;
@@ -3335,6 +3681,7 @@ abstract class $TransportStateCopyWith<$Res> {
       List<BikeStation> bikeStations,
       List<TrafficInfo> trafficInfos,
       List<MetroStation> metroStations,
+      List<MetroRealtime> metroRealtime,
       List<LRTStation> lrtStations,
       String? selectedRouteId,
       String? selectedStopId,
@@ -3365,6 +3712,7 @@ class _$TransportStateCopyWithImpl<$Res, $Val extends TransportState>
     Object? bikeStations = null,
     Object? trafficInfos = null,
     Object? metroStations = null,
+    Object? metroRealtime = null,
     Object? lrtStations = null,
     Object? selectedRouteId = freezed,
     Object? selectedStopId = freezed,
@@ -3397,6 +3745,10 @@ class _$TransportStateCopyWithImpl<$Res, $Val extends TransportState>
           ? _value.metroStations
           : metroStations // ignore: cast_nullable_to_non_nullable
               as List<MetroStation>,
+      metroRealtime: null == metroRealtime
+          ? _value.metroRealtime
+          : metroRealtime // ignore: cast_nullable_to_non_nullable
+              as List<MetroRealtime>,
       lrtStations: null == lrtStations
           ? _value.lrtStations
           : lrtStations // ignore: cast_nullable_to_non_nullable
@@ -3455,6 +3807,7 @@ abstract class _$$TransportStateImplCopyWith<$Res>
       List<BikeStation> bikeStations,
       List<TrafficInfo> trafficInfos,
       List<MetroStation> metroStations,
+      List<MetroRealtime> metroRealtime,
       List<LRTStation> lrtStations,
       String? selectedRouteId,
       String? selectedStopId,
@@ -3483,6 +3836,7 @@ class __$$TransportStateImplCopyWithImpl<$Res>
     Object? bikeStations = null,
     Object? trafficInfos = null,
     Object? metroStations = null,
+    Object? metroRealtime = null,
     Object? lrtStations = null,
     Object? selectedRouteId = freezed,
     Object? selectedStopId = freezed,
@@ -3515,6 +3869,10 @@ class __$$TransportStateImplCopyWithImpl<$Res>
           ? _value._metroStations
           : metroStations // ignore: cast_nullable_to_non_nullable
               as List<MetroStation>,
+      metroRealtime: null == metroRealtime
+          ? _value._metroRealtime
+          : metroRealtime // ignore: cast_nullable_to_non_nullable
+              as List<MetroRealtime>,
       lrtStations: null == lrtStations
           ? _value._lrtStations
           : lrtStations // ignore: cast_nullable_to_non_nullable
@@ -3568,6 +3926,7 @@ class _$TransportStateImpl implements _TransportState {
       final List<BikeStation> bikeStations = const [],
       final List<TrafficInfo> trafficInfos = const [],
       final List<MetroStation> metroStations = const [],
+      final List<MetroRealtime> metroRealtime = const [],
       final List<LRTStation> lrtStations = const [],
       this.selectedRouteId,
       this.selectedStopId,
@@ -3583,6 +3942,7 @@ class _$TransportStateImpl implements _TransportState {
         _bikeStations = bikeStations,
         _trafficInfos = trafficInfos,
         _metroStations = metroStations,
+        _metroRealtime = metroRealtime,
         _lrtStations = lrtStations;
 
   final List<BusRoute> _busRoutes;
@@ -3630,6 +3990,15 @@ class _$TransportStateImpl implements _TransportState {
     return EqualUnmodifiableListView(_metroStations);
   }
 
+  final List<MetroRealtime> _metroRealtime;
+  @override
+  @JsonKey()
+  List<MetroRealtime> get metroRealtime {
+    if (_metroRealtime is EqualUnmodifiableListView) return _metroRealtime;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_metroRealtime);
+  }
+
   final List<LRTStation> _lrtStations;
   @override
   @JsonKey()
@@ -3666,7 +4035,7 @@ class _$TransportStateImpl implements _TransportState {
 
   @override
   String toString() {
-    return 'TransportState(busRoutes: $busRoutes, busRealtime: $busRealtime, bikeStations: $bikeStations, trafficInfos: $trafficInfos, metroStations: $metroStations, lrtStations: $lrtStations, selectedRouteId: $selectedRouteId, selectedStopId: $selectedStopId, isLoadingRoutes: $isLoadingRoutes, isLoadingRealtime: $isLoadingRealtime, isLoadingBikes: $isLoadingBikes, isLoadingTraffic: $isLoadingTraffic, isLoadingMetro: $isLoadingMetro, isLoadingLRT: $isLoadingLRT, error: $error)';
+    return 'TransportState(busRoutes: $busRoutes, busRealtime: $busRealtime, bikeStations: $bikeStations, trafficInfos: $trafficInfos, metroStations: $metroStations, metroRealtime: $metroRealtime, lrtStations: $lrtStations, selectedRouteId: $selectedRouteId, selectedStopId: $selectedStopId, isLoadingRoutes: $isLoadingRoutes, isLoadingRealtime: $isLoadingRealtime, isLoadingBikes: $isLoadingBikes, isLoadingTraffic: $isLoadingTraffic, isLoadingMetro: $isLoadingMetro, isLoadingLRT: $isLoadingLRT, error: $error)';
   }
 
   @override
@@ -3684,6 +4053,8 @@ class _$TransportStateImpl implements _TransportState {
                 .equals(other._trafficInfos, _trafficInfos) &&
             const DeepCollectionEquality()
                 .equals(other._metroStations, _metroStations) &&
+            const DeepCollectionEquality()
+                .equals(other._metroRealtime, _metroRealtime) &&
             const DeepCollectionEquality()
                 .equals(other._lrtStations, _lrtStations) &&
             (identical(other.selectedRouteId, selectedRouteId) ||
@@ -3713,6 +4084,7 @@ class _$TransportStateImpl implements _TransportState {
       const DeepCollectionEquality().hash(_bikeStations),
       const DeepCollectionEquality().hash(_trafficInfos),
       const DeepCollectionEquality().hash(_metroStations),
+      const DeepCollectionEquality().hash(_metroRealtime),
       const DeepCollectionEquality().hash(_lrtStations),
       selectedRouteId,
       selectedStopId,
@@ -3739,6 +4111,7 @@ abstract class _TransportState implements TransportState {
       final List<BikeStation> bikeStations,
       final List<TrafficInfo> trafficInfos,
       final List<MetroStation> metroStations,
+      final List<MetroRealtime> metroRealtime,
       final List<LRTStation> lrtStations,
       final String? selectedRouteId,
       final String? selectedStopId,
@@ -3760,6 +4133,8 @@ abstract class _TransportState implements TransportState {
   List<TrafficInfo> get trafficInfos;
   @override
   List<MetroStation> get metroStations;
+  @override
+  List<MetroRealtime> get metroRealtime;
   @override
   List<LRTStation> get lrtStations;
   @override

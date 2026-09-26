@@ -2,6 +2,58 @@
 
 import 'common_models.dart';
 
+/// 根據課程名稱/類型生成一致的 HEX 色碼
+/// 使用簡單雜湊確保同名課程顏色固定
+String _generateCourseColor(String name, String? type) {
+  // 依類型給預設色系
+  const Map<String, int> typeColors = {
+    'required': 0xFF1976D2,  // 藍 - 必修
+    'elective': 0xFF388E3C,  // 綠 - 選修
+    'general': 0xFFF57C00,   // 橘 - 通識
+    'other': 0xFF7B1FA2,     // 紫 - 其他
+  };
+  
+  if (type != null && typeColors.containsKey(type)) {
+    // 以名稱雜湊微調亮度，同類型不同課程略有差異
+    final hash = name.codeUnits.fold(0, (a, b) => a + b);
+    final base = typeColors[type]!;
+    final r = (base >> 16) & 0xFF;
+    final g = (base >> 8) & 0xFF;
+    final b = base & 0xFF;
+    // 輕微變化 (±20)
+    final dr = (hash % 41) - 20;
+    final dg = ((hash ~/ 41) % 41) - 20;
+    final db = ((hash ~/ 1681) % 41) - 20;
+    final nr = (r + dr).clamp(50, 220);
+    final ng = (g + dg).clamp(50, 220);
+    final nb = (b + db).clamp(50, 220);
+    return '#${nr.toRadixString(16).padLeft(2, '0')}${ng.toRadixString(16).padLeft(2, '0')}${nb.toRadixString(16).padLeft(2, '0')}';
+  }
+  
+  // 回退：純名稱雜湊產生色相
+  final hash = name.codeUnits.fold(0, (a, b) => a + b);
+  final hue = (hash * 137) % 360; // 黃金角度分佈
+  return _hsvToHex(hue.toDouble(), 0.6, 0.75);
+}
+
+/// HSV 轉 HEX
+String _hsvToHex(double h, double s, double v) {
+  final c = v * s;
+  final x = c * (1 - ((h / 60) % 2 - 1).abs());
+  final m = v - c;
+  double r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  final ir = ((r + m) * 255).round().clamp(0, 255);
+  final ig = ((g + m) * 255).round().clamp(0, 255);
+  final ib = ((b + m) * 255).round().clamp(0, 255);
+  return '#${ir.toRadixString(16).padLeft(2, '0')}${ig.toRadixString(16).padLeft(2, '0')}${ib.toRadixString(16).padLeft(2, '0')}';
+}
+
 /// 高醫節次對照表 (對齊 reference/kmucoursequery_wac.py PERIOD_MAP)
 /// 1~9 為日間，A~D 為夜間
 class KmuPeriod {
@@ -169,6 +221,9 @@ class Course {
     // 學期
     final semester = '$year-$sem';
 
+    // 根據課程類型/名稱生成一致配色
+    final color = _generateCourseColor(name, type);
+
     return Course(
       id: id,
       name: name,
@@ -183,7 +238,7 @@ class Course {
       building: null,
       weeks: wkStr,
       type: type,
-      color: null,
+      color: color,
       department: json['csk']?.toString(),
       semester: semester,
       // Python API 詳細欄位

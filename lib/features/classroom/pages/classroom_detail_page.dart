@@ -73,40 +73,40 @@ class ClassroomDetailNotifier extends AutoDisposeNotifier<ClassroomDetailState> 
 
   /// 載入場地基本資訊
   Future<void> _loadRoom(String roomId) async {
-    try {
-      final cacheKey = 'classroom_detail_$roomId';
-      Map<dynamic, dynamic>? cached;
-      
       try {
-        cached = _cache.getSimple<Map<dynamic, dynamic>>(CacheBoxes.classroom, cacheKey);
-      } catch (e) {
-        debugPrint('讀取場地快取失敗: $e');
-        await _cache.remove(CacheBoxes.classroom, cacheKey);
-      }
+        final cacheKey = 'classroom_detail_$roomId';
+        Map<dynamic, dynamic>? cached;
 
-      if (cached != null) {
         try {
-          final room = ClassroomDetail.fromJson(Map<String, dynamic>.from(cached));
-          state = state.copyWith(room: room);
-          return;
-        } catch (e, stack) {
-          debugPrint('解析場地快取失敗: $e\n$stack');
-          await _cache.remove(CacheBoxes.classroom, cacheKey);
+          cached = await _cache.getSimple<Map<dynamic, dynamic>>(CacheBoxes.classroom, cacheKey);
+        } catch (e) {
+          debugPrint('讀取場地快取失敗: $e');
+          await _cache.delete(CacheBoxes.classroom, cacheKey);
         }
-      }
 
-      final room = await _endpoints.classroom.getRoomDetail(roomId: roomId);
+        if (cached != null) {
+          try {
+            final room = ClassroomDetail.fromJson(Map<String, dynamic>.from(cached));
+            state = state.copyWith(room: room);
+            return;
+          } catch (e, stack) {
+            debugPrint('解析場地快取失敗: $e\n$stack');
+            await _cache.delete(CacheBoxes.classroom, cacheKey);
+          }
+        }
 
-      if (room != null) {
-        try {
-          await _cache.setSimple(CacheBoxes.classroom, cacheKey, room.toJson(), ttl: CacheTTL.classroom);
-        } catch (_) {}
-        state = state.copyWith(room: room);
+        final room = await _endpoints.classroom.getRoomDetail(roomId: roomId);
+
+        if (room != null) {
+          try {
+            await _cache.setSimple(CacheBoxes.classroom, cacheKey, room.toJson(), ttl: CacheTTL.classroom);
+          } catch (_) {}
+          state = state.copyWith(room: room);
+        }
+      } catch (e, stack) {
+        debugPrint('載入場地詳情失敗: $e\n$stack');
       }
-    } catch (e, stack) {
-      debugPrint('載入場地詳情失敗: $e\n$stack');
     }
-  }
 
   /// 載入場地使用情況
   Future<void> _loadUsage(String roomId) async {

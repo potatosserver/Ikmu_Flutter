@@ -319,7 +319,7 @@ class CalendarNotifier extends AutoDisposeNotifier<CalendarState> {
     final yearMonth = '${month.year}-${month.month.toString().padLeft(2, '0')}';
     final cacheKey = 'calendar_month_$yearMonth';
 
-    final cached = _cache.get<List<dynamic>>(
+    final cached = await _cache.getAsync<List<dynamic>>(
       CacheBoxes.calendar,
       cacheKey,
       fromJson: (json) => json as List<dynamic>,

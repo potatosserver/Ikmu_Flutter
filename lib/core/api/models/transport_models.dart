@@ -313,6 +313,35 @@ abstract class MetroStation with _$MetroStation {
   factory MetroStation.fromJson(Map<String, dynamic> json) => _$MetroStationFromJson(json);
 }
 
+/// 捷運即時到站資訊 (PTX LiveBoard)
+@freezed
+abstract class MetroRealtime with _$MetroRealtime {
+  const factory MetroRealtime({
+    required String lineId, // 'R', 'O', 'RK', 'OT'
+    required String lineName,
+    required String stationId,
+    required String stationName,
+    required String tripHeadSign, // 往程方向
+    required String destinationStationId,
+    required String destinationStationName,
+    required int estimateTime, // 秒
+    required int serviceStatus, // 0: 正常, 其他: 異常
+    String? srcUpdateTime,
+  }) = _MetroRealtime;
+
+  factory MetroRealtime.fromJson(Map<String, dynamic> json) => _$MetroRealtimeFromJson(json);
+}
+
+/// 捷運即時到站擴展方法
+extension MetroRealtimeExtension on MetroRealtime {
+  /// 顯示用時間
+  String get displayTime {
+    if (estimateTime < 60) return '即將到達';
+    if (estimateTime < 3600) return '${(estimateTime / 60).ceil()} 分鐘';
+    return '${(estimateTime / 3600).floor()} 小時 ${((estimateTime % 3600) / 60).ceil()} 分鐘';
+  }
+}
+
 /// 輕軌站點 (環狀輕軌)
 @freezed
 abstract class LRTStation with _$LRTStation {
@@ -338,6 +367,7 @@ abstract class TransportState with _$TransportState {
     @Default([]) List<BikeStation> bikeStations,
     @Default([]) List<TrafficInfo> trafficInfos,
     @Default([]) List<MetroStation> metroStations,
+    @Default([]) List<MetroRealtime> metroRealtime,
     @Default([]) List<LRTStation> lrtStations,
     String? selectedRouteId,
     String? selectedStopId,

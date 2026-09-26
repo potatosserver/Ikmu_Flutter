@@ -26,16 +26,16 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
   // 主要功能頁面路由對應
   final List<_NavItem> _navItems = const [
     _NavItem(
+      path: RoutePaths.home,
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home,
+      label: '首頁',
+    ),
+    _NavItem(
       path: RoutePaths.calendar,
       icon: Icons.calendar_today_outlined,
       activeIcon: Icons.calendar_today,
       label: '行事曆',
-    ),
-    _NavItem(
-      path: RoutePaths.classroom,
-      icon: Icons.meeting_room_outlined,
-      activeIcon: Icons.meeting_room,
-      label: '場地',
     ),
     _NavItem(
       path: RoutePaths.schedule,

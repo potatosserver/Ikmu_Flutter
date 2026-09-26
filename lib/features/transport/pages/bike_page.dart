@@ -73,7 +73,7 @@ class BikeNotifier extends AutoDisposeNotifier<BikeState> {
 
       try {
         const cacheKey = 'bike_stations';
-        final cached = _cache.getSimple<List<BikeStation>>(CacheBoxes.transport, cacheKey);
+        final cached = await _cache.getSimple<List<BikeStation>>(CacheBoxes.transport, cacheKey);
         if (cached != null) {
           _applyFilters(cached);
           return;
@@ -147,7 +147,7 @@ class BikeNotifier extends AutoDisposeNotifier<BikeState> {
   bool isFavorite(String stationId) => state.favoriteStations.contains(stationId);
 
   Future<void> refresh() async {
-    await _cache.remove(CacheBoxes.transport, 'bike_stations');
+    await _cache.delete(CacheBoxes.transport, 'bike_stations');
     await _loadStations();
   }
 

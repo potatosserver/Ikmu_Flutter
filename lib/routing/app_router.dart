@@ -78,16 +78,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           builder: (context, state) => const LoginPage(),
         ),
 
-        // 主畫面 (需登入)
-        GoRoute(
-          path: RoutePaths.home,
-          builder: (context, state) => const HomePage(),
-        ),
-
         // 主要功能頁面 (需登入，包含底部導航)
         ShellRoute(
           builder: (context, state, child) => AppScaffold(child: child),
           routes: [
+            // 首頁
+            GoRoute(
+              path: RoutePaths.home,
+              builder: (context, state) => const HomePage(),
+            ),
+
             // 行事曆
             GoRoute(
               path: RoutePaths.calendar,
