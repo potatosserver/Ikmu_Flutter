@@ -150,8 +150,10 @@ abstract class BikeStation with _$BikeStation {
     final tot = _parseInt(json['parking_spaces'] ?? json['tot'] ?? json['totalDocks']);
     final sbi = _parseInt(json['available_spaces'] ?? json['sbi'] ?? json['availableBikes']);
     final bemp = _parseInt(json['empty_spaces'] ?? json['bemp'] ?? json['availableDocks']);
-    final yb2 = _parseInt(json['available_spaces_detail']?['yb2'] ?? json['yb2']);
-    final eyb = _parseInt(json['available_spaces_detail']?['eyb'] ?? json['eyb']);
+    // available_spaces_detail 可能是 Map 或 null，需安全轉換
+    final spacesDetail = json['available_spaces_detail'] as Map<String, dynamic>?;
+    final yb2 = _parseInt(spacesDetail?['yb2'] ?? json['yb2']);
+    final eyb = _parseInt(spacesDetail?['eyb'] ?? json['eyb']);
     // status: 1=正常, 2=維護/關閉
     final statusRaw = json['status']?.toString() ?? json['act']?.toString() ?? '1';
     final status = statusRaw == '2' ? 'closed' : 'normal';

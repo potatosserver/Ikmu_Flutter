@@ -240,12 +240,12 @@ class ScheduleState {
 class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
   @override
   ScheduleState build() {
-    print('[ScheduleNotifier] build() — 排程 _loadSchedule');
+    debugPrint('[ScheduleNotifier] build() — 排程 _loadSchedule');
     scheduleMicrotask(() async {
       try {
         await _loadSchedule();
       } catch (e, st) {
-        print('[ScheduleNotifier] microtask error: $e\n$st');
+        debugPrint('[ScheduleNotifier] microtask error: $e\n$st');
       }
     });
     return const ScheduleState(isLoading: true);
@@ -255,41 +255,41 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
   Future<void> _loadSchedule() async {
     final endpoints = ref.read(endpointsProvider);
     final cache = ref.read(cacheServiceProvider);
-    print('[ScheduleNotifier] _loadSchedule 開始');
+    debugPrint('[ScheduleNotifier] _loadSchedule 開始');
 
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       const cacheKey = 'schedule_data';
       final cached = await cache.getSimple<Map<dynamic, dynamic>>(CacheBoxes.courses, cacheKey);
-      print('[ScheduleNotifier] cache hit: ${cached != null}');
+      debugPrint('[ScheduleNotifier] cache hit: ${cached != null}');
 
       if (cached != null && cached['_schedule_data'] == true) {
-        print('[ScheduleNotifier] 解析 cache data...');
+        debugPrint('[ScheduleNotifier] 解析 cache data...');
         final ScheduleData data;
         try {
           data = ScheduleData.fromJson(Map<String, dynamic>.from(cached['data'] as Map<dynamic, dynamic>));
         } catch (e, st) {
-          print('[ScheduleNotifier] cache 解析失敗，清除: $e\n$st');
+          debugPrint('[ScheduleNotifier] cache 解析失敗，清除: $e\n$st');
           await cache.delete(CacheBoxes.courses, cacheKey);
           state = state.copyWith(isLoading: true, error: null);
           return _loadSchedule();
         }
-        print('[ScheduleNotifier] cache 解析完成: ${data.courses.length} 門課');
+        debugPrint('[ScheduleNotifier] cache 解析完成: ${data.courses.length} 門課');
         final hasPeriods = data.courses.any((c) => c.periods.isNotEmpty);
-        print('[ScheduleNotifier] hasPeriods: $hasPeriods');
+        debugPrint('[ScheduleNotifier] hasPeriods: $hasPeriods');
         final hasValidYearSem = data.courses.any((c) {
           final parts = c.id.split('-');
           return parts.length >= 2 && parts[0] != '0' && parts[1] != '0';
         });
-        print('[ScheduleNotifier] hasValidYearSem: $hasValidYearSem');
+        debugPrint('[ScheduleNotifier] hasValidYearSem: $hasValidYearSem');
         if (data.courses.isEmpty || (!hasPeriods && data.courses.isNotEmpty) || !hasValidYearSem) {
           if (data.courses.isEmpty) {
-            print('[ScheduleNotifier] cache 課程為空，清除並重新載入');
+            debugPrint('[ScheduleNotifier] cache 課程為空，清除並重新載入');
           } else if (!hasValidYearSem) {
-            print('[ScheduleNotifier] cache year/sem 無效 (0-0)，清除並重新載入');
+            debugPrint('[ScheduleNotifier] cache year/sem 無效 (0-0)，清除並重新載入');
           } else {
-            print('[ScheduleNotifier] 舊 cache 沒有節次資料，清除並重新載入');
+            debugPrint('[ScheduleNotifier] 舊 cache 沒有節次資料，清除並重新載入');
           }
           await cache.delete(CacheBoxes.courses, cacheKey);
           state = state.copyWith(isLoading: true, error: null);
@@ -311,7 +311,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
         userId: userId,
         password: password,
       );
-      print('[ScheduleNotifier] 學期清單: ${semesters.length} 筆');
+      debugPrint('[ScheduleNotifier] 學期清單: ${semesters.length} 筆');
 
       final response = await endpoints.courses.getSchedule(
         userId: userId,
@@ -331,7 +331,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
             ttl: CacheTTL.courses,
           );
         } catch (e) {
-          print('[ScheduleNotifier] 快取寫入失敗: $e');
+          debugPrint('[ScheduleNotifier] 快取寫入失敗: $e');
         }
 
         final currentSem = semesters.firstWhere((s) => s.isCurrent, orElse: () => semesters.first).id;
@@ -343,14 +343,14 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
           isLoading: false,
           error: null,
         );
-        print('[ScheduleNotifier] state 更新: courses=${state.courses.length}, currentSemester=${state.currentSemester}, isLoading=${state.isLoading}');
+        debugPrint('[ScheduleNotifier] state 更新: courses=${state.courses.length}, currentSemester=${state.currentSemester}, isLoading=${state.isLoading}');
 
         await _enrichWithWacCatalog(data);
       } else {
         throw Exception(response?.message ?? '取得課表失敗');
       }
     } catch (e) {
-      print('[ScheduleNotifier] 載入課表失敗: $e');
+      debugPrint('[ScheduleNotifier] 載入課表失敗: $e');
       state = state.copyWith(
         isLoading: false,
         error: '載入課表失敗: $e',
@@ -384,25 +384,25 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
     if (cachedCatalog != null) {
       catalog = WacCourseCatalog.fromJson(Map<String, dynamic>.from(cachedCatalog));
       if (catalog.length == 0) {
-        print('[ScheduleNotifier] 快取目錄為空，清除並重新下載');
+        debugPrint('[ScheduleNotifier] 快取目錄為空，清除並重新下載');
         await cache.delete(CacheBoxes.courses, catalogCacheKey);
         catalog = null;
       } else {
-        print('[ScheduleNotifier] wac 目錄從快取載入: ${catalog.length} 筆');
+        debugPrint('[ScheduleNotifier] wac 目錄從快取載入: ${catalog.length} 筆');
       }
     }
 
     if (catalog == null) {
       try {
-        print('[ScheduleNotifier] 正在下載 wac 課表目錄: $year-$sem');
+        debugPrint('[ScheduleNotifier] 正在下載 wac 課表目錄: $year-$sem');
         catalog = await WacCourseCatalog.load(year, sem).timeout(
           const Duration(seconds: 30),
           onTimeout: () {
-            print('[ScheduleNotifier] wac 目錄下載 timeout');
+            debugPrint('[ScheduleNotifier] wac 目錄下載 timeout');
             throw TimeoutException('wac 下載超時', const Duration(seconds: 30));
           },
         );
-        print('[ScheduleNotifier] wac 目錄載入完成: ${catalog.length} 筆');
+        debugPrint('[ScheduleNotifier] wac 目錄載入完成: ${catalog.length} 筆');
         if (catalog.length > 0) {
           await cache.setSimple(
             CacheBoxes.courses,
@@ -411,10 +411,10 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
             ttl: CacheTTL.courses,
           );
         } else {
-          print('[ScheduleNotifier] wac 目錄為空，不寫入快取');
+          debugPrint('[ScheduleNotifier] wac 目錄為空，不寫入快取');
         }
       } catch (e) {
-        print('[ScheduleNotifier] wac 目錄下載失敗: $e — 將以無節次模式顯示課表');
+        debugPrint('[ScheduleNotifier] wac 目錄下載失敗: $e — 將以無節次模式顯示課表');
         catalog = null;
       }
     }
@@ -424,7 +424,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
       return;
     }
 
-    print('[ScheduleNotifier] 開始 join seqno: ${data.courses.length} 門課, wac 有 ${catalog.length} 筆');
+    debugPrint('[ScheduleNotifier] 開始 join seqno: ${data.courses.length} 門課, wac 有 ${catalog.length} 筆');
     final enrichedCourses = <Course>[];
     int matched = 0;
     for (final course in data.courses) {
@@ -453,7 +453,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
       ));
     }
 
-    print('[ScheduleNotifier] join 完成: matched=$matched, enriched=${enrichedCourses.length}');
+    debugPrint('[ScheduleNotifier] join 完成: matched=$matched, enriched=${enrichedCourses.length}');
     _processScheduleData(ScheduleData(courses: enrichedCourses), state.semesters);
   }
 
@@ -467,7 +467,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
       isLoading: false,
       error: null,
     );
-    print('[ScheduleNotifier] state 更新: courses=${state.courses.length}, currentSemester=${state.currentSemester}, isLoading=${state.isLoading}');
+    debugPrint('[ScheduleNotifier] state 更新: courses=${state.courses.length}, currentSemester=${state.currentSemester}, isLoading=${state.isLoading}');
   }
 
   /// 刷新
@@ -484,7 +484,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
           final sem = parts[1];
           final catalogCacheKey = 'wac_catalog_${year}_$sem';
           await cache.delete(CacheBoxes.courses, catalogCacheKey);
-          print('[ScheduleNotifier] 強制清除 WAC 目錄快取: $catalogCacheKey');
+          debugPrint('[ScheduleNotifier] 強制清除 WAC 目錄快取: $catalogCacheKey');
         }
       }
     }
@@ -529,7 +529,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
             if (!snapshot.hasData || snapshot.data == null) {
               return const Text('無詳細資料');
             }
-            final detail = snapshot.data!;
+            final detail = snapshot.data as Map<String, dynamic>;
             return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,21 +544,12 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
                   if (detail['outline'] != null && detail['outline'] is List) ...[
                     const SizedBox(height: 12),
                     const Text('大綱', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...List.generate(
-                      (detail['outline'] as List).length,
-                      (i) => Text((detail['outline'] as List)[i]['syllabn']?.toString() ?? ''),
-                    ),
+                    ..._buildOutlineList(detail['outline'] as List),
                   ],
                   if (detail['textbook'] != null && detail['textbook'] is List) ...[
                     const SizedBox(height: 12),
                     const Text('教科書', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...List.generate(
-                      (detail['textbook'] as List).length,
-                      (i) {
-                        final t = (detail['textbook'] as List)[i];
-                        return Text('${t['title']} (${t['author']}, ${t['pub']})');
-                      },
-                    ),
+                    ..._buildTextbookList(detail['textbook'] as List),
                   ],
                 ],
               ),
@@ -594,6 +585,22 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
+/// 將 outline list 轉為 Text widgets
+List<Widget> _buildOutlineList(List outlineList) {
+  return outlineList.map((item) {
+    final m = item as Map?;
+    return Text(m?['syllabn']?.toString() ?? '');
+  }).toList();
+}
+
+/// 將 textbook list 轉為 Text widgets
+List<Widget> _buildTextbookList(List textbookList) {
+  return textbookList.map((item) {
+    final t = item as Map?;
+    return Text('${t?['title']} (${t?['author']}, ${t?['pub']})');
+  }).toList();
+}
+
 /// 課表頁面
 class MySchedulePage extends ConsumerWidget {
   const MySchedulePage({super.key});
@@ -603,7 +610,7 @@ class MySchedulePage extends ConsumerWidget {
       final state = ref.watch(scheduleProvider);
       final notifier = ref.read(scheduleProvider.notifier);
 
-      return Focus(
+      return FocusScope(
         autofocus: true,
         child: Shortcuts(
           shortcuts: <LogicalKeySet, Intent>{
@@ -612,8 +619,16 @@ class MySchedulePage extends ConsumerWidget {
           },
           child: Actions(
             actions: <Type, Action<Intent>>{
-              _RefreshIntent: CallbackAction<_RefreshIntent>(onInvoke: (_) => notifier.refresh()),
-              _ForceRefreshIntent: CallbackAction<_ForceRefreshIntent>(onInvoke: (_) => notifier.refresh(forceWacRefresh: true)),
+              _RefreshIntent: CallbackAction<_RefreshIntent>(onInvoke: (_) {
+                debugPrint('[MySchedulePage] Ctrl+R triggered');
+                notifier.refresh();
+                return null;
+              }),
+              _ForceRefreshIntent: CallbackAction<_ForceRefreshIntent>(onInvoke: (_) {
+                debugPrint('[MySchedulePage] Ctrl+Shift+R triggered');
+                notifier.refresh(forceWacRefresh: true);
+                return null;
+              }),
             },
             child: Scaffold(
               appBar: AppBar(

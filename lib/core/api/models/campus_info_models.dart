@@ -99,7 +99,7 @@ abstract class NewsListResponse with _$NewsListResponse {
   const factory NewsListResponse({
     required bool success,
     required String message,
-    data,
+    Map<String, dynamic>? data,
   }) = _NewsListResponse;
 
   factory NewsListResponse.fromJson(Map<String, dynamic> json) =>
@@ -154,7 +154,7 @@ abstract class NewsDetailResponse with _$NewsDetailResponse {
   const factory NewsDetailResponse({
     required bool success,
     required String message,
-    data,
+    Map<String, dynamic>? data,
   }) = _NewsDetailResponse;
 
   factory NewsDetailResponse.fromJson(Map<String, dynamic> json) =>

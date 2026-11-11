@@ -3,7 +3,6 @@
 // 對齊 reference/kmucoursequery_wac.py
 
 import 'dart:convert';
-import 'package:characters/characters.dart';
 
 import 'package:dio/dio.dart';
 
@@ -238,7 +237,7 @@ class WacCourseCatalog {
       try {
         text = utf8.decode(rawBytes, allowMalformed: true);
         // 用編碼標記做啟發式偵測
-        if (enc == 'utf-8-sig' && text.characters.first == '\uFEFF') {
+        if (enc == 'utf-8-sig' && text.startsWith('\uFEFF')) {
           text = text.substring(1);
         }
         break;

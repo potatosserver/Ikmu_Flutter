@@ -14,7 +14,7 @@ abstract class ApiResponse with _$ApiResponse {
     required bool success,
     required String message,
     int? errorCode,
-    data,
+    Map<String, dynamic>? data,
   }) = _ApiResponse;
 
   factory ApiResponse.fromJson(Map<String, dynamic> json) => _$ApiResponseFromJson(json);

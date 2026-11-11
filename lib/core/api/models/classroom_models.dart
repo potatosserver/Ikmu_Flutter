@@ -293,7 +293,7 @@ abstract class ClassroomUsageResponse with _$ClassroomUsageResponse {
   const factory ClassroomUsageResponse({
     required bool success,
     required String message,
-    data,
+    List<ClassroomUsage>? data,
   }) = _ClassroomUsageResponse;
 
   factory ClassroomUsageResponse.fromJson(Map<String, dynamic> json) =>

@@ -87,7 +87,7 @@ class ScoresNotifier extends AutoDisposeNotifier<ScoresState> {
         userId: userId,
         password: password,
       );
-      print('[ScoresNotifier] 學期清單: ${semesters.length} 筆');
+      debugPrint('[ScoresNotifier] 學期清單: ${semesters.length} 筆');
 
       // 2. 選擇當前學期 (取第一個或當前學期)
       String year = '';
@@ -105,7 +105,7 @@ class ScoresNotifier extends AutoDisposeNotifier<ScoresState> {
         } else {
           year = currentSem.id;
         }
-        print('[ScoresNotifier] 使用學期: ${currentSem.name} (year=$year, sem=$sem)');
+        debugPrint('[ScoresNotifier] 使用學期: ${currentSem.name} (year=$year, sem=$sem)');
       }
 
       if (year.isEmpty || sem.isEmpty) {
@@ -136,7 +136,7 @@ class ScoresNotifier extends AutoDisposeNotifier<ScoresState> {
         throw Exception(response?.message ?? 'Unknown error');
       }
     } catch (e) {
-      print('[ScoresNotifier] 載入成績失敗: $e');
+      debugPrint('[ScoresNotifier] 載入成績失敗: $e');
       state = state.copyWith(
         isLoading: false,
         error: '載入成績失敗: $e',

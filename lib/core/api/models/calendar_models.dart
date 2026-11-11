@@ -89,20 +89,6 @@ class CalendarEvent {
     this.date, // YYYY-MM-DD
   });
 
-  final String id;
-  final String title;
-  final String typeCode;
-  final String? typeName;
-  final String? startTime;
-  final String? endTime;
-  final bool allDay;
-  final String? location;
-  final String? info;
-  final String? extendedInfo;
-  final String? color;
-  final int? sequence;
-  final String? date;
-
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
     return CalendarEvent(
       id: json['id']?.toString() ?? json['sno']?.toString() ?? '',
@@ -125,6 +111,20 @@ class CalendarEvent {
   factory CalendarEvent.fromApi(Map<String, dynamic> json) {
     return CalendarEvent.fromJson(json);
   }
+
+  final String id;
+  final String title;
+  final String typeCode;
+  final String? typeName;
+  final String? startTime;
+  final String? endTime;
+  final bool allDay;
+  final String? location;
+  final String? info;
+  final String? extendedInfo;
+  final String? color;
+  final int? sequence;
+  final String? date;
 
   /// 解析 ROC 日期 (yyyymmdd 或 yymmdd) 為 YYYY-MM-DD
   static String? _parseRocDate(String? s) {

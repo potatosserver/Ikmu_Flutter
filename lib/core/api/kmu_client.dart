@@ -119,9 +119,9 @@ class KmuClient {
     _dio.options.headers['User-Agent'] = 'Dalvik/2.1.0 (Linux; U; Android 10; AOSP on IA Emulator Build/QSR1.190920.001)';
 
     if (kDebugMode) {
-      print('[KmuClient] Login POST $kKmuApiBaseUrl${ApiEndpoints.login}');
+      debugPrint('[KmuClient] Login POST $kKmuApiBaseUrl${ApiEndpoints.login}');
     }
-    print('[KmuClient] Headers: uevw=$uevw, uevw2=$uevw2, akfw=$kAkfw');
+    debugPrint('[KmuClient] Headers: uevw=$uevw, uevw2=$uevw2, akfw=$kAkfw');
 
     try {
       // 依照 Python 格式: id, pw 加密後送 form-urlencoded
@@ -138,15 +138,15 @@ class KmuClient {
         'deviceid': 'flutter_${DateTime.now().millisecondsSinceEpoch}',
       };
 
-      print('[KmuClient] Request body: $formData');
+      debugPrint('[KmuClient] Request body: $formData');
 
       final response = await _dio.post(
         ApiEndpoints.login,
         data: formData,
       );
 
-      print('[KmuClient] Response status: ${response.statusCode}');
-      print('[KmuClient] Response data: ${response.data}');
+      debugPrint('[KmuClient] Response status: ${response.statusCode}');
+      debugPrint('[KmuClient] Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         final data = _parseResponseData(response.data);
@@ -173,16 +173,16 @@ class KmuClient {
         'message': 'HTTP ${response.statusCode}: ${response.statusMessage}',
       };
     } on DioException catch (e) {
-      print('[KmuClient] DioException: ${e.message}');
-      print('[KmuClient] DioException response: ${e.response?.data}');
-      print('[KmuClient] DioException status: ${e.response?.statusCode}');
+      debugPrint('[KmuClient] DioException: ${e.message}');
+      debugPrint('[KmuClient] DioException response: ${e.response?.data}');
+      debugPrint('[KmuClient] DioException status: ${e.response?.statusCode}');
       return {
         'success': false,
         'message': _extractDioError(e),
       };
     } catch (e, stack) {
-      print('[KmuClient] Exception: $e');
-      print('[KmuClient] Stack: $stack');
+      debugPrint('[KmuClient] Exception: $e');
+      debugPrint('[KmuClient] Stack: $stack');
       return {
         'success': false,
         'message': '登入異常: $e',
@@ -202,9 +202,9 @@ class KmuClient {
   /// GET 請求 - 對應 Python GET 方式 (query parameters)
   Future<Map<String, dynamic>> get(String path, {Map<String, dynamic>? queryParameters}) async {
     try {
-      print('[KmuClient] GET $path query: $queryParameters');
+      debugPrint('[KmuClient] GET $path query: $queryParameters');
       final response = await _dio.get(path, queryParameters: queryParameters);
-      print('[KmuClient] GET response: ${response.data}');
+      debugPrint('[KmuClient] GET response: ${response.data}');
       return _handleResponse(response);
     } catch (e) {
       throw ApiException.fromError(e);
@@ -214,9 +214,9 @@ class KmuClient {
   /// POST 請求 - 對應 Python POST 方式 (form data)
   Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? data}) async {
     try {
-      print('[KmuClient] POST $path data: $data');
+      debugPrint('[KmuClient] POST $path data: $data');
       final response = await _dio.post(path, data: data);
-      print('[KmuClient] POST response: ${response.data}');
+      debugPrint('[KmuClient] POST response: ${response.data}');
       return _handleResponse(response);
     } catch (e) {
       throw ApiException.fromError(e);
@@ -230,9 +230,9 @@ class KmuClient {
     Options? options,
   }) async {
     try {
-      print('[KmuClient] POST $path data: $data options: ${options?.headers}');
+      debugPrint('[KmuClient] POST $path data: $data options: ${options?.headers}');
       final response = await _dio.post(path, data: data, options: options);
-      print('[KmuClient] POST response: ${response.data}');
+      debugPrint('[KmuClient] POST response: ${response.data}');
       return _handleResponse(response);
     } catch (e) {
       throw ApiException.fromError(e);

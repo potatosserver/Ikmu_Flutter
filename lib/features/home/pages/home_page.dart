@@ -398,10 +398,10 @@ class _QuickActions extends StatelessWidget {
         route: RoutePaths.schedule,
       ),
       const _QuickActionItem(
-        icon: Icons.directions_bus_outlined,
-        label: '交通資訊',
-        color: Colors.purple,
-        route: RoutePaths.transport,
+        icon: Icons.quiz_outlined,
+        label: 'IRS 答題',
+        color: Colors.teal,
+        route: RoutePaths.irs,
       ),
       const _QuickActionItem(
         icon: Icons.article_outlined,

@@ -43,12 +43,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         final isSplashRoute = state.matchedLocation == RoutePaths.splash;
         final isHomeRoute = state.matchedLocation == RoutePaths.home;
 
-        print('[router] redirect: location=${state.matchedLocation}, isLoggedIn=$isLoggedIn, isAuthRoute=$isAuthRoute, isSplashRoute=$isSplashRoute, isHomeRoute=$isHomeRoute');
+        debugPrint('[router] redirect: location=${state.matchedLocation}, isLoggedIn=$isLoggedIn, isAuthRoute=$isAuthRoute, isSplashRoute=$isSplashRoute, isHomeRoute=$isHomeRoute');
 
         // 已登入 -> 導向主畫面 (包含從 splash 來的情況)
         if (isLoggedIn) {
           if (isAuthRoute || isSplashRoute) {
-            print('[router] -> redirect to home');
+            debugPrint('[router] -> redirect to home');
             return RoutePaths.home;
           }
           return null; // 已登入且在其他頁面，不攔截
@@ -57,10 +57,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         // 未登入 -> 導向登入 (包含從 splash 來的情況)
         if (!isLoggedIn) {
           if (isAuthRoute) {
-            print('[router] -> already at login, no redirect');
+            debugPrint('[router] -> already at login, no redirect');
             return null; // 已在登入頁，不攔截
           }
-          print('[router] -> redirect to login');
+          debugPrint('[router] -> redirect to login');
           return RoutePaths.login; // 在 splash 或其他頁面，導向登入
         }
 
@@ -132,7 +132,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const IrsListPage(),
           ),
           GoRoute(
-            path: RoutePaths.irs + '/detail',
+            path: '${RoutePaths.irs}/detail',
             builder: (context, state) => const IrsDetailPage(),
           ),
 

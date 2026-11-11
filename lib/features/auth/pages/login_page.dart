@@ -73,10 +73,10 @@ class LoginPage extends HookConsumerWidget {
                     borderRadius: BorderRadius.circular(ResponsiveRadius.responsive(context, mobile: 16, desktop: 20)),
                   ),
                   child: Padding(
-                    padding: ResponsiveValue<EdgeInsetsGeometry>(
-                      mobile: const EdgeInsets.all(24),
-                      tablet: const EdgeInsets.all(32),
-                      desktop: const EdgeInsets.all(40),
+                    padding: const ResponsiveValue<EdgeInsetsGeometry>(
+                      mobile: EdgeInsets.all(24),
+                      tablet: EdgeInsets.all(32),
+                      desktop: EdgeInsets.all(40),
                     ).resolve(context),
                     child: Form(
                       key: formKey,
@@ -87,7 +87,7 @@ class LoginPage extends HookConsumerWidget {
                           // Logo - 響應式大小
                           Icon(
                             Icons.local_hospital,
-                            size: ResponsiveValue<double>(
+                            size: const ResponsiveValue<double>(
                               mobile: 72,
                               tablet: 88,
                               desktop: 96,
@@ -101,7 +101,7 @@ class LoginPage extends HookConsumerWidget {
                             style: Theme.of(context).textTheme.displayMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: Theme.of(context).colorScheme.primary,
-                              fontSize: ResponsiveValue<double>(
+                              fontSize: const ResponsiveValue<double>(
                                 mobile: 32,
                                 tablet: 36,
                                 desktop: 40,
@@ -114,7 +114,7 @@ class LoginPage extends HookConsumerWidget {
                             '高雄醫學大學行動查詢系統',
                             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              fontSize: ResponsiveValue<double>(
+                              fontSize: const ResponsiveValue<double>(
                                 mobile: 15,
                                 tablet: 16,
                                 desktop: 17,
@@ -138,7 +138,7 @@ class LoginPage extends HookConsumerWidget {
                                 authState.error!,
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.onErrorContainer,
-                                  fontSize: ResponsiveValue<double>(
+                                  fontSize: const ResponsiveValue<double>(
                                     mobile: 14,
                                     tablet: 15,
                                     desktop: 16,
@@ -157,9 +157,9 @@ class LoginPage extends HookConsumerWidget {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(ResponsiveRadius.responsive(context, mobile: 10, desktop: 12)),
                               ),
-                              contentPadding: ResponsiveValue<EdgeInsetsGeometry>(
-                                mobile: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                                desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                              contentPadding: const ResponsiveValue<EdgeInsetsGeometry>(
+                                mobile: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                desktop: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                               ).resolve(context),
                             ),
                             validator: (value) {
@@ -171,7 +171,7 @@ class LoginPage extends HookConsumerWidget {
                             textInputAction: TextInputAction.next,
                             enabled: !authState.isLoading,
                             style: TextStyle(
-                              fontSize: ResponsiveValue<double>(
+                              fontSize: const ResponsiveValue<double>(
                                 mobile: 16,
                                 tablet: 17,
                                 desktop: 18,
@@ -197,9 +197,9 @@ class LoginPage extends HookConsumerWidget {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(ResponsiveRadius.responsive(context, mobile: 10, desktop: 12)),
                               ),
-                              contentPadding: ResponsiveValue<EdgeInsetsGeometry>(
-                                mobile: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                                desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                              contentPadding: const ResponsiveValue<EdgeInsetsGeometry>(
+                                mobile: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                desktop: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                               ).resolve(context),
                             ),
                             obscureText: obscurePassword.value,
@@ -213,7 +213,7 @@ class LoginPage extends HookConsumerWidget {
                             enabled: !authState.isLoading,
                             onFieldSubmitted: (_) => handleLogin(),
                             style: TextStyle(
-                              fontSize: ResponsiveValue<double>(
+                              fontSize: const ResponsiveValue<double>(
                                 mobile: 16,
                                 tablet: 17,
                                 desktop: 18,
@@ -236,7 +236,7 @@ class LoginPage extends HookConsumerWidget {
                                 child: Text(
                                   '記住我',
                                   style: TextStyle(
-                                    fontSize: ResponsiveValue<double>(
+                                    fontSize: const ResponsiveValue<double>(
                                       mobile: 14,
                                       tablet: 15,
                                       desktop: 16,
@@ -252,7 +252,7 @@ class LoginPage extends HookConsumerWidget {
                                 child: Text(
                                   '忘記密碼？',
                                   style: TextStyle(
-                                    fontSize: ResponsiveValue<double>(
+                                    fontSize: const ResponsiveValue<double>(
                                       mobile: 14,
                                       tablet: 15,
                                       desktop: 16,
@@ -267,7 +267,7 @@ class LoginPage extends HookConsumerWidget {
                           // 登入按鈕
                           SizedBox(
                             width: double.infinity,
-                            height: ResponsiveValue<double>(
+                            height: const ResponsiveValue<double>(
                               mobile: 50,
                               tablet: 52,
                               desktop: 56,
@@ -279,7 +279,7 @@ class LoginPage extends HookConsumerWidget {
                                   borderRadius: BorderRadius.circular(ResponsiveRadius.responsive(context, mobile: 10, desktop: 12)),
                                 ),
                                 textStyle: TextStyle(
-                                  fontSize: ResponsiveValue<double>(
+                                  fontSize: const ResponsiveValue<double>(
                                     mobile: 16,
                                     tablet: 17,
                                     desktop: 18,
@@ -288,12 +288,12 @@ class LoginPage extends HookConsumerWidget {
                                 ),
                               ),
                               child: authState.isLoading
-                                  ? SizedBox(
+                                  ? const SizedBox(
                                       height: 22,
                                       width: 22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
-                                        valueColor: const AlwaysStoppedAnimation(Colors.white),
+                                        valueColor: AlwaysStoppedAnimation(Colors.white),
                                       ),
                                     )
                                   : const Text('登入'),
@@ -303,7 +303,7 @@ class LoginPage extends HookConsumerWidget {
                           // 測試模式按鈕 (不需登入)
                           SizedBox(
                             width: double.infinity,
-                            height: ResponsiveValue<double>(
+                            height: const ResponsiveValue<double>(
                               mobile: 50,
                               tablet: 52,
                               desktop: 56,
@@ -319,7 +319,7 @@ class LoginPage extends HookConsumerWidget {
                                   borderRadius: BorderRadius.circular(ResponsiveRadius.responsive(context, mobile: 10, desktop: 12)),
                                 ),
                                 textStyle: TextStyle(
-                                  fontSize: ResponsiveValue<double>(
+                                  fontSize: const ResponsiveValue<double>(
                                     mobile: 16,
                                     tablet: 17,
                                     desktop: 18,

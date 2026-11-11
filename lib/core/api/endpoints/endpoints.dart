@@ -581,8 +581,8 @@ class IrsEndpoint {
       return IrsSubmissionResponse(
         success: true,
         message: response['message']?.toString() ?? '提交成功',
-        submissionId: response['data']?['submissionId']?.toString(),
-        score: (response['data']?['score'] as num?)?.toInt() ?? 0,
+        submissionId: (response['data'] as Map<String, dynamic>?)?['submissionId']?.toString(),
+        score: ((response['data'] as Map<String, dynamic>?)?['score'] as num?)?.toInt() ?? 0,
       );
     }
 

@@ -183,42 +183,17 @@ class SettingsPage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('選擇主題模式'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<ThemeMode>(
-              title: const Text('淺色模式'),
-              value: ThemeMode.light,
-              groupValue: currentThemeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('深色模式'),
-              value: ThemeMode.dark,
-              groupValue: currentThemeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('跟隨系統'),
-              value: ThemeMode.system,
-              groupValue: currentThemeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeModeProvider.notifier).setThemeMode(value);
-                  Navigator.pop(context);
-                }
-              },
-            ),
+        content: SegmentedButton<ThemeMode>(
+          selected: {currentThemeMode},
+          onSelectionChanged: (Set<ThemeMode> selected) {
+            final value = selected.first;
+            ref.read(themeModeProvider.notifier).setThemeMode(value);
+            Navigator.pop(context);
+          },
+          segments: const [
+            ButtonSegment<ThemeMode>(value: ThemeMode.light, label: Text('淺色模式')),
+            ButtonSegment<ThemeMode>(value: ThemeMode.dark, label: Text('深色模式')),
+            ButtonSegment<ThemeMode>(value: ThemeMode.system, label: Text('跟隨系統')),
           ],
         ),
       ),

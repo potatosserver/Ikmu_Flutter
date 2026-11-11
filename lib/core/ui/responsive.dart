@@ -22,7 +22,6 @@ enum ScreenSize {
 /// 響應式斷點查詢
 class ResponsiveBreakpoints extends InheritedWidget {
   const ResponsiveBreakpoints({
-    super.key,
     required super.child,
     required this.screenSize,
     required this.isMobile,
@@ -32,6 +31,7 @@ class ResponsiveBreakpoints extends InheritedWidget {
     required this.width,
     required this.height,
     required this.orientation,
+    super.key,
   });
 
   final ScreenSize screenSize;
@@ -59,8 +59,8 @@ class ResponsiveBreakpoints extends InheritedWidget {
 /// 響應式佈局包裝器
 class ResponsiveLayout extends StatelessWidget {
   const ResponsiveLayout({
-    super.key,
     required this.child,
+    super.key,
   });
 
   final Widget child;
@@ -128,8 +128,8 @@ class ResponsiveValue<T> {
 /// 響應式邊距
 class ResponsivePadding extends StatelessWidget {
   const ResponsivePadding({
-    super.key,
     required this.child,
+    super.key,
     this.mobile,
     this.tablet,
     this.desktop,
@@ -158,8 +158,8 @@ class ResponsivePadding extends StatelessWidget {
 /// 響應式最大寬度容器
 class ResponsiveContainer extends StatelessWidget {
   const ResponsiveContainer({
-    super.key,
     required this.child,
+    super.key,
     this.mobileMaxWidth,
     this.tabletMaxWidth,
     this.desktopMaxWidth,
@@ -195,8 +195,8 @@ class ResponsiveContainer extends StatelessWidget {
 /// 自適應欄位佈局
 class AdaptiveGrid extends StatelessWidget {
   const AdaptiveGrid({
-    super.key,
     required this.children,
+    super.key,
     this.mobileColumns = 1,
     this.tabletColumns = 2,
     this.desktopColumns = 3,
@@ -242,8 +242,8 @@ class AdaptiveGrid extends StatelessWidget {
 /// 自適應列表/網格切換
 class AdaptiveListGrid extends StatelessWidget {
   const AdaptiveListGrid({
-    super.key,
     required this.children,
+    super.key,
     this.mobileColumns = 1,
     this.tabletColumns = 2,
     this.desktopColumns = 3,
@@ -344,7 +344,7 @@ class AdaptiveScaffold extends StatelessWidget {
           if (showSidebar && sidebar != null)
             SizedBox(
               width: sidebarWidth,
-              child: sidebar!,
+              child: sidebar,
             ),
           Expanded(
             child: body ?? const SizedBox.shrink(),
@@ -383,8 +383,8 @@ Future<T?> showAdaptiveDialog<T>({
 /// 安全區域適配
 class SafeAreaAdapter extends StatelessWidget {
   const SafeAreaAdapter({
-    super.key,
     required this.child,
+    super.key,
     this.top = true,
     this.bottom = true,
     this.left = false,
@@ -415,8 +415,8 @@ class SafeAreaAdapter extends StatelessWidget {
 /// 文字縮放限制
 class TextScaleClamp extends StatelessWidget {
   const TextScaleClamp({
-    super.key,
     required this.child,
+    super.key,
     this.minScale = 0.8,
     this.maxScale = 1.3,
   });
@@ -441,10 +441,10 @@ class TextScaleClamp extends StatelessWidget {
 /// 方向適配
 class OrientationAdapter extends StatelessWidget {
   const OrientationAdapter({
+    required this.builder,
     super.key,
     this.portrait,
     this.landscape,
-    required this.builder,
   });
 
   final Widget? portrait;
