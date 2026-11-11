@@ -273,7 +273,7 @@ class ScheduleNotifier extends AutoDisposeNotifier<ScheduleState> {
           debugPrint('[ScheduleNotifier] cache 解析失敗，清除: $e\n$st');
           await cache.delete(CacheBoxes.courses, cacheKey);
           state = state.copyWith(isLoading: true, error: null);
-          return _loadSchedule();
+          return await _loadSchedule();
         }
         debugPrint('[ScheduleNotifier] cache 解析完成: ${data.courses.length} 門課');
         final hasPeriods = data.courses.any((c) => c.periods.isNotEmpty);
