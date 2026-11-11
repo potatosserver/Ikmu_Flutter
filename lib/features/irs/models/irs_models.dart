@@ -134,7 +134,97 @@ abstract class IrsState with _$IrsState {
     @Default(0) int currentQuestionIndex,
     @Default({}) Map<String, List<String>> userAnswers, // questionId -> optionIds
     @Default({}) Map<String, String> userTextAnswers, // questionId -> text
+    // 學生歷史記錄
+    @Default([]) List<IrsStudentClass> studentClasses,
+    @Default([]) List<IrsAnswerRecord> answerRecords,
+    @Default([]) List<IrsAnswerRecord> askRecords,
+    IrsExamDetail? examDetail,
+    @Default(false) bool isLoadingHistory,
+    String? historyError,
   }) = _IrsState;
 
   factory IrsState.initial() => const IrsState();
+}
+
+/// ===========================================
+// 學生歷史記錄模型
+// ===========================================
+
+/// 學生課程
+@freezed
+abstract class IrsStudentClass with _$IrsStudentClass {
+  const factory IrsStudentClass({
+    required String id, // cono
+    required String name, // course name
+    String? englishName,
+  }) = _IrsStudentClass;
+
+  factory IrsStudentClass.fromJson(Map<String, dynamic> json) =>
+      _$IrsStudentClassFromJson(json);
+}
+
+/// 學生作答/提問記錄
+@freezed
+abstract class IrsAnswerRecord with _$IrsAnswerRecord {
+  const factory IrsAnswerRecord({
+    required String id, // quid
+    required String courseId, // cono
+    required String courseName,
+    required String title, // 題目描述
+    required String answerTime,
+    required int myScore,
+    required int totalScore,
+    String? imagePath,
+    String? stdAnswer,
+    String? myAnswer,
+  }) = _IrsAnswerRecord;
+
+  factory IrsAnswerRecord.fromJson(Map<String, dynamic> json) =>
+      _$IrsAnswerRecordFromJson(json);
+}
+
+/// 考試詳情
+@freezed
+abstract class IrsExamDetail with _$IrsExamDetail {
+  const factory IrsExamDetail({
+    required String answerTime,
+    required String teacherName,
+    required String question,
+    required int myScore,
+    required int totalScore,
+    required List<IrsSubQuestion> subQuestions,
+  }) = _IrsExamDetail;
+
+  factory IrsExamDetail.fromJson(Map<String, dynamic> json) =>
+      _$IrsExamDetailFromJson(json);
+}
+
+/// 子題目詳情
+@freezed
+abstract class IrsSubQuestion with _$IrsSubQuestion {
+  const factory IrsSubQuestion({
+    required String questionType, // 1=單選, 2=多選, 3=文字, 4=...
+    required String description,
+    required String scoreDesc,
+    required String myAnswer,
+    String? stdAnswer,
+    List<IrsSubOption>? options,
+    String? imagePath,
+  }) = _IrsSubQuestion;
+
+  factory IrsSubQuestion.fromJson(Map<String, dynamic> json) =>
+      _$IrsSubQuestionFromJson(json);
+}
+
+/// 子題目選項
+@freezed
+abstract class IrsSubOption with _$IrsSubOption {
+  const factory IrsSubOption({
+    required String key,
+    required String value,
+    @Default(false) bool isCorrect,
+  }) = _IrsSubOption;
+
+  factory IrsSubOption.fromJson(Map<String, dynamic> json) =>
+      _$IrsSubOptionFromJson(json);
 }

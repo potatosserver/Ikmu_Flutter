@@ -17,6 +17,7 @@ import '../../features/campus_info/pages/news_detail_page.dart';
 import '../../features/campus_info/pages/news_page.dart';
 import '../../features/campus_info/pages/traffic_page.dart';
 import '../../features/irs/pages/irs_detail_page.dart';
+import '../../features/irs/pages/irs_history_page.dart';
 import '../../features/irs/pages/irs_list_page.dart';
 import '../../features/settings/pages/settings_page.dart';
 import '../../shared/widgets/app_scaffold.dart';
@@ -130,6 +131,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RoutePaths.irs,
             builder: (context, state) => const IrsListPage(),
+          ),
+          GoRoute(
+            path: RoutePaths.irsHistory,
+            builder: (context, state) => const IrsHistoryPage(),
           ),
           GoRoute(
             path: '${RoutePaths.irs}/detail',

@@ -60,6 +60,12 @@ class RoutePaths {
   /// IRS 答題頁面
   static const String irs = '/irs';
 
+  /// IRS 歷史記錄頁面 (學生端)
+  static const String irsHistory = '/irs/history';
+
+  /// IRS 考試詳情頁面
+  static const String irsExamDetail = '/irs/exam-detail';
+
   // ===========================================
   // 設定
   // ===========================================

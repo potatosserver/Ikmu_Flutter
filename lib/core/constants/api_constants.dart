@@ -50,6 +50,12 @@ class ApiEndpoints {
   static const String enewsList = 'getEnewsList';
   static const String goodSoftware = 'getGoodSoftware';
   static const String sysVersion = 'getSysVersion';
+
+  // IRS 學生端端點
+  static const String irsStudentClass = 'irs/stu/class';
+  static const String irsStudentQaList = 'irs/stu/qaList';
+  static const String irsStudentAskList = 'irs/stu/askList';
+  static const String irsStudentExamDetail = 'irs/stu/examDetail';
 }
 
 /// 3DES 加密金鑰

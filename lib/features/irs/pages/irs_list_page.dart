@@ -23,6 +23,11 @@ class IrsListPage extends ConsumerWidget {
             onPressed: notifier.refresh,
             tooltip: '重新整理',
           ),
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () => Navigator.of(context).pushNamed(RoutePaths.irsHistory),
+            tooltip: '歷史記錄',
+          ),
         ],
       ),
       body: RefreshIndicator(

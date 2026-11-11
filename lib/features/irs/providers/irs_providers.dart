@@ -116,6 +116,79 @@ class IrsNotifier extends AutoDisposeNotifier<IrsState> {
 
   /// 目前錯誤訊息（供頁面顯示使用）
   String? get error => state.error;
+  String? get historyError => state.historyError;
+
+  /// 載入學生課程列表
+  Future<void> loadStudentClasses() async {
+    state = state.copyWith(isLoadingHistory: true, historyError: null);
+
+    try {
+      final classes = await _endpoints.irs.getStudentClasses();
+      state = state.copyWith(
+        studentClasses: classes,
+        isLoadingHistory: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingHistory: false,
+        historyError: '載入課程失敗: $e',
+      );
+    }
+  }
+
+  /// 載入學生作答記錄
+  Future<void> loadAnswerRecords(String courseId) async {
+    state = state.copyWith(isLoadingHistory: true, historyError: null);
+
+    try {
+      final records = await _endpoints.irs.getAnswerRecords(courseId);
+      state = state.copyWith(
+        answerRecords: records,
+        isLoadingHistory: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingHistory: false,
+        historyError: '載入作答記錄失敗: $e',
+      );
+    }
+  }
+
+  /// 載入學生提問記錄
+  Future<void> loadAskRecords(String courseId) async {
+    state = state.copyWith(isLoadingHistory: true, historyError: null);
+
+    try {
+      final records = await _endpoints.irs.getAskRecords(courseId);
+      state = state.copyWith(
+        askRecords: records,
+        isLoadingHistory: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingHistory: false,
+        historyError: '載入提問記錄失敗: $e',
+      );
+    }
+  }
+
+  /// 載入考試詳情
+  Future<void> loadExamDetail(String quid) async {
+    state = state.copyWith(isLoadingHistory: true, historyError: null);
+
+    try {
+      final detail = await _endpoints.irs.getExamDetail(quid);
+      state = state.copyWith(
+        examDetail: detail,
+        isLoadingHistory: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingHistory: false,
+        historyError: '載入考試詳情失敗: $e',
+      );
+    }
+  }
 
   /// 取得當前題目的文字答案
   String? getCurrentTextAnswer(String questionId) {

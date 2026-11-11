@@ -543,6 +543,12 @@ class IrsEndpoint {
   IrsEndpoint(this._client);
 
   final KmuClient _client;
+  String _currentUserId = '';
+
+  /// 設定當前使用者 ID (供學生端 API 使用)
+  set userId(String value) {
+    _currentUserId = value;
+  }
 
   /// 取得 IRS 問卷列表
   Future<List<IrsQuestionnaire>> getQuestionnaires() async {
@@ -590,6 +596,108 @@ class IrsEndpoint {
       success: false,
       message: response['message']?.toString() ?? '提交失敗',
     );
+  }
+
+  /// 學生端：取得課程列表
+  Future<List<IrsStudentClass>> getStudentClasses() async {
+    final response = await _client.post(
+      ApiEndpoints.irsStudentClass,
+      data: {'stuno': _currentUserId},
+    );
+
+    if (response['success'] == true && response['data'] is List) {
+      return (response['data'] as List)
+          .map((e) => IrsStudentClass.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+    return [];
+  }
+
+  /// 學生端：取得作答記錄
+  Future<List<IrsAnswerRecord>> getAnswerRecords(String courseId) async {
+    final response = await _client.post(
+      ApiEndpoints.irsStudentQaList,
+      data: {
+        'stuno': _currentUserId,
+        'cono': courseId,
+      },
+    );
+
+    if (response['success'] == true && response['data'] is List) {
+      final data = response['data'];
+      if (data is Map && data['items'] is List) {
+        return (data['items'] as List)
+            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+      return (response['data'] as List)
+          .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+    return [];
+  }
+
+  /// 學生端：取得提問記錄
+  Future<List<IrsAnswerRecord>> getAskRecords(String courseId) async {
+    final response = await _client.post(
+      ApiEndpoints.irsStudentAskList,
+      data: {
+        'stuno': _currentUserId,
+        'cono': courseId,
+      },
+    );
+
+    if (response['success'] == true && response['data'] is List) {
+      final data = response['data'];
+      if (data is Map && data['items'] is List) {
+        return (data['items'] as List)
+            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+      return (response['data'] as List)
+          .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+    return [];
+  }
+
+  /// 學生端：取得考試詳情
+  Future<IrsExamDetail?> getExamDetail(String quid) async {
+    final response = await _client.post(
+      ApiEndpoints.irsStudentExamDetail,
+      data: {
+        'stuno': _currentUserId,
+        'quid': quid,
+      },
+    );
+
+    if (response['success'] == true && response['data'] != null) {
+      final data = response['data'];
+      Map<String, dynamic> items;
+      if (data is Map && data['items'] is Map) {
+        items = Map<String, dynamic>.from(data['items']);
+      } else {
+        return null;
+      }
+
+      final subQuestionsList = items['subquList'];
+      List<IrsSubQuestion> subQuestions = [];
+      if (subQuestionsList is List<dynamic>) {
+        subQuestions = subQuestionsList
+            .map((e) => IrsSubQuestion.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+
+      return IrsExamDetail(
+        answerTime: items['ansTime']?.toString() ?? '',
+        teacherName: items['teafNam']?.toString() ?? '',
+        question: items['description']?.toString() ?? '',
+        myScore: (items['myScore'] as num?)?.toInt() ?? 0,
+        totalScore: (items['totalScore'] as num?)?.toInt() ?? 0,
+        subQuestions: subQuestions,
+      );
+    }
+    return null;
   }
 }
 

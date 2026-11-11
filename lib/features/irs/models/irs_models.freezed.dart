@@ -1612,7 +1612,16 @@ mixin _$IrsState {
   int get currentQuestionIndex => throw _privateConstructorUsedError;
   Map<String, List<String>> get userAnswers =>
       throw _privateConstructorUsedError; // questionId -> optionIds
-  Map<String, String> get userTextAnswers => throw _privateConstructorUsedError;
+  Map<String, String> get userTextAnswers =>
+      throw _privateConstructorUsedError; // questionId -> text
+// 學生歷史記錄
+  List<IrsStudentClass> get studentClasses =>
+      throw _privateConstructorUsedError;
+  List<IrsAnswerRecord> get answerRecords => throw _privateConstructorUsedError;
+  List<IrsAnswerRecord> get askRecords => throw _privateConstructorUsedError;
+  IrsExamDetail? get examDetail => throw _privateConstructorUsedError;
+  bool get isLoadingHistory => throw _privateConstructorUsedError;
+  String? get historyError => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $IrsStateCopyWith<IrsState> get copyWith =>
@@ -1632,9 +1641,16 @@ abstract class $IrsStateCopyWith<$Res> {
       String? error,
       int currentQuestionIndex,
       Map<String, List<String>> userAnswers,
-      Map<String, String> userTextAnswers});
+      Map<String, String> userTextAnswers,
+      List<IrsStudentClass> studentClasses,
+      List<IrsAnswerRecord> answerRecords,
+      List<IrsAnswerRecord> askRecords,
+      IrsExamDetail? examDetail,
+      bool isLoadingHistory,
+      String? historyError});
 
   $IrsQuestionnaireDetailCopyWith<$Res>? get currentQuestionnaire;
+  $IrsExamDetailCopyWith<$Res>? get examDetail;
 }
 
 /// @nodoc
@@ -1658,6 +1674,12 @@ class _$IrsStateCopyWithImpl<$Res, $Val extends IrsState>
     Object? currentQuestionIndex = null,
     Object? userAnswers = null,
     Object? userTextAnswers = null,
+    Object? studentClasses = null,
+    Object? answerRecords = null,
+    Object? askRecords = null,
+    Object? examDetail = freezed,
+    Object? isLoadingHistory = null,
+    Object? historyError = freezed,
   }) {
     return _then(_value.copyWith(
       questionnaires: null == questionnaires
@@ -1692,6 +1714,30 @@ class _$IrsStateCopyWithImpl<$Res, $Val extends IrsState>
           ? _value.userTextAnswers
           : userTextAnswers // ignore: cast_nullable_to_non_nullable
               as Map<String, String>,
+      studentClasses: null == studentClasses
+          ? _value.studentClasses
+          : studentClasses // ignore: cast_nullable_to_non_nullable
+              as List<IrsStudentClass>,
+      answerRecords: null == answerRecords
+          ? _value.answerRecords
+          : answerRecords // ignore: cast_nullable_to_non_nullable
+              as List<IrsAnswerRecord>,
+      askRecords: null == askRecords
+          ? _value.askRecords
+          : askRecords // ignore: cast_nullable_to_non_nullable
+              as List<IrsAnswerRecord>,
+      examDetail: freezed == examDetail
+          ? _value.examDetail
+          : examDetail // ignore: cast_nullable_to_non_nullable
+              as IrsExamDetail?,
+      isLoadingHistory: null == isLoadingHistory
+          ? _value.isLoadingHistory
+          : isLoadingHistory // ignore: cast_nullable_to_non_nullable
+              as bool,
+      historyError: freezed == historyError
+          ? _value.historyError
+          : historyError // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -1705,6 +1751,18 @@ class _$IrsStateCopyWithImpl<$Res, $Val extends IrsState>
     return $IrsQuestionnaireDetailCopyWith<$Res>(_value.currentQuestionnaire!,
         (value) {
       return _then(_value.copyWith(currentQuestionnaire: value) as $Val);
+    });
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $IrsExamDetailCopyWith<$Res>? get examDetail {
+    if (_value.examDetail == null) {
+      return null;
+    }
+
+    return $IrsExamDetailCopyWith<$Res>(_value.examDetail!, (value) {
+      return _then(_value.copyWith(examDetail: value) as $Val);
     });
   }
 }
@@ -1725,10 +1783,18 @@ abstract class _$$IrsStateImplCopyWith<$Res>
       String? error,
       int currentQuestionIndex,
       Map<String, List<String>> userAnswers,
-      Map<String, String> userTextAnswers});
+      Map<String, String> userTextAnswers,
+      List<IrsStudentClass> studentClasses,
+      List<IrsAnswerRecord> answerRecords,
+      List<IrsAnswerRecord> askRecords,
+      IrsExamDetail? examDetail,
+      bool isLoadingHistory,
+      String? historyError});
 
   @override
   $IrsQuestionnaireDetailCopyWith<$Res>? get currentQuestionnaire;
+  @override
+  $IrsExamDetailCopyWith<$Res>? get examDetail;
 }
 
 /// @nodoc
@@ -1750,6 +1816,12 @@ class __$$IrsStateImplCopyWithImpl<$Res>
     Object? currentQuestionIndex = null,
     Object? userAnswers = null,
     Object? userTextAnswers = null,
+    Object? studentClasses = null,
+    Object? answerRecords = null,
+    Object? askRecords = null,
+    Object? examDetail = freezed,
+    Object? isLoadingHistory = null,
+    Object? historyError = freezed,
   }) {
     return _then(_$IrsStateImpl(
       questionnaires: null == questionnaires
@@ -1784,6 +1856,30 @@ class __$$IrsStateImplCopyWithImpl<$Res>
           ? _value._userTextAnswers
           : userTextAnswers // ignore: cast_nullable_to_non_nullable
               as Map<String, String>,
+      studentClasses: null == studentClasses
+          ? _value._studentClasses
+          : studentClasses // ignore: cast_nullable_to_non_nullable
+              as List<IrsStudentClass>,
+      answerRecords: null == answerRecords
+          ? _value._answerRecords
+          : answerRecords // ignore: cast_nullable_to_non_nullable
+              as List<IrsAnswerRecord>,
+      askRecords: null == askRecords
+          ? _value._askRecords
+          : askRecords // ignore: cast_nullable_to_non_nullable
+              as List<IrsAnswerRecord>,
+      examDetail: freezed == examDetail
+          ? _value.examDetail
+          : examDetail // ignore: cast_nullable_to_non_nullable
+              as IrsExamDetail?,
+      isLoadingHistory: null == isLoadingHistory
+          ? _value.isLoadingHistory
+          : isLoadingHistory // ignore: cast_nullable_to_non_nullable
+              as bool,
+      historyError: freezed == historyError
+          ? _value.historyError
+          : historyError // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1799,10 +1895,19 @@ class _$IrsStateImpl implements _IrsState {
       this.error,
       this.currentQuestionIndex = 0,
       final Map<String, List<String>> userAnswers = const {},
-      final Map<String, String> userTextAnswers = const {}})
+      final Map<String, String> userTextAnswers = const {},
+      final List<IrsStudentClass> studentClasses = const [],
+      final List<IrsAnswerRecord> answerRecords = const [],
+      final List<IrsAnswerRecord> askRecords = const [],
+      this.examDetail,
+      this.isLoadingHistory = false,
+      this.historyError})
       : _questionnaires = questionnaires,
         _userAnswers = userAnswers,
-        _userTextAnswers = userTextAnswers;
+        _userTextAnswers = userTextAnswers,
+        _studentClasses = studentClasses,
+        _answerRecords = answerRecords,
+        _askRecords = askRecords;
 
   final List<IrsQuestionnaire> _questionnaires;
   @override
@@ -1846,9 +1951,48 @@ class _$IrsStateImpl implements _IrsState {
     return EqualUnmodifiableMapView(_userTextAnswers);
   }
 
+// questionId -> text
+// 學生歷史記錄
+  final List<IrsStudentClass> _studentClasses;
+// questionId -> text
+// 學生歷史記錄
+  @override
+  @JsonKey()
+  List<IrsStudentClass> get studentClasses {
+    if (_studentClasses is EqualUnmodifiableListView) return _studentClasses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_studentClasses);
+  }
+
+  final List<IrsAnswerRecord> _answerRecords;
+  @override
+  @JsonKey()
+  List<IrsAnswerRecord> get answerRecords {
+    if (_answerRecords is EqualUnmodifiableListView) return _answerRecords;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_answerRecords);
+  }
+
+  final List<IrsAnswerRecord> _askRecords;
+  @override
+  @JsonKey()
+  List<IrsAnswerRecord> get askRecords {
+    if (_askRecords is EqualUnmodifiableListView) return _askRecords;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_askRecords);
+  }
+
+  @override
+  final IrsExamDetail? examDetail;
+  @override
+  @JsonKey()
+  final bool isLoadingHistory;
+  @override
+  final String? historyError;
+
   @override
   String toString() {
-    return 'IrsState(questionnaires: $questionnaires, currentQuestionnaire: $currentQuestionnaire, isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currentQuestionIndex: $currentQuestionIndex, userAnswers: $userAnswers, userTextAnswers: $userTextAnswers)';
+    return 'IrsState(questionnaires: $questionnaires, currentQuestionnaire: $currentQuestionnaire, isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currentQuestionIndex: $currentQuestionIndex, userAnswers: $userAnswers, userTextAnswers: $userTextAnswers, studentClasses: $studentClasses, answerRecords: $answerRecords, askRecords: $askRecords, examDetail: $examDetail, isLoadingHistory: $isLoadingHistory, historyError: $historyError)';
   }
 
   @override
@@ -1870,7 +2014,19 @@ class _$IrsStateImpl implements _IrsState {
             const DeepCollectionEquality()
                 .equals(other._userAnswers, _userAnswers) &&
             const DeepCollectionEquality()
-                .equals(other._userTextAnswers, _userTextAnswers));
+                .equals(other._userTextAnswers, _userTextAnswers) &&
+            const DeepCollectionEquality()
+                .equals(other._studentClasses, _studentClasses) &&
+            const DeepCollectionEquality()
+                .equals(other._answerRecords, _answerRecords) &&
+            const DeepCollectionEquality()
+                .equals(other._askRecords, _askRecords) &&
+            (identical(other.examDetail, examDetail) ||
+                other.examDetail == examDetail) &&
+            (identical(other.isLoadingHistory, isLoadingHistory) ||
+                other.isLoadingHistory == isLoadingHistory) &&
+            (identical(other.historyError, historyError) ||
+                other.historyError == historyError));
   }
 
   @override
@@ -1883,7 +2039,13 @@ class _$IrsStateImpl implements _IrsState {
       error,
       currentQuestionIndex,
       const DeepCollectionEquality().hash(_userAnswers),
-      const DeepCollectionEquality().hash(_userTextAnswers));
+      const DeepCollectionEquality().hash(_userTextAnswers),
+      const DeepCollectionEquality().hash(_studentClasses),
+      const DeepCollectionEquality().hash(_answerRecords),
+      const DeepCollectionEquality().hash(_askRecords),
+      examDetail,
+      isLoadingHistory,
+      historyError);
 
   @JsonKey(ignore: true)
   @override
@@ -1901,7 +2063,13 @@ abstract class _IrsState implements IrsState {
       final String? error,
       final int currentQuestionIndex,
       final Map<String, List<String>> userAnswers,
-      final Map<String, String> userTextAnswers}) = _$IrsStateImpl;
+      final Map<String, String> userTextAnswers,
+      final List<IrsStudentClass> studentClasses,
+      final List<IrsAnswerRecord> answerRecords,
+      final List<IrsAnswerRecord> askRecords,
+      final IrsExamDetail? examDetail,
+      final bool isLoadingHistory,
+      final String? historyError}) = _$IrsStateImpl;
 
   @override
   List<IrsQuestionnaire> get questionnaires;
@@ -1919,8 +2087,1247 @@ abstract class _IrsState implements IrsState {
   Map<String, List<String>> get userAnswers;
   @override // questionId -> optionIds
   Map<String, String> get userTextAnswers;
+  @override // questionId -> text
+// 學生歷史記錄
+  List<IrsStudentClass> get studentClasses;
+  @override
+  List<IrsAnswerRecord> get answerRecords;
+  @override
+  List<IrsAnswerRecord> get askRecords;
+  @override
+  IrsExamDetail? get examDetail;
+  @override
+  bool get isLoadingHistory;
+  @override
+  String? get historyError;
   @override
   @JsonKey(ignore: true)
   _$$IrsStateImplCopyWith<_$IrsStateImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+IrsStudentClass _$IrsStudentClassFromJson(Map<String, dynamic> json) {
+  return _IrsStudentClass.fromJson(json);
+}
+
+/// @nodoc
+mixin _$IrsStudentClass {
+  String get id => throw _privateConstructorUsedError; // cono
+  String get name => throw _privateConstructorUsedError; // course name
+  String? get englishName => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $IrsStudentClassCopyWith<IrsStudentClass> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $IrsStudentClassCopyWith<$Res> {
+  factory $IrsStudentClassCopyWith(
+          IrsStudentClass value, $Res Function(IrsStudentClass) then) =
+      _$IrsStudentClassCopyWithImpl<$Res, IrsStudentClass>;
+  @useResult
+  $Res call({String id, String name, String? englishName});
+}
+
+/// @nodoc
+class _$IrsStudentClassCopyWithImpl<$Res, $Val extends IrsStudentClass>
+    implements $IrsStudentClassCopyWith<$Res> {
+  _$IrsStudentClassCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? englishName = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      englishName: freezed == englishName
+          ? _value.englishName
+          : englishName // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$IrsStudentClassImplCopyWith<$Res>
+    implements $IrsStudentClassCopyWith<$Res> {
+  factory _$$IrsStudentClassImplCopyWith(_$IrsStudentClassImpl value,
+          $Res Function(_$IrsStudentClassImpl) then) =
+      __$$IrsStudentClassImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String id, String name, String? englishName});
+}
+
+/// @nodoc
+class __$$IrsStudentClassImplCopyWithImpl<$Res>
+    extends _$IrsStudentClassCopyWithImpl<$Res, _$IrsStudentClassImpl>
+    implements _$$IrsStudentClassImplCopyWith<$Res> {
+  __$$IrsStudentClassImplCopyWithImpl(
+      _$IrsStudentClassImpl _value, $Res Function(_$IrsStudentClassImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? englishName = freezed,
+  }) {
+    return _then(_$IrsStudentClassImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      englishName: freezed == englishName
+          ? _value.englishName
+          : englishName // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$IrsStudentClassImpl implements _IrsStudentClass {
+  const _$IrsStudentClassImpl(
+      {required this.id, required this.name, this.englishName});
+
+  factory _$IrsStudentClassImpl.fromJson(Map<String, dynamic> json) =>
+      _$$IrsStudentClassImplFromJson(json);
+
+  @override
+  final String id;
+// cono
+  @override
+  final String name;
+// course name
+  @override
+  final String? englishName;
+
+  @override
+  String toString() {
+    return 'IrsStudentClass(id: $id, name: $name, englishName: $englishName)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$IrsStudentClassImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.englishName, englishName) ||
+                other.englishName == englishName));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, englishName);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$IrsStudentClassImplCopyWith<_$IrsStudentClassImpl> get copyWith =>
+      __$$IrsStudentClassImplCopyWithImpl<_$IrsStudentClassImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$IrsStudentClassImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _IrsStudentClass implements IrsStudentClass {
+  const factory _IrsStudentClass(
+      {required final String id,
+      required final String name,
+      final String? englishName}) = _$IrsStudentClassImpl;
+
+  factory _IrsStudentClass.fromJson(Map<String, dynamic> json) =
+      _$IrsStudentClassImpl.fromJson;
+
+  @override
+  String get id;
+  @override // cono
+  String get name;
+  @override // course name
+  String? get englishName;
+  @override
+  @JsonKey(ignore: true)
+  _$$IrsStudentClassImplCopyWith<_$IrsStudentClassImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+IrsAnswerRecord _$IrsAnswerRecordFromJson(Map<String, dynamic> json) {
+  return _IrsAnswerRecord.fromJson(json);
+}
+
+/// @nodoc
+mixin _$IrsAnswerRecord {
+  String get id => throw _privateConstructorUsedError; // quid
+  String get courseId => throw _privateConstructorUsedError; // cono
+  String get courseName => throw _privateConstructorUsedError;
+  String get title => throw _privateConstructorUsedError; // 題目描述
+  String get answerTime => throw _privateConstructorUsedError;
+  int get myScore => throw _privateConstructorUsedError;
+  int get totalScore => throw _privateConstructorUsedError;
+  String? get imagePath => throw _privateConstructorUsedError;
+  String? get stdAnswer => throw _privateConstructorUsedError;
+  String? get myAnswer => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $IrsAnswerRecordCopyWith<IrsAnswerRecord> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $IrsAnswerRecordCopyWith<$Res> {
+  factory $IrsAnswerRecordCopyWith(
+          IrsAnswerRecord value, $Res Function(IrsAnswerRecord) then) =
+      _$IrsAnswerRecordCopyWithImpl<$Res, IrsAnswerRecord>;
+  @useResult
+  $Res call(
+      {String id,
+      String courseId,
+      String courseName,
+      String title,
+      String answerTime,
+      int myScore,
+      int totalScore,
+      String? imagePath,
+      String? stdAnswer,
+      String? myAnswer});
+}
+
+/// @nodoc
+class _$IrsAnswerRecordCopyWithImpl<$Res, $Val extends IrsAnswerRecord>
+    implements $IrsAnswerRecordCopyWith<$Res> {
+  _$IrsAnswerRecordCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? courseId = null,
+    Object? courseName = null,
+    Object? title = null,
+    Object? answerTime = null,
+    Object? myScore = null,
+    Object? totalScore = null,
+    Object? imagePath = freezed,
+    Object? stdAnswer = freezed,
+    Object? myAnswer = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      courseId: null == courseId
+          ? _value.courseId
+          : courseId // ignore: cast_nullable_to_non_nullable
+              as String,
+      courseName: null == courseName
+          ? _value.courseName
+          : courseName // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      answerTime: null == answerTime
+          ? _value.answerTime
+          : answerTime // ignore: cast_nullable_to_non_nullable
+              as String,
+      myScore: null == myScore
+          ? _value.myScore
+          : myScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalScore: null == totalScore
+          ? _value.totalScore
+          : totalScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      imagePath: freezed == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stdAnswer: freezed == stdAnswer
+          ? _value.stdAnswer
+          : stdAnswer // ignore: cast_nullable_to_non_nullable
+              as String?,
+      myAnswer: freezed == myAnswer
+          ? _value.myAnswer
+          : myAnswer // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$IrsAnswerRecordImplCopyWith<$Res>
+    implements $IrsAnswerRecordCopyWith<$Res> {
+  factory _$$IrsAnswerRecordImplCopyWith(_$IrsAnswerRecordImpl value,
+          $Res Function(_$IrsAnswerRecordImpl) then) =
+      __$$IrsAnswerRecordImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String courseId,
+      String courseName,
+      String title,
+      String answerTime,
+      int myScore,
+      int totalScore,
+      String? imagePath,
+      String? stdAnswer,
+      String? myAnswer});
+}
+
+/// @nodoc
+class __$$IrsAnswerRecordImplCopyWithImpl<$Res>
+    extends _$IrsAnswerRecordCopyWithImpl<$Res, _$IrsAnswerRecordImpl>
+    implements _$$IrsAnswerRecordImplCopyWith<$Res> {
+  __$$IrsAnswerRecordImplCopyWithImpl(
+      _$IrsAnswerRecordImpl _value, $Res Function(_$IrsAnswerRecordImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? courseId = null,
+    Object? courseName = null,
+    Object? title = null,
+    Object? answerTime = null,
+    Object? myScore = null,
+    Object? totalScore = null,
+    Object? imagePath = freezed,
+    Object? stdAnswer = freezed,
+    Object? myAnswer = freezed,
+  }) {
+    return _then(_$IrsAnswerRecordImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      courseId: null == courseId
+          ? _value.courseId
+          : courseId // ignore: cast_nullable_to_non_nullable
+              as String,
+      courseName: null == courseName
+          ? _value.courseName
+          : courseName // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      answerTime: null == answerTime
+          ? _value.answerTime
+          : answerTime // ignore: cast_nullable_to_non_nullable
+              as String,
+      myScore: null == myScore
+          ? _value.myScore
+          : myScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalScore: null == totalScore
+          ? _value.totalScore
+          : totalScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      imagePath: freezed == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stdAnswer: freezed == stdAnswer
+          ? _value.stdAnswer
+          : stdAnswer // ignore: cast_nullable_to_non_nullable
+              as String?,
+      myAnswer: freezed == myAnswer
+          ? _value.myAnswer
+          : myAnswer // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$IrsAnswerRecordImpl implements _IrsAnswerRecord {
+  const _$IrsAnswerRecordImpl(
+      {required this.id,
+      required this.courseId,
+      required this.courseName,
+      required this.title,
+      required this.answerTime,
+      required this.myScore,
+      required this.totalScore,
+      this.imagePath,
+      this.stdAnswer,
+      this.myAnswer});
+
+  factory _$IrsAnswerRecordImpl.fromJson(Map<String, dynamic> json) =>
+      _$$IrsAnswerRecordImplFromJson(json);
+
+  @override
+  final String id;
+// quid
+  @override
+  final String courseId;
+// cono
+  @override
+  final String courseName;
+  @override
+  final String title;
+// 題目描述
+  @override
+  final String answerTime;
+  @override
+  final int myScore;
+  @override
+  final int totalScore;
+  @override
+  final String? imagePath;
+  @override
+  final String? stdAnswer;
+  @override
+  final String? myAnswer;
+
+  @override
+  String toString() {
+    return 'IrsAnswerRecord(id: $id, courseId: $courseId, courseName: $courseName, title: $title, answerTime: $answerTime, myScore: $myScore, totalScore: $totalScore, imagePath: $imagePath, stdAnswer: $stdAnswer, myAnswer: $myAnswer)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$IrsAnswerRecordImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.courseId, courseId) ||
+                other.courseId == courseId) &&
+            (identical(other.courseName, courseName) ||
+                other.courseName == courseName) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.answerTime, answerTime) ||
+                other.answerTime == answerTime) &&
+            (identical(other.myScore, myScore) || other.myScore == myScore) &&
+            (identical(other.totalScore, totalScore) ||
+                other.totalScore == totalScore) &&
+            (identical(other.imagePath, imagePath) ||
+                other.imagePath == imagePath) &&
+            (identical(other.stdAnswer, stdAnswer) ||
+                other.stdAnswer == stdAnswer) &&
+            (identical(other.myAnswer, myAnswer) ||
+                other.myAnswer == myAnswer));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, courseId, courseName, title,
+      answerTime, myScore, totalScore, imagePath, stdAnswer, myAnswer);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$IrsAnswerRecordImplCopyWith<_$IrsAnswerRecordImpl> get copyWith =>
+      __$$IrsAnswerRecordImplCopyWithImpl<_$IrsAnswerRecordImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$IrsAnswerRecordImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _IrsAnswerRecord implements IrsAnswerRecord {
+  const factory _IrsAnswerRecord(
+      {required final String id,
+      required final String courseId,
+      required final String courseName,
+      required final String title,
+      required final String answerTime,
+      required final int myScore,
+      required final int totalScore,
+      final String? imagePath,
+      final String? stdAnswer,
+      final String? myAnswer}) = _$IrsAnswerRecordImpl;
+
+  factory _IrsAnswerRecord.fromJson(Map<String, dynamic> json) =
+      _$IrsAnswerRecordImpl.fromJson;
+
+  @override
+  String get id;
+  @override // quid
+  String get courseId;
+  @override // cono
+  String get courseName;
+  @override
+  String get title;
+  @override // 題目描述
+  String get answerTime;
+  @override
+  int get myScore;
+  @override
+  int get totalScore;
+  @override
+  String? get imagePath;
+  @override
+  String? get stdAnswer;
+  @override
+  String? get myAnswer;
+  @override
+  @JsonKey(ignore: true)
+  _$$IrsAnswerRecordImplCopyWith<_$IrsAnswerRecordImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+IrsExamDetail _$IrsExamDetailFromJson(Map<String, dynamic> json) {
+  return _IrsExamDetail.fromJson(json);
+}
+
+/// @nodoc
+mixin _$IrsExamDetail {
+  String get answerTime => throw _privateConstructorUsedError;
+  String get teacherName => throw _privateConstructorUsedError;
+  String get question => throw _privateConstructorUsedError;
+  int get myScore => throw _privateConstructorUsedError;
+  int get totalScore => throw _privateConstructorUsedError;
+  List<IrsSubQuestion> get subQuestions => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $IrsExamDetailCopyWith<IrsExamDetail> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $IrsExamDetailCopyWith<$Res> {
+  factory $IrsExamDetailCopyWith(
+          IrsExamDetail value, $Res Function(IrsExamDetail) then) =
+      _$IrsExamDetailCopyWithImpl<$Res, IrsExamDetail>;
+  @useResult
+  $Res call(
+      {String answerTime,
+      String teacherName,
+      String question,
+      int myScore,
+      int totalScore,
+      List<IrsSubQuestion> subQuestions});
+}
+
+/// @nodoc
+class _$IrsExamDetailCopyWithImpl<$Res, $Val extends IrsExamDetail>
+    implements $IrsExamDetailCopyWith<$Res> {
+  _$IrsExamDetailCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? answerTime = null,
+    Object? teacherName = null,
+    Object? question = null,
+    Object? myScore = null,
+    Object? totalScore = null,
+    Object? subQuestions = null,
+  }) {
+    return _then(_value.copyWith(
+      answerTime: null == answerTime
+          ? _value.answerTime
+          : answerTime // ignore: cast_nullable_to_non_nullable
+              as String,
+      teacherName: null == teacherName
+          ? _value.teacherName
+          : teacherName // ignore: cast_nullable_to_non_nullable
+              as String,
+      question: null == question
+          ? _value.question
+          : question // ignore: cast_nullable_to_non_nullable
+              as String,
+      myScore: null == myScore
+          ? _value.myScore
+          : myScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalScore: null == totalScore
+          ? _value.totalScore
+          : totalScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      subQuestions: null == subQuestions
+          ? _value.subQuestions
+          : subQuestions // ignore: cast_nullable_to_non_nullable
+              as List<IrsSubQuestion>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$IrsExamDetailImplCopyWith<$Res>
+    implements $IrsExamDetailCopyWith<$Res> {
+  factory _$$IrsExamDetailImplCopyWith(
+          _$IrsExamDetailImpl value, $Res Function(_$IrsExamDetailImpl) then) =
+      __$$IrsExamDetailImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String answerTime,
+      String teacherName,
+      String question,
+      int myScore,
+      int totalScore,
+      List<IrsSubQuestion> subQuestions});
+}
+
+/// @nodoc
+class __$$IrsExamDetailImplCopyWithImpl<$Res>
+    extends _$IrsExamDetailCopyWithImpl<$Res, _$IrsExamDetailImpl>
+    implements _$$IrsExamDetailImplCopyWith<$Res> {
+  __$$IrsExamDetailImplCopyWithImpl(
+      _$IrsExamDetailImpl _value, $Res Function(_$IrsExamDetailImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? answerTime = null,
+    Object? teacherName = null,
+    Object? question = null,
+    Object? myScore = null,
+    Object? totalScore = null,
+    Object? subQuestions = null,
+  }) {
+    return _then(_$IrsExamDetailImpl(
+      answerTime: null == answerTime
+          ? _value.answerTime
+          : answerTime // ignore: cast_nullable_to_non_nullable
+              as String,
+      teacherName: null == teacherName
+          ? _value.teacherName
+          : teacherName // ignore: cast_nullable_to_non_nullable
+              as String,
+      question: null == question
+          ? _value.question
+          : question // ignore: cast_nullable_to_non_nullable
+              as String,
+      myScore: null == myScore
+          ? _value.myScore
+          : myScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalScore: null == totalScore
+          ? _value.totalScore
+          : totalScore // ignore: cast_nullable_to_non_nullable
+              as int,
+      subQuestions: null == subQuestions
+          ? _value._subQuestions
+          : subQuestions // ignore: cast_nullable_to_non_nullable
+              as List<IrsSubQuestion>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$IrsExamDetailImpl implements _IrsExamDetail {
+  const _$IrsExamDetailImpl(
+      {required this.answerTime,
+      required this.teacherName,
+      required this.question,
+      required this.myScore,
+      required this.totalScore,
+      required final List<IrsSubQuestion> subQuestions})
+      : _subQuestions = subQuestions;
+
+  factory _$IrsExamDetailImpl.fromJson(Map<String, dynamic> json) =>
+      _$$IrsExamDetailImplFromJson(json);
+
+  @override
+  final String answerTime;
+  @override
+  final String teacherName;
+  @override
+  final String question;
+  @override
+  final int myScore;
+  @override
+  final int totalScore;
+  final List<IrsSubQuestion> _subQuestions;
+  @override
+  List<IrsSubQuestion> get subQuestions {
+    if (_subQuestions is EqualUnmodifiableListView) return _subQuestions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_subQuestions);
+  }
+
+  @override
+  String toString() {
+    return 'IrsExamDetail(answerTime: $answerTime, teacherName: $teacherName, question: $question, myScore: $myScore, totalScore: $totalScore, subQuestions: $subQuestions)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$IrsExamDetailImpl &&
+            (identical(other.answerTime, answerTime) ||
+                other.answerTime == answerTime) &&
+            (identical(other.teacherName, teacherName) ||
+                other.teacherName == teacherName) &&
+            (identical(other.question, question) ||
+                other.question == question) &&
+            (identical(other.myScore, myScore) || other.myScore == myScore) &&
+            (identical(other.totalScore, totalScore) ||
+                other.totalScore == totalScore) &&
+            const DeepCollectionEquality()
+                .equals(other._subQuestions, _subQuestions));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      answerTime,
+      teacherName,
+      question,
+      myScore,
+      totalScore,
+      const DeepCollectionEquality().hash(_subQuestions));
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$IrsExamDetailImplCopyWith<_$IrsExamDetailImpl> get copyWith =>
+      __$$IrsExamDetailImplCopyWithImpl<_$IrsExamDetailImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$IrsExamDetailImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _IrsExamDetail implements IrsExamDetail {
+  const factory _IrsExamDetail(
+      {required final String answerTime,
+      required final String teacherName,
+      required final String question,
+      required final int myScore,
+      required final int totalScore,
+      required final List<IrsSubQuestion> subQuestions}) = _$IrsExamDetailImpl;
+
+  factory _IrsExamDetail.fromJson(Map<String, dynamic> json) =
+      _$IrsExamDetailImpl.fromJson;
+
+  @override
+  String get answerTime;
+  @override
+  String get teacherName;
+  @override
+  String get question;
+  @override
+  int get myScore;
+  @override
+  int get totalScore;
+  @override
+  List<IrsSubQuestion> get subQuestions;
+  @override
+  @JsonKey(ignore: true)
+  _$$IrsExamDetailImplCopyWith<_$IrsExamDetailImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+IrsSubQuestion _$IrsSubQuestionFromJson(Map<String, dynamic> json) {
+  return _IrsSubQuestion.fromJson(json);
+}
+
+/// @nodoc
+mixin _$IrsSubQuestion {
+  String get questionType =>
+      throw _privateConstructorUsedError; // 1=單選, 2=多選, 3=文字, 4=...
+  String get description => throw _privateConstructorUsedError;
+  String get scoreDesc => throw _privateConstructorUsedError;
+  String get myAnswer => throw _privateConstructorUsedError;
+  String? get stdAnswer => throw _privateConstructorUsedError;
+  List<IrsSubOption>? get options => throw _privateConstructorUsedError;
+  String? get imagePath => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $IrsSubQuestionCopyWith<IrsSubQuestion> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $IrsSubQuestionCopyWith<$Res> {
+  factory $IrsSubQuestionCopyWith(
+          IrsSubQuestion value, $Res Function(IrsSubQuestion) then) =
+      _$IrsSubQuestionCopyWithImpl<$Res, IrsSubQuestion>;
+  @useResult
+  $Res call(
+      {String questionType,
+      String description,
+      String scoreDesc,
+      String myAnswer,
+      String? stdAnswer,
+      List<IrsSubOption>? options,
+      String? imagePath});
+}
+
+/// @nodoc
+class _$IrsSubQuestionCopyWithImpl<$Res, $Val extends IrsSubQuestion>
+    implements $IrsSubQuestionCopyWith<$Res> {
+  _$IrsSubQuestionCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? questionType = null,
+    Object? description = null,
+    Object? scoreDesc = null,
+    Object? myAnswer = null,
+    Object? stdAnswer = freezed,
+    Object? options = freezed,
+    Object? imagePath = freezed,
+  }) {
+    return _then(_value.copyWith(
+      questionType: null == questionType
+          ? _value.questionType
+          : questionType // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      scoreDesc: null == scoreDesc
+          ? _value.scoreDesc
+          : scoreDesc // ignore: cast_nullable_to_non_nullable
+              as String,
+      myAnswer: null == myAnswer
+          ? _value.myAnswer
+          : myAnswer // ignore: cast_nullable_to_non_nullable
+              as String,
+      stdAnswer: freezed == stdAnswer
+          ? _value.stdAnswer
+          : stdAnswer // ignore: cast_nullable_to_non_nullable
+              as String?,
+      options: freezed == options
+          ? _value.options
+          : options // ignore: cast_nullable_to_non_nullable
+              as List<IrsSubOption>?,
+      imagePath: freezed == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$IrsSubQuestionImplCopyWith<$Res>
+    implements $IrsSubQuestionCopyWith<$Res> {
+  factory _$$IrsSubQuestionImplCopyWith(_$IrsSubQuestionImpl value,
+          $Res Function(_$IrsSubQuestionImpl) then) =
+      __$$IrsSubQuestionImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String questionType,
+      String description,
+      String scoreDesc,
+      String myAnswer,
+      String? stdAnswer,
+      List<IrsSubOption>? options,
+      String? imagePath});
+}
+
+/// @nodoc
+class __$$IrsSubQuestionImplCopyWithImpl<$Res>
+    extends _$IrsSubQuestionCopyWithImpl<$Res, _$IrsSubQuestionImpl>
+    implements _$$IrsSubQuestionImplCopyWith<$Res> {
+  __$$IrsSubQuestionImplCopyWithImpl(
+      _$IrsSubQuestionImpl _value, $Res Function(_$IrsSubQuestionImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? questionType = null,
+    Object? description = null,
+    Object? scoreDesc = null,
+    Object? myAnswer = null,
+    Object? stdAnswer = freezed,
+    Object? options = freezed,
+    Object? imagePath = freezed,
+  }) {
+    return _then(_$IrsSubQuestionImpl(
+      questionType: null == questionType
+          ? _value.questionType
+          : questionType // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      scoreDesc: null == scoreDesc
+          ? _value.scoreDesc
+          : scoreDesc // ignore: cast_nullable_to_non_nullable
+              as String,
+      myAnswer: null == myAnswer
+          ? _value.myAnswer
+          : myAnswer // ignore: cast_nullable_to_non_nullable
+              as String,
+      stdAnswer: freezed == stdAnswer
+          ? _value.stdAnswer
+          : stdAnswer // ignore: cast_nullable_to_non_nullable
+              as String?,
+      options: freezed == options
+          ? _value._options
+          : options // ignore: cast_nullable_to_non_nullable
+              as List<IrsSubOption>?,
+      imagePath: freezed == imagePath
+          ? _value.imagePath
+          : imagePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$IrsSubQuestionImpl implements _IrsSubQuestion {
+  const _$IrsSubQuestionImpl(
+      {required this.questionType,
+      required this.description,
+      required this.scoreDesc,
+      required this.myAnswer,
+      this.stdAnswer,
+      final List<IrsSubOption>? options,
+      this.imagePath})
+      : _options = options;
+
+  factory _$IrsSubQuestionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$IrsSubQuestionImplFromJson(json);
+
+  @override
+  final String questionType;
+// 1=單選, 2=多選, 3=文字, 4=...
+  @override
+  final String description;
+  @override
+  final String scoreDesc;
+  @override
+  final String myAnswer;
+  @override
+  final String? stdAnswer;
+  final List<IrsSubOption>? _options;
+  @override
+  List<IrsSubOption>? get options {
+    final value = _options;
+    if (value == null) return null;
+    if (_options is EqualUnmodifiableListView) return _options;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  @override
+  final String? imagePath;
+
+  @override
+  String toString() {
+    return 'IrsSubQuestion(questionType: $questionType, description: $description, scoreDesc: $scoreDesc, myAnswer: $myAnswer, stdAnswer: $stdAnswer, options: $options, imagePath: $imagePath)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$IrsSubQuestionImpl &&
+            (identical(other.questionType, questionType) ||
+                other.questionType == questionType) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.scoreDesc, scoreDesc) ||
+                other.scoreDesc == scoreDesc) &&
+            (identical(other.myAnswer, myAnswer) ||
+                other.myAnswer == myAnswer) &&
+            (identical(other.stdAnswer, stdAnswer) ||
+                other.stdAnswer == stdAnswer) &&
+            const DeepCollectionEquality().equals(other._options, _options) &&
+            (identical(other.imagePath, imagePath) ||
+                other.imagePath == imagePath));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      questionType,
+      description,
+      scoreDesc,
+      myAnswer,
+      stdAnswer,
+      const DeepCollectionEquality().hash(_options),
+      imagePath);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$IrsSubQuestionImplCopyWith<_$IrsSubQuestionImpl> get copyWith =>
+      __$$IrsSubQuestionImplCopyWithImpl<_$IrsSubQuestionImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$IrsSubQuestionImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _IrsSubQuestion implements IrsSubQuestion {
+  const factory _IrsSubQuestion(
+      {required final String questionType,
+      required final String description,
+      required final String scoreDesc,
+      required final String myAnswer,
+      final String? stdAnswer,
+      final List<IrsSubOption>? options,
+      final String? imagePath}) = _$IrsSubQuestionImpl;
+
+  factory _IrsSubQuestion.fromJson(Map<String, dynamic> json) =
+      _$IrsSubQuestionImpl.fromJson;
+
+  @override
+  String get questionType;
+  @override // 1=單選, 2=多選, 3=文字, 4=...
+  String get description;
+  @override
+  String get scoreDesc;
+  @override
+  String get myAnswer;
+  @override
+  String? get stdAnswer;
+  @override
+  List<IrsSubOption>? get options;
+  @override
+  String? get imagePath;
+  @override
+  @JsonKey(ignore: true)
+  _$$IrsSubQuestionImplCopyWith<_$IrsSubQuestionImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+IrsSubOption _$IrsSubOptionFromJson(Map<String, dynamic> json) {
+  return _IrsSubOption.fromJson(json);
+}
+
+/// @nodoc
+mixin _$IrsSubOption {
+  String get key => throw _privateConstructorUsedError;
+  String get value => throw _privateConstructorUsedError;
+  bool get isCorrect => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $IrsSubOptionCopyWith<IrsSubOption> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $IrsSubOptionCopyWith<$Res> {
+  factory $IrsSubOptionCopyWith(
+          IrsSubOption value, $Res Function(IrsSubOption) then) =
+      _$IrsSubOptionCopyWithImpl<$Res, IrsSubOption>;
+  @useResult
+  $Res call({String key, String value, bool isCorrect});
+}
+
+/// @nodoc
+class _$IrsSubOptionCopyWithImpl<$Res, $Val extends IrsSubOption>
+    implements $IrsSubOptionCopyWith<$Res> {
+  _$IrsSubOptionCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? key = null,
+    Object? value = null,
+    Object? isCorrect = null,
+  }) {
+    return _then(_value.copyWith(
+      key: null == key
+          ? _value.key
+          : key // ignore: cast_nullable_to_non_nullable
+              as String,
+      value: null == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as String,
+      isCorrect: null == isCorrect
+          ? _value.isCorrect
+          : isCorrect // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$IrsSubOptionImplCopyWith<$Res>
+    implements $IrsSubOptionCopyWith<$Res> {
+  factory _$$IrsSubOptionImplCopyWith(
+          _$IrsSubOptionImpl value, $Res Function(_$IrsSubOptionImpl) then) =
+      __$$IrsSubOptionImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String key, String value, bool isCorrect});
+}
+
+/// @nodoc
+class __$$IrsSubOptionImplCopyWithImpl<$Res>
+    extends _$IrsSubOptionCopyWithImpl<$Res, _$IrsSubOptionImpl>
+    implements _$$IrsSubOptionImplCopyWith<$Res> {
+  __$$IrsSubOptionImplCopyWithImpl(
+      _$IrsSubOptionImpl _value, $Res Function(_$IrsSubOptionImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? key = null,
+    Object? value = null,
+    Object? isCorrect = null,
+  }) {
+    return _then(_$IrsSubOptionImpl(
+      key: null == key
+          ? _value.key
+          : key // ignore: cast_nullable_to_non_nullable
+              as String,
+      value: null == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as String,
+      isCorrect: null == isCorrect
+          ? _value.isCorrect
+          : isCorrect // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$IrsSubOptionImpl implements _IrsSubOption {
+  const _$IrsSubOptionImpl(
+      {required this.key, required this.value, this.isCorrect = false});
+
+  factory _$IrsSubOptionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$IrsSubOptionImplFromJson(json);
+
+  @override
+  final String key;
+  @override
+  final String value;
+  @override
+  @JsonKey()
+  final bool isCorrect;
+
+  @override
+  String toString() {
+    return 'IrsSubOption(key: $key, value: $value, isCorrect: $isCorrect)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$IrsSubOptionImpl &&
+            (identical(other.key, key) || other.key == key) &&
+            (identical(other.value, value) || other.value == value) &&
+            (identical(other.isCorrect, isCorrect) ||
+                other.isCorrect == isCorrect));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, key, value, isCorrect);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$IrsSubOptionImplCopyWith<_$IrsSubOptionImpl> get copyWith =>
+      __$$IrsSubOptionImplCopyWithImpl<_$IrsSubOptionImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$IrsSubOptionImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _IrsSubOption implements IrsSubOption {
+  const factory _IrsSubOption(
+      {required final String key,
+      required final String value,
+      final bool isCorrect}) = _$IrsSubOptionImpl;
+
+  factory _IrsSubOption.fromJson(Map<String, dynamic> json) =
+      _$IrsSubOptionImpl.fromJson;
+
+  @override
+  String get key;
+  @override
+  String get value;
+  @override
+  bool get isCorrect;
+  @override
+  @JsonKey(ignore: true)
+  _$$IrsSubOptionImplCopyWith<_$IrsSubOptionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
