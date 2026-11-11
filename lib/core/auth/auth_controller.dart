@@ -108,13 +108,13 @@ class AuthController extends AutoDisposeNotifier<AuthState> {
   /// 嘗試自動登入
   Future<void> _tryAutoLogin() async {
     try {
-      final token = await _secureStorage.read(key: _tokenKey);
-      final rememberMeStr = await _secureStorage.read(key: _rememberMeKey);
+      final token = await _safeRead(_tokenKey);
+      final rememberMeStr = await _safeRead(_rememberMeKey);
       final rememberMe = rememberMeStr == 'true';
 
       if (token != null && rememberMe) {
-        final userId = await _secureStorage.read(key: _savedUserIdKey);
-        final password = await _secureStorage.read(key: _savedPasswordKey);
+        final userId = await _safeRead(_savedUserIdKey);
+        final password = await _safeRead(_savedPasswordKey);
 
         if (userId != null && password != null) {
           state = state.copyWith(isLoading: true);
@@ -283,6 +283,34 @@ class AuthController extends AutoDisposeNotifier<AuthState> {
   // 私有方法
   // ===========================================
 
+  /// 安全讀取 secure storage (遠端桌面環境下 libsecret 可能不可用)
+  Future<String?> _safeRead(String key) async {
+    try {
+      return await _secureStorage.read(key: key);
+    } catch (e) {
+      debugPrint('Secure storage read failed ($key): $e');
+      return null;
+    }
+  }
+
+  /// 安全寫入 secure storage (遠端桌面環境下 libsecret 可能不可用)
+  Future<void> _safeWrite({required String key, required String value}) async {
+    try {
+      await _secureStorage.write(key: key, value: value);
+    } catch (e) {
+      debugPrint('Secure storage write failed ($key): $e');
+    }
+  }
+
+  /// 安全刪除 secure storage (遠端桌面環境下 libsecret 可能不可用)
+  Future<void> _safeDelete({required String key}) async {
+    try {
+      await _secureStorage.delete(key: key);
+    } catch (e) {
+      debugPrint('Secure storage delete failed ($key): $e');
+    }
+  }
+
   Future<void> _saveAuthData({
     required String token,
     required UserProfile userProfile,
@@ -291,32 +319,32 @@ class AuthController extends AutoDisposeNotifier<AuthState> {
     String? password,
   }) async {
     await Future.wait([
-      _secureStorage.write(key: _tokenKey, value: token),
-      _secureStorage.write(key: _userProfileKey, value: jsonEncode(userProfile.toJson())),
-      _secureStorage.write(key: _rememberMeKey, value: rememberMe.toString()),
+      _safeWrite(key: _tokenKey, value: token),
+      _safeWrite(key: _userProfileKey, value: jsonEncode(userProfile.toJson())),
+      _safeWrite(key: _rememberMeKey, value: rememberMe.toString()),
     ]);
 
     if (rememberMe && userId != null && password != null) {
       await Future.wait([
-        _secureStorage.write(key: _savedUserIdKey, value: userId),
-        _secureStorage.write(key: _savedPasswordKey, value: password),
+        _safeWrite(key: _savedUserIdKey, value: userId),
+        _safeWrite(key: _savedPasswordKey, value: password),
       ]);
     } else {
       await Future.wait([
-        _secureStorage.delete(key: _savedUserIdKey),
-        _secureStorage.delete(key: _savedPasswordKey),
+        _safeDelete(key: _savedUserIdKey),
+        _safeDelete(key: _savedPasswordKey),
       ]);
     }
   }
 
   Future<void> _clearAuthData() async {
     await Future.wait([
-      _secureStorage.delete(key: _tokenKey),
-      _secureStorage.delete(key: _userProfileKey),
-      _secureStorage.delete(key: _rememberMeKey),
+      _safeDelete(key: _tokenKey),
+      _safeDelete(key: _userProfileKey),
+      _safeDelete(key: _rememberMeKey),
       // 保留 rememberMe 為 true 時的帳密
-      if (!state.rememberMe) _secureStorage.delete(key: _savedUserIdKey),
-      if (!state.rememberMe) _secureStorage.delete(key: _savedPasswordKey),
+      if (!state.rememberMe) _safeDelete(key: _savedUserIdKey),
+      if (!state.rememberMe) _safeDelete(key: _savedPasswordKey),
     ]);
   }
 
