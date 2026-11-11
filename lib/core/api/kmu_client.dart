@@ -247,16 +247,23 @@ class KmuClient {
     if (result == 'true') {
       return {
         'success': true,
-        'message': responseData['reason']?.toString() ?? '成功',
+        'message': _safeMessage(responseData['reason']) ?? '成功',
         'data': responseData['items'],
       };
     }
 
     return {
       'success': false,
-      'message': responseData['reason']?.toString() ?? '請求失敗',
+      'message': _safeMessage(responseData['reason']) ?? '請求失敗',
       'data': responseData['items'],
     };
+  }
+
+  /// 安全取得訊息字串，避免 null 變成 literal "null"
+  String? _safeMessage(Object? value) {
+    if (value == null) return null;
+    final s = value.toString();
+    return s == 'null' || s.isEmpty ? null : s;
   }
 
   String _extractDioError(DioException e) {
