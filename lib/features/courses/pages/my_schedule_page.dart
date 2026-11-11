@@ -131,9 +131,6 @@ class WeekScheduleGrid extends StatelessWidget {
               ..._periods.map((period) {
                 final periodCode = period.code;
                 final timeParts = period.timeRange.split('-');
-                final periodLabel = timeParts.length == 2
-                    ? '${timeParts[0]} s（~） ${timeParts[1]}'
-                    : period.timeRange;
 
                 return Container(
                   height: _rowHeight,
@@ -151,13 +148,30 @@ class WeekScheduleGrid extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                           child: Center(
-                            child: Text(
-                              periodLabel,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  timeParts[0],
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontSize: 10,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const Text(
+                                  '~',
+                                  style: TextStyle(fontSize: 10, height: 1.2),
+                                ),
+                                Text(
+                                  timeParts[1],
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontSize: 10,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ),
                           ),
                         ),
