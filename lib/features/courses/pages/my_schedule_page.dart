@@ -56,6 +56,50 @@ class WeekScheduleGrid extends StatelessWidget {
       }
     }
 
+    // 合併相同課程的連續節次為一個大方塊
+    // 回傳: weekday -> periodCode -> List<MergedCourseBlock>
+    final Map<int, Map<String, List<_MergedCourseBlock>>> mergedMap = {};
+    for (final entry1 in scheduleMap.entries) {
+      final weekday = entry1.key;
+      final periodMap = entry1.value;
+      mergedMap[weekday] = {};
+      // 收集該節次下的所有課程 (去重，同一課程可能在多個節次出現)
+      final Map<String, Course> courseById = {};
+      for (final entry2 in periodMap.entries) {
+        for (final course in entry2.value) {
+          courseById[course.id] = course;
+        }
+      }
+      // 對每個課程，找出其佔用的連續節次
+      for (final course in courseById.values) {
+        final coursePeriods = course.periods.where((p) => periodMap.containsKey(p)).toList();
+        if (coursePeriods.isEmpty) continue;
+        // 將連續節次分組
+        final periodIndexMap = {for (int i = 0; i < _periods.length; i++) _periods[i].code: i};
+        final sortedPeriods = coursePeriods..sort((a, b) => (periodIndexMap[a] ?? 0).compareTo(periodIndexMap[b] ?? 0));
+        int groupStart = 0;
+        for (int i = 1; i <= sortedPeriods.length; i++) {
+          final isLast = i == sortedPeriods.length;
+          final isNotConsecutive = isLast ||
+              (periodIndexMap[sortedPeriods[i]] ?? 0) !=
+                  (periodIndexMap[sortedPeriods[i - 1]] ?? 0) + 1;
+          if (isNotConsecutive) {
+            final group = sortedPeriods.sublist(groupStart, i);
+            final startCode = group.first;
+            final endCode = group.last;
+            mergedMap[weekday]!.putIfAbsent(startCode, () => []);
+            mergedMap[weekday]![startCode]!.add(_MergedCourseBlock(
+              course: course,
+              startPeriod: startCode,
+              endPeriod: endCode,
+              spanPeriods: group.length,
+            ));
+            groupStart = i;
+          }
+        }
+      }
+    }
+
     return Column(
             children: [
               // 表頭：時間欄 + 星期標題
@@ -86,7 +130,10 @@ class WeekScheduleGrid extends StatelessWidget {
               // 表身：各節次列
               ..._periods.map((period) {
                 final periodCode = period.code;
-                final periodLabel = '${period.code}\n${period.timeRange}';
+                final timeParts = period.timeRange.split('-');
+                final periodLabel = timeParts.length == 2
+                    ? '${timeParts[0]} s（~） ${timeParts[1]}'
+                    : period.timeRange;
 
                 return Container(
                   height: _rowHeight,
@@ -118,7 +165,7 @@ class WeekScheduleGrid extends StatelessWidget {
                       // 星期欄位
                       ..._weekdayLabels.asMap().entries.map((entry) {
                         final weekday = entry.key + 1; // 1~5
-                        final coursesInSlot = scheduleMap[weekday]?[periodCode] ?? [];
+                        final mergedBlocks = mergedMap[weekday]?[periodCode] ?? [];
 
                         return Expanded(
                           child: Container(
@@ -128,61 +175,65 @@ class WeekScheduleGrid extends StatelessWidget {
                               ),
                             ),
                             child: Stack(
-                              children: coursesInSlot.asMap().entries.map((courseEntry) {
-                                final course = courseEntry.value;
-                                final index = courseEntry.key;
-                                final colorValue = int.tryParse(course.color?.replaceFirst('#', '') ?? '2196F3', radix: 16) ?? 0xFF2196F3;
+                              children: mergedBlocks.asMap().entries.map((blockEntry) {
+                                final block = blockEntry.value;
+                                final isStartBlock = block.startPeriod == periodCode;
+                                if (!isStartBlock) return const SizedBox.shrink();
+                                final colorValue = int.tryParse(block.course.color?.replaceFirst('#', '') ?? '2196F3', radix: 16) ?? 0xFF2196F3;
                                 final cardColor = Color(colorValue | 0xFF000000);
 
                                 return Positioned(
-                                  top: index * 2.0,
+                                  top: 0.0,
                                   left: 2.0,
                                   right: 2.0,
                                   bottom: 2.0,
-                                  child: Material(
-                                    color: cardColor.withValues(alpha: 0.85 - index * 0.05),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: InkWell(
-                                      onTap: () => onCourseTap(course),
+                                  child: SizedBox(
+                                    height: block.spanPeriods * _rowHeight - 4.0,
+                                    child: Material(
+                                      color: cardColor.withValues(alpha: 0.85),
                                       borderRadius: BorderRadius.circular(6),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(4),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              course.name,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: theme.textTheme.labelMedium?.copyWith(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 11,
-                                                shadows: const [Shadow(blurRadius: 2, color: Colors.black54)],
-                                              ),
-                                            ),
-                                            if (course.teacher?.isNotEmpty == true)
+                                      child: InkWell(
+                                        onTap: () => onCourseTap(block.course),
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
                                               Text(
-                                                course.teacher!,
-                                                maxLines: 1,
+                                                block.course.name,
+                                                maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: theme.textTheme.labelSmall?.copyWith(
-                                                  color: Colors.white.withValues(alpha: 0.9),
-                                                  fontSize: 9,
+                                                style: theme.textTheme.labelMedium?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 11,
+                                                  shadows: const [Shadow(blurRadius: 2, color: Colors.black54)],
                                                 ),
                                               ),
-                                            if (course.classroom?.isNotEmpty == true)
-                                              Text(
-                                                course.classroom!,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: theme.textTheme.labelSmall?.copyWith(
-                                                  color: Colors.white.withValues(alpha: 0.8),
-                                                  fontSize: 9,
+                                              if (block.course.teacher?.isNotEmpty == true)
+                                                Text(
+                                                  block.course.teacher!,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: theme.textTheme.labelSmall?.copyWith(
+                                                    color: Colors.white.withValues(alpha: 0.9),
+                                                    fontSize: 9,
+                                                  ),
                                                 ),
-                                              ),
-                                          ],
+                                              if (block.course.classroom?.isNotEmpty == true)
+                                                Text(
+                                                  block.course.classroom!,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: theme.textTheme.labelSmall?.copyWith(
+                                                    color: Colors.white.withValues(alpha: 0.8),
+                                                    fontSize: 9,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -200,6 +251,21 @@ class WeekScheduleGrid extends StatelessWidget {
             ],
           );
   }
+}
+
+/// 合併後的課程區塊 (跨多個連續節次)
+class _MergedCourseBlock {
+  const _MergedCourseBlock({
+    required this.course,
+    required this.startPeriod,
+    required this.endPeriod,
+    required this.spanPeriods,
+  });
+
+  final Course course;
+  final String startPeriod;
+  final String endPeriod;
+  final int spanPeriods;
 }
 
 /// 課表狀態

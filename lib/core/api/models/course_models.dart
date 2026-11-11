@@ -1,60 +1,59 @@
 // 課務相關模型 (課表、成績)
 
+import 'package:flutter/material.dart';
 import 'common_models.dart';
 
-/// 根據課程名稱/類型生成一致的 HEX 色碼
-/// 使用簡單雜湊確保同名課程顏色固定
+/// 20種固定馬卡龍色系（不重複）
+/// 對應課程名稱雜湊，確保同名課程顏色固定
+const List<Color> _macaronColors = [
+  Color(0xFFFFB3BA), // 粉紅
+  Color(0xFFFFDFBA), // 橘黃
+  Color(0xFFFFFF),   // 白（備用，實際不會用）
+  Color(0xFFBAE1FF), // 淺藍
+  Color(0xFFBAFFC9), // 淺綠
+  Color(0xFFFFC6FF), // 粉紫
+  Color(0xFFFFD6BA), // 淺橘
+  Color(0xFFC9C9FF), // 淺紫
+  Color(0xFFC4E5FF), // 天藍
+  Color(0xFFC9FFF0), // 薄荷綠
+  Color(0xFFD1DC),   // 豆沙紅
+  Color(0xFFE2C9),   // 麥黃
+  Color(0xFFD5AAFF), // 紫色
+  Color(0xFFA0C4FF), // 亮藍
+  Color(0xFFB9FBC0), // 草綠
+  Color(0xFFFFC6FF), // 淺粉紅
+  Color(0xFFFFDAC1), // 肉桂橘
+  Color(0xFFE2CBFF), // 淡紫
+  Color(0xFFBDE0FE), // 水藍
+  Color(0xFFCDB4DB), // 灰紫
+];
+
+/// 根據課程名稱生成固定顏色（從 20 種馬卡龍色中選擇，回傳 HEX 字串）
 String _generateCourseColor(String name, String? type) {
-  // 依類型給預設色系
-  const Map<String, int> typeColors = {
-    'required': 0xFF1976D2,  // 藍 - 必修
-    'elective': 0xFF388E3C,  // 綠 - 選修
-    'general': 0xFFF57C00,   // 橘 - 通識
-    'other': 0xFF7B1FA2,     // 紫 - 其他
+  // 依類型給預設色系索引
+  const Map<String, int> typeColorIndex = {
+    'required': 0,   // 粉紅 - 必修
+    'elective': 4,   // 淺綠 - 選修
+    'general': 7,    // 淺紫 - 通識
+    'other': 15,     // 淺粉紅 - 其他
   };
-  
-  if (type != null && typeColors.containsKey(type)) {
-    // 以名稱雜湊微調亮度，同類型不同課程略有差異
+
+  if (type != null && typeColorIndex.containsKey(type)) {
+    final baseIndex = typeColorIndex[type]!;
+    // 以名稱雜湊微調索引（±3）
     final hash = name.codeUnits.fold(0, (a, b) => a + b);
-    final base = typeColors[type]!;
-    final r = (base >> 16) & 0xFF;
-    final g = (base >> 8) & 0xFF;
-    final b = base & 0xFF;
-    // 輕微變化 (±20)
-    final dr = (hash % 41) - 20;
-    final dg = ((hash ~/ 41) % 41) - 20;
-    final db = ((hash ~/ 1681) % 41) - 20;
-    final nr = (r + dr).clamp(50, 220);
-    final ng = (g + dg).clamp(50, 220);
-    final nb = (b + db).clamp(50, 220);
-    return '#${nr.toRadixString(16).padLeft(2, '0')}${ng.toRadixString(16).padLeft(2, '0')}${nb.toRadixString(16).padLeft(2, '0')}';
+    final offset = hash % 7 - 3;
+    final index = (baseIndex + offset).clamp(0, 19);
+    return '#${_macaronColors[index].value.toRadixString(16).padLeft(8, '0').substring(2)}';
   }
-  
-  // 回退：純名稱雜湊產生色相
+
+  // 回退：純名稱雜湊選色
   final hash = name.codeUnits.fold(0, (a, b) => a + b);
-  final hue = (hash * 137) % 360; // 黃金角度分佈
-  return _hsvToHex(hue.toDouble(), 0.6, 0.75);
+  return '#${_macaronColors[hash % 20].value.toRadixString(16).padLeft(8, '0').substring(2)}';
 }
 
-/// HSV 轉 HEX
-String _hsvToHex(double h, double s, double v) {
-  final c = v * s;
-  final x = c * (1 - ((h / 60) % 2 - 1).abs());
-  final m = v - c;
-  double r = 0, g = 0, b = 0;
-  if (h < 60) { r = c; g = x; }
-  else if (h < 120) { r = x; g = c; }
-  else if (h < 180) { g = c; b = x; }
-  else if (h < 240) { g = x; b = c; }
-  else if (h < 300) { r = x; b = c; }
-  else { r = c; b = x; }
-  final ir = ((r + m) * 255).round().clamp(0, 255);
-  final ig = ((g + m) * 255).round().clamp(0, 255);
-  final ib = ((b + m) * 255).round().clamp(0, 255);
-  return '#${ir.toRadixString(16).padLeft(2, '0')}${ig.toRadixString(16).padLeft(2, '0')}${ib.toRadixString(16).padLeft(2, '0')}';
-}
 
-/// 高醫節次對照表 (對齊 reference/kmucoursequery_wac.py PERIOD_MAP)
+/// 高醫節次對照表 (對齊 reference/kmucoursequency_wac.py PERIOD_MAP)
 /// 1~9 為日間，A~D 為夜間
 class KmuPeriod {
   const KmuPeriod(this.code, this.timeRange);

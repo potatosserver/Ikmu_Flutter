@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import '../api/endpoints/endpoints.dart';
 import '../api/models.dart';
 import '../providers.dart';
+import '../../features/irs/providers/irs_providers.dart';
 
 /// 認證狀態
 class AuthState {
@@ -168,6 +169,8 @@ class AuthController extends AutoDisposeNotifier<AuthState> {
             password: password,
             error: null,
           );
+          // 設定 IRS endpoint 的 userId (供學生歷史記錄 API 使用)
+          ref.read(irsProvider.notifier).userId = userId;
           return true;
         }
       }

@@ -118,6 +118,11 @@ class IrsNotifier extends AutoDisposeNotifier<IrsState> {
   String? get error => state.error;
   String? get historyError => state.historyError;
 
+  /// 設定當前使用者 ID (供學生端 API 使用)
+  set userId(String value) {
+    _endpoints.irs.userId = value;
+  }
+
   /// 載入學生課程列表
   Future<void> loadStudentClasses() async {
     state = state.copyWith(isLoadingHistory: true, historyError: null);
