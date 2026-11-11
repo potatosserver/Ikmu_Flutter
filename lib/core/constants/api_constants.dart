@@ -32,19 +32,13 @@ class ApiEndpoints {
   static const String classroomDetail = 'getClassroomDetail';
   static const String classroomUsage = 'getClassroomUsage';
   static const String classroomUsageByDate = 'getClassroomUsageByDate';
-  
-  // 交通
-  static const String busRoute = 'getActiveBus';
-  static const String busRealtime = 'getStopOfBus';
-  static const String bikeStation = 'getKHCBikeInfo';
-  static const String trafficInfo = 'getTrafficData';
-  
+
   // 校園資訊
   static const String newsList = 'getNewsList';
   static const String newsDetail = 'getNewsDetail';
   static const String poiList = 'getMapPoi';
   static const String gallery = 'getGallery';
-  
+
   // 新增 API
   static const String appLayout = 'getAppLayout';
   static const String layoutUrl = 'getLayoutUrl';
@@ -89,7 +83,6 @@ enum CacheBoxes {
   calendar,
   classroom,
   courses,
-  transport,
   campusInfo,
   settings,
   generic,
@@ -101,7 +94,6 @@ enum CacheTTL {
   calendar(AppConstants.cacheTtlDay),        // 1 天
   classroom(AppConstants.cacheTtlMedium),    // 30 分鐘
   courses(AppConstants.cacheTtlMonth),       // 1 個月 (30 天)
-  transport(AppConstants.cacheTtlShort),     // 5 分鐘
   campusInfo(AppConstants.cacheTtlMedium),   // 30 分鐘
   settings(AppConstants.cacheTtlDay),        // 1 天
   generic(AppConstants.cacheTtlMedium);      // 30 分鐘

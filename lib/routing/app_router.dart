@@ -16,8 +16,9 @@ import '../../features/courses/pages/my_schedule_page.dart';
 import '../../features/campus_info/pages/news_detail_page.dart';
 import '../../features/campus_info/pages/news_page.dart';
 import '../../features/campus_info/pages/traffic_page.dart';
+import '../../features/irs/pages/irs_detail_page.dart';
+import '../../features/irs/pages/irs_list_page.dart';
 import '../../features/settings/pages/settings_page.dart';
-import '../../features/transport/pages/transport_page.dart';
 import '../../shared/widgets/app_scaffold.dart';
 
 /// 路由 Provider
@@ -125,10 +126,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
 
-          // 交通
+          // IRS 答題系統
           GoRoute(
-            path: RoutePaths.transport,
-            builder: (context, state) => const TransportPage(),
+            path: RoutePaths.irs,
+            builder: (context, state) => const IrsListPage(),
+          ),
+          GoRoute(
+            path: RoutePaths.irs + '/detail',
+            builder: (context, state) => const IrsDetailPage(),
           ),
 
           // 校園資訊

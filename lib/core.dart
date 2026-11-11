@@ -13,3 +13,4 @@ export 'core/errors/error_handler.dart';
 export 'core/providers.dart';
 export 'routing/route_paths.dart';
 export 'core/api/services/weather_service.dart';
+export 'features/irs/models/models.dart';

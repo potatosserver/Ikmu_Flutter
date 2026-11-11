@@ -44,10 +44,10 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
       label: '課表',
     ),
     _NavItem(
-      path: RoutePaths.transport,
-      icon: Icons.directions_bus_outlined,
-      activeIcon: Icons.directions_bus,
-      label: '交通',
+      path: RoutePaths.irs,
+      icon: Icons.quiz_outlined,
+      activeIcon: Icons.quiz,
+      label: 'IRS 答題',
     ),
     _NavItem(
       path: RoutePaths.settings,
