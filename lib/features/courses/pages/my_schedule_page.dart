@@ -159,9 +159,12 @@ class WeekScheduleGrid extends StatelessWidget {
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-                                const Text(
-                                  '~',
-                                  style: TextStyle(fontSize: 10, height: 1.2),
+                                const RotatedBox(
+                                  quarterTurns: 1,
+                                  child: Text(
+                                    '~',
+                                    style: TextStyle(fontSize: 14, height: 1.2),
+                                  ),
                                 ),
                                 Text(
                                   timeParts[1],
