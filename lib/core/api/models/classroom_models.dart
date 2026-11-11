@@ -271,6 +271,7 @@ extension TimeSlotExtension on TimeSlot {
 }
 
 /// 場地使用狀況
+@JsonSerializable()
 @freezed
 abstract class ClassroomUsage with _$ClassroomUsage {
   const factory ClassroomUsage({

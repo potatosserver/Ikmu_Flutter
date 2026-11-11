@@ -1625,7 +1625,7 @@ ClassroomUsageResponse _$ClassroomUsageResponseFromJson(
 mixin _$ClassroomUsageResponse {
   bool get success => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
-  dynamic get data => throw _privateConstructorUsedError;
+  List<ClassroomUsage>? get data => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -1639,7 +1639,7 @@ abstract class $ClassroomUsageResponseCopyWith<$Res> {
           $Res Function(ClassroomUsageResponse) then) =
       _$ClassroomUsageResponseCopyWithImpl<$Res, ClassroomUsageResponse>;
   @useResult
-  $Res call({bool success, String message, dynamic data});
+  $Res call({bool success, String message, List<ClassroomUsage>? data});
 }
 
 /// @nodoc
@@ -1672,7 +1672,7 @@ class _$ClassroomUsageResponseCopyWithImpl<$Res,
       data: freezed == data
           ? _value.data
           : data // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as List<ClassroomUsage>?,
     ) as $Val);
   }
 }
@@ -1686,7 +1686,7 @@ abstract class _$$ClassroomUsageResponseImplCopyWith<$Res>
       __$$ClassroomUsageResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({bool success, String message, dynamic data});
+  $Res call({bool success, String message, List<ClassroomUsage>? data});
 }
 
 /// @nodoc
@@ -1715,7 +1715,10 @@ class __$$ClassroomUsageResponseImplCopyWithImpl<$Res>
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
               as String,
-      data: freezed == data ? _value.data! : data,
+      data: freezed == data
+          ? _value._data
+          : data // ignore: cast_nullable_to_non_nullable
+              as List<ClassroomUsage>?,
     ));
   }
 }
@@ -1724,7 +1727,10 @@ class __$$ClassroomUsageResponseImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ClassroomUsageResponseImpl implements _ClassroomUsageResponse {
   const _$ClassroomUsageResponseImpl(
-      {required this.success, required this.message, this.data});
+      {required this.success,
+      required this.message,
+      final List<ClassroomUsage>? data})
+      : _data = data;
 
   factory _$ClassroomUsageResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$ClassroomUsageResponseImplFromJson(json);
@@ -1733,8 +1739,15 @@ class _$ClassroomUsageResponseImpl implements _ClassroomUsageResponse {
   final bool success;
   @override
   final String message;
+  final List<ClassroomUsage>? _data;
   @override
-  final dynamic data;
+  List<ClassroomUsage>? get data {
+    final value = _data;
+    if (value == null) return null;
+    if (_data is EqualUnmodifiableListView) return _data;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
 
   @override
   String toString() {
@@ -1748,13 +1761,13 @@ class _$ClassroomUsageResponseImpl implements _ClassroomUsageResponse {
             other is _$ClassroomUsageResponseImpl &&
             (identical(other.success, success) || other.success == success) &&
             (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other.data, data));
+            const DeepCollectionEquality().equals(other._data, _data));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, success, message, const DeepCollectionEquality().hash(data));
+  int get hashCode => Object.hash(runtimeType, success, message,
+      const DeepCollectionEquality().hash(_data));
 
   @JsonKey(ignore: true)
   @override
@@ -1775,7 +1788,7 @@ abstract class _ClassroomUsageResponse implements ClassroomUsageResponse {
   const factory _ClassroomUsageResponse(
       {required final bool success,
       required final String message,
-      final dynamic data}) = _$ClassroomUsageResponseImpl;
+      final List<ClassroomUsage>? data}) = _$ClassroomUsageResponseImpl;
 
   factory _ClassroomUsageResponse.fromJson(Map<String, dynamic> json) =
       _$ClassroomUsageResponseImpl.fromJson;
@@ -1785,7 +1798,7 @@ abstract class _ClassroomUsageResponse implements ClassroomUsageResponse {
   @override
   String get message;
   @override
-  dynamic get data;
+  List<ClassroomUsage>? get data;
   @override
   @JsonKey(ignore: true)
   _$$ClassroomUsageResponseImplCopyWith<_$ClassroomUsageResponseImpl>

@@ -11,7 +11,7 @@ _$ApiResponseImpl _$$ApiResponseImplFromJson(Map<String, dynamic> json) =>
       success: json['success'] as bool,
       message: json['message'] as String,
       errorCode: (json['errorCode'] as num?)?.toInt(),
-      data: json['data'],
+      data: json['data'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$ApiResponseImplToJson(_$ApiResponseImpl instance) =>

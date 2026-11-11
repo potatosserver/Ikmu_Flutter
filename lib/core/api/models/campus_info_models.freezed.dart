@@ -603,7 +603,7 @@ NewsListResponse _$NewsListResponseFromJson(Map<String, dynamic> json) {
 mixin _$NewsListResponse {
   bool get success => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
-  dynamic get data => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get data => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -617,7 +617,7 @@ abstract class $NewsListResponseCopyWith<$Res> {
           NewsListResponse value, $Res Function(NewsListResponse) then) =
       _$NewsListResponseCopyWithImpl<$Res, NewsListResponse>;
   @useResult
-  $Res call({bool success, String message, dynamic data});
+  $Res call({bool success, String message, Map<String, dynamic>? data});
 }
 
 /// @nodoc
@@ -649,7 +649,7 @@ class _$NewsListResponseCopyWithImpl<$Res, $Val extends NewsListResponse>
       data: freezed == data
           ? _value.data
           : data // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -662,7 +662,7 @@ abstract class _$$NewsListResponseImplCopyWith<$Res>
       __$$NewsListResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({bool success, String message, dynamic data});
+  $Res call({bool success, String message, Map<String, dynamic>? data});
 }
 
 /// @nodoc
@@ -689,7 +689,10 @@ class __$$NewsListResponseImplCopyWithImpl<$Res>
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
               as String,
-      data: freezed == data ? _value.data! : data,
+      data: freezed == data
+          ? _value._data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -698,7 +701,10 @@ class __$$NewsListResponseImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$NewsListResponseImpl implements _NewsListResponse {
   const _$NewsListResponseImpl(
-      {required this.success, required this.message, this.data});
+      {required this.success,
+      required this.message,
+      final Map<String, dynamic>? data})
+      : _data = data;
 
   factory _$NewsListResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$NewsListResponseImplFromJson(json);
@@ -707,8 +713,15 @@ class _$NewsListResponseImpl implements _NewsListResponse {
   final bool success;
   @override
   final String message;
+  final Map<String, dynamic>? _data;
   @override
-  final dynamic data;
+  Map<String, dynamic>? get data {
+    final value = _data;
+    if (value == null) return null;
+    if (_data is EqualUnmodifiableMapView) return _data;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
@@ -722,13 +735,13 @@ class _$NewsListResponseImpl implements _NewsListResponse {
             other is _$NewsListResponseImpl &&
             (identical(other.success, success) || other.success == success) &&
             (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other.data, data));
+            const DeepCollectionEquality().equals(other._data, _data));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, success, message, const DeepCollectionEquality().hash(data));
+  int get hashCode => Object.hash(runtimeType, success, message,
+      const DeepCollectionEquality().hash(_data));
 
   @JsonKey(ignore: true)
   @override
@@ -749,7 +762,7 @@ abstract class _NewsListResponse implements NewsListResponse {
   const factory _NewsListResponse(
       {required final bool success,
       required final String message,
-      final dynamic data}) = _$NewsListResponseImpl;
+      final Map<String, dynamic>? data}) = _$NewsListResponseImpl;
 
   factory _NewsListResponse.fromJson(Map<String, dynamic> json) =
       _$NewsListResponseImpl.fromJson;
@@ -759,7 +772,7 @@ abstract class _NewsListResponse implements NewsListResponse {
   @override
   String get message;
   @override
-  dynamic get data;
+  Map<String, dynamic>? get data;
   @override
   @JsonKey(ignore: true)
   _$$NewsListResponseImplCopyWith<_$NewsListResponseImpl> get copyWith =>
@@ -1127,7 +1140,7 @@ NewsDetailResponse _$NewsDetailResponseFromJson(Map<String, dynamic> json) {
 mixin _$NewsDetailResponse {
   bool get success => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
-  dynamic get data => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get data => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -1141,7 +1154,7 @@ abstract class $NewsDetailResponseCopyWith<$Res> {
           NewsDetailResponse value, $Res Function(NewsDetailResponse) then) =
       _$NewsDetailResponseCopyWithImpl<$Res, NewsDetailResponse>;
   @useResult
-  $Res call({bool success, String message, dynamic data});
+  $Res call({bool success, String message, Map<String, dynamic>? data});
 }
 
 /// @nodoc
@@ -1173,7 +1186,7 @@ class _$NewsDetailResponseCopyWithImpl<$Res, $Val extends NewsDetailResponse>
       data: freezed == data
           ? _value.data
           : data // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -1186,7 +1199,7 @@ abstract class _$$NewsDetailResponseImplCopyWith<$Res>
       __$$NewsDetailResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({bool success, String message, dynamic data});
+  $Res call({bool success, String message, Map<String, dynamic>? data});
 }
 
 /// @nodoc
@@ -1213,7 +1226,10 @@ class __$$NewsDetailResponseImplCopyWithImpl<$Res>
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
               as String,
-      data: freezed == data ? _value.data! : data,
+      data: freezed == data
+          ? _value._data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -1222,7 +1238,10 @@ class __$$NewsDetailResponseImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$NewsDetailResponseImpl implements _NewsDetailResponse {
   const _$NewsDetailResponseImpl(
-      {required this.success, required this.message, this.data});
+      {required this.success,
+      required this.message,
+      final Map<String, dynamic>? data})
+      : _data = data;
 
   factory _$NewsDetailResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$NewsDetailResponseImplFromJson(json);
@@ -1231,8 +1250,15 @@ class _$NewsDetailResponseImpl implements _NewsDetailResponse {
   final bool success;
   @override
   final String message;
+  final Map<String, dynamic>? _data;
   @override
-  final dynamic data;
+  Map<String, dynamic>? get data {
+    final value = _data;
+    if (value == null) return null;
+    if (_data is EqualUnmodifiableMapView) return _data;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
@@ -1246,13 +1272,13 @@ class _$NewsDetailResponseImpl implements _NewsDetailResponse {
             other is _$NewsDetailResponseImpl &&
             (identical(other.success, success) || other.success == success) &&
             (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other.data, data));
+            const DeepCollectionEquality().equals(other._data, _data));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, success, message, const DeepCollectionEquality().hash(data));
+  int get hashCode => Object.hash(runtimeType, success, message,
+      const DeepCollectionEquality().hash(_data));
 
   @JsonKey(ignore: true)
   @override
@@ -1273,7 +1299,7 @@ abstract class _NewsDetailResponse implements NewsDetailResponse {
   const factory _NewsDetailResponse(
       {required final bool success,
       required final String message,
-      final dynamic data}) = _$NewsDetailResponseImpl;
+      final Map<String, dynamic>? data}) = _$NewsDetailResponseImpl;
 
   factory _NewsDetailResponse.fromJson(Map<String, dynamic> json) =
       _$NewsDetailResponseImpl.fromJson;
@@ -1283,7 +1309,7 @@ abstract class _NewsDetailResponse implements NewsDetailResponse {
   @override
   String get message;
   @override
-  dynamic get data;
+  Map<String, dynamic>? get data;
   @override
   @JsonKey(ignore: true)
   _$$NewsDetailResponseImplCopyWith<_$NewsDetailResponseImpl> get copyWith =>

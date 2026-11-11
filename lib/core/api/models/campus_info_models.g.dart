@@ -11,7 +11,7 @@ _$NewsListResponseImpl _$$NewsListResponseImplFromJson(
     _$NewsListResponseImpl(
       success: json['success'] as bool,
       message: json['message'] as String,
-      data: json['data'],
+      data: json['data'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$NewsListResponseImplToJson(
@@ -27,7 +27,7 @@ _$NewsDetailResponseImpl _$$NewsDetailResponseImplFromJson(
     _$NewsDetailResponseImpl(
       success: json['success'] as bool,
       message: json['message'] as String,
-      data: json['data'],
+      data: json['data'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$NewsDetailResponseImplToJson(

@@ -23,7 +23,7 @@ mixin _$ApiResponse {
   bool get success => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
   int? get errorCode => throw _privateConstructorUsedError;
-  dynamic get data => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get data => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -37,7 +37,11 @@ abstract class $ApiResponseCopyWith<$Res> {
           ApiResponse value, $Res Function(ApiResponse) then) =
       _$ApiResponseCopyWithImpl<$Res, ApiResponse>;
   @useResult
-  $Res call({bool success, String message, int? errorCode, dynamic data});
+  $Res call(
+      {bool success,
+      String message,
+      int? errorCode,
+      Map<String, dynamic>? data});
 }
 
 /// @nodoc
@@ -74,7 +78,7 @@ class _$ApiResponseCopyWithImpl<$Res, $Val extends ApiResponse>
       data: freezed == data
           ? _value.data
           : data // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -87,7 +91,11 @@ abstract class _$$ApiResponseImplCopyWith<$Res>
       __$$ApiResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({bool success, String message, int? errorCode, dynamic data});
+  $Res call(
+      {bool success,
+      String message,
+      int? errorCode,
+      Map<String, dynamic>? data});
 }
 
 /// @nodoc
@@ -119,7 +127,10 @@ class __$$ApiResponseImplCopyWithImpl<$Res>
           ? _value.errorCode
           : errorCode // ignore: cast_nullable_to_non_nullable
               as int?,
-      data: freezed == data ? _value.data! : data,
+      data: freezed == data
+          ? _value._data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -131,7 +142,8 @@ class _$ApiResponseImpl implements _ApiResponse {
       {required this.success,
       required this.message,
       this.errorCode,
-      this.data});
+      final Map<String, dynamic>? data})
+      : _data = data;
 
   factory _$ApiResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$ApiResponseImplFromJson(json);
@@ -142,8 +154,15 @@ class _$ApiResponseImpl implements _ApiResponse {
   final String message;
   @override
   final int? errorCode;
+  final Map<String, dynamic>? _data;
   @override
-  final dynamic data;
+  Map<String, dynamic>? get data {
+    final value = _data;
+    if (value == null) return null;
+    if (_data is EqualUnmodifiableMapView) return _data;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
@@ -159,13 +178,13 @@ class _$ApiResponseImpl implements _ApiResponse {
             (identical(other.message, message) || other.message == message) &&
             (identical(other.errorCode, errorCode) ||
                 other.errorCode == errorCode) &&
-            const DeepCollectionEquality().equals(other.data, data));
+            const DeepCollectionEquality().equals(other._data, _data));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, success, message, errorCode,
-      const DeepCollectionEquality().hash(data));
+      const DeepCollectionEquality().hash(_data));
 
   @JsonKey(ignore: true)
   @override
@@ -186,7 +205,7 @@ abstract class _ApiResponse implements ApiResponse {
       {required final bool success,
       required final String message,
       final int? errorCode,
-      final dynamic data}) = _$ApiResponseImpl;
+      final Map<String, dynamic>? data}) = _$ApiResponseImpl;
 
   factory _ApiResponse.fromJson(Map<String, dynamic> json) =
       _$ApiResponseImpl.fromJson;
@@ -198,7 +217,7 @@ abstract class _ApiResponse implements ApiResponse {
   @override
   int? get errorCode;
   @override
-  dynamic get data;
+  Map<String, dynamic>? get data;
   @override
   @JsonKey(ignore: true)
   _$$ApiResponseImplCopyWith<_$ApiResponseImpl> get copyWith =>
