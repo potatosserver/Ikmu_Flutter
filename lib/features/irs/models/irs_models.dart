@@ -206,6 +206,7 @@ abstract class IrsState with _$IrsState {
     @Default([]) List<IrsRealtimeTeacher> availableTeachers,
     IrsExamDetail? examDetail,
     @Default(false) bool isLoadingHistory,
+    @Default(false) bool isLoadingExamDetail,
     String? historyError,
   }) = _IrsState;
 

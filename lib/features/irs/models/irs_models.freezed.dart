@@ -1625,6 +1625,7 @@ mixin _$IrsState {
       throw _privateConstructorUsedError;
   IrsExamDetail? get examDetail => throw _privateConstructorUsedError;
   bool get isLoadingHistory => throw _privateConstructorUsedError;
+  bool get isLoadingExamDetail => throw _privateConstructorUsedError;
   String? get historyError => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -1654,6 +1655,7 @@ abstract class $IrsStateCopyWith<$Res> {
       List<IrsRealtimeTeacher> availableTeachers,
       IrsExamDetail? examDetail,
       bool isLoadingHistory,
+      bool isLoadingExamDetail,
       String? historyError});
 
   $IrsQuestionnaireDetailCopyWith<$Res>? get currentQuestionnaire;
@@ -1689,6 +1691,7 @@ class _$IrsStateCopyWithImpl<$Res, $Val extends IrsState>
     Object? availableTeachers = null,
     Object? examDetail = freezed,
     Object? isLoadingHistory = null,
+    Object? isLoadingExamDetail = null,
     Object? historyError = freezed,
   }) {
     return _then(_value.copyWith(
@@ -1756,6 +1759,10 @@ class _$IrsStateCopyWithImpl<$Res, $Val extends IrsState>
           ? _value.isLoadingHistory
           : isLoadingHistory // ignore: cast_nullable_to_non_nullable
               as bool,
+      isLoadingExamDetail: null == isLoadingExamDetail
+          ? _value.isLoadingExamDetail
+          : isLoadingExamDetail // ignore: cast_nullable_to_non_nullable
+              as bool,
       historyError: freezed == historyError
           ? _value.historyError
           : historyError // ignore: cast_nullable_to_non_nullable
@@ -1814,6 +1821,7 @@ abstract class _$$IrsStateImplCopyWith<$Res>
       List<IrsRealtimeTeacher> availableTeachers,
       IrsExamDetail? examDetail,
       bool isLoadingHistory,
+      bool isLoadingExamDetail,
       String? historyError});
 
   @override
@@ -1849,6 +1857,7 @@ class __$$IrsStateImplCopyWithImpl<$Res>
     Object? availableTeachers = null,
     Object? examDetail = freezed,
     Object? isLoadingHistory = null,
+    Object? isLoadingExamDetail = null,
     Object? historyError = freezed,
   }) {
     return _then(_$IrsStateImpl(
@@ -1916,6 +1925,10 @@ class __$$IrsStateImplCopyWithImpl<$Res>
           ? _value.isLoadingHistory
           : isLoadingHistory // ignore: cast_nullable_to_non_nullable
               as bool,
+      isLoadingExamDetail: null == isLoadingExamDetail
+          ? _value.isLoadingExamDetail
+          : isLoadingExamDetail // ignore: cast_nullable_to_non_nullable
+              as bool,
       historyError: freezed == historyError
           ? _value.historyError
           : historyError // ignore: cast_nullable_to_non_nullable
@@ -1944,6 +1957,7 @@ class _$IrsStateImpl implements _IrsState {
       final List<IrsRealtimeTeacher> availableTeachers = const [],
       this.examDetail,
       this.isLoadingHistory = false,
+      this.isLoadingExamDetail = false,
       this.historyError})
       : _questionnaires = questionnaires,
         _userAnswers = userAnswers,
@@ -2045,11 +2059,14 @@ class _$IrsStateImpl implements _IrsState {
   @JsonKey()
   final bool isLoadingHistory;
   @override
+  @JsonKey()
+  final bool isLoadingExamDetail;
+  @override
   final String? historyError;
 
   @override
   String toString() {
-    return 'IrsState(questionnaires: $questionnaires, currentQuestionnaire: $currentQuestionnaire, isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currentQuestionIndex: $currentQuestionIndex, userAnswers: $userAnswers, userTextAnswers: $userTextAnswers, studentClasses: $studentClasses, answerRecords: $answerRecords, askRecords: $askRecords, historyTab: $historyTab, selectedCourseId: $selectedCourseId, availableTeachers: $availableTeachers, examDetail: $examDetail, isLoadingHistory: $isLoadingHistory, historyError: $historyError)';
+    return 'IrsState(questionnaires: $questionnaires, currentQuestionnaire: $currentQuestionnaire, isLoading: $isLoading, isSubmitting: $isSubmitting, error: $error, currentQuestionIndex: $currentQuestionIndex, userAnswers: $userAnswers, userTextAnswers: $userTextAnswers, studentClasses: $studentClasses, answerRecords: $answerRecords, askRecords: $askRecords, historyTab: $historyTab, selectedCourseId: $selectedCourseId, availableTeachers: $availableTeachers, examDetail: $examDetail, isLoadingHistory: $isLoadingHistory, isLoadingExamDetail: $isLoadingExamDetail, historyError: $historyError)';
   }
 
   @override
@@ -2088,6 +2105,8 @@ class _$IrsStateImpl implements _IrsState {
                 other.examDetail == examDetail) &&
             (identical(other.isLoadingHistory, isLoadingHistory) ||
                 other.isLoadingHistory == isLoadingHistory) &&
+            (identical(other.isLoadingExamDetail, isLoadingExamDetail) ||
+                other.isLoadingExamDetail == isLoadingExamDetail) &&
             (identical(other.historyError, historyError) ||
                 other.historyError == historyError));
   }
@@ -2111,6 +2130,7 @@ class _$IrsStateImpl implements _IrsState {
       const DeepCollectionEquality().hash(_availableTeachers),
       examDetail,
       isLoadingHistory,
+      isLoadingExamDetail,
       historyError);
 
   @JsonKey(ignore: true)
@@ -2138,6 +2158,7 @@ abstract class _IrsState implements IrsState {
       final List<IrsRealtimeTeacher> availableTeachers,
       final IrsExamDetail? examDetail,
       final bool isLoadingHistory,
+      final bool isLoadingExamDetail,
       final String? historyError}) = _$IrsStateImpl;
 
   @override
@@ -2172,6 +2193,8 @@ abstract class _IrsState implements IrsState {
   IrsExamDetail? get examDetail;
   @override
   bool get isLoadingHistory;
+  @override
+  bool get isLoadingExamDetail;
   @override
   String? get historyError;
   @override

@@ -264,9 +264,8 @@ class IrsNotifier extends Notifier<IrsState> {
   /// - 單題作答記錄 ("1"/"2"/"3"/"4"): 直接由該筆 qaList 欄位建構 IrsExamDetail
   Future<void> loadExamDetail(IrsAnswerRecord record) async {
     state = state.copyWith(
-      isLoadingHistory: true,
+      isLoadingExamDetail: true,
       historyError: null,
-      currentQuestionnaire: null,
       examDetail: null,
     );
 
@@ -284,7 +283,7 @@ class IrsNotifier extends Notifier<IrsState> {
         if (detail != null) {
           state = state.copyWith(
             examDetail: detail,
-            isLoadingHistory: false,
+            isLoadingExamDetail: false,
           );
           return;
         }
@@ -319,11 +318,11 @@ class IrsNotifier extends Notifier<IrsState> {
 
       state = state.copyWith(
         examDetail: fallbackDetail,
-        isLoadingHistory: false,
+        isLoadingExamDetail: false,
       );
     } catch (e) {
       state = state.copyWith(
-        isLoadingHistory: false,
+        isLoadingExamDetail: false,
         historyError: '載入考試詳情失敗: $e',
       );
     }
