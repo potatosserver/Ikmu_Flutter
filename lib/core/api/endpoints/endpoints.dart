@@ -835,12 +835,15 @@ class IrsEndpoint {
   }
 
   /// 學生端：取得課程列表 (含 teacherList)
+  /// 對齊 IRSRecordActivity.java GetCurrentClassData：URL_IRS_STU_CLASS (irs/stu/class)，POST stuno
   Future<List<IrsStudentClass>> getStudentClasses({
     required String userId,
   }) async {
     final response = await _client.post(
-      '${ApiEndpoints.irsCurrentClass}/$userId',
-      data: <String, dynamic>{'userId': userId},
+      ApiEndpoints.irsStudentClass,
+      data: <String, dynamic>{
+        'stuno': userId,
+      },
     );
 
     if (response['success'] == true) {
