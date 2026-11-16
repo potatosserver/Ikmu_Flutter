@@ -445,12 +445,49 @@ class _InfoChip extends StatelessWidget {
 
 /// 歷史記錄詳情對話框 (M3 風格，對應原版 show99View / IRSRecordActivity.GetExamData)
 /// - questionType == "99" (試卷): 顯示 examDetail.subQuestions (subquList)
-// - 單題 ("1"/"2"/"3"/"4"): 顯示該筆記錄的選項與分數
+/// - 單題 ("1"/"2"/"3"/"4"): 顯示該筆記錄的選項與分數
 void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord record) {
   final theme = Theme.of(context);
   final colorScheme = theme.colorScheme;
   final examDetail = state.examDetail;
   final isExamPaper = record.isExamPaper;
+
+  // M3: 決定狀態 Chip
+  final bool hasScore = record.totalScore > 0;
+  final bool isCorrect = record.correct == true;
+  final bool isWrong = record.correct == false;
+  Widget statusChip;
+  if (!hasScore) {
+    statusChip = Chip(
+      label: Text('不計分', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600)),
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      side: BorderSide(color: colorScheme.outlineVariant),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      visualDensity: VisualDensity.compact,
+    );
+  } else if (isCorrect) {
+    statusChip = Chip(
+      label: Text('答對', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onTertiaryContainer)),
+      backgroundColor: colorScheme.tertiaryContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      visualDensity: VisualDensity.compact,
+    );
+  } else if (isWrong) {
+    statusChip = Chip(
+      label: Text('答錯', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onErrorContainer)),
+      backgroundColor: colorScheme.errorContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      visualDensity: VisualDensity.compact,
+    );
+  } else {
+    statusChip = Chip(
+      label: Text('${record.myScore}/${record.totalScore} 分', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
+      backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
+      side: BorderSide(color: colorScheme.outlineVariant),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      visualDensity: VisualDensity.compact,
+    );
+  }
 
   showDialog(
     context: context,
@@ -468,9 +505,9 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 標題列
+              // M3 Header: 標題 + 狀態 Chip + 關閉按鈕
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
                 decoration: BoxDecoration(
                   color: colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.only(
@@ -507,6 +544,9 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    statusChip,
+                    const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.close),
                       iconSize: 20,
@@ -525,30 +565,29 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 得分
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer
-                                  .withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${record.myScore}/${record.totalScore} 分',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                            ),
+                      // 得分 (M3: 移到 Header 狀態 Chip，這裡保留作為詳細顯示)
+                      if (hasScore) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '得分：${record.myScore} / ${record.totalScore}',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // 題目
                       Text(
