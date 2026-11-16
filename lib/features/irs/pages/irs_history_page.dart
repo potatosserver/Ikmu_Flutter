@@ -51,7 +51,7 @@ class IrsHistoryPage extends ConsumerWidget {
               ? _buildError(context, state.historyError!, notifier)
               : state.studentClasses.isEmpty
                   ? _buildEmptyState(context)
-                  : _buildCourseSelector(context, state, notifier),
+                  : _buildCourseSelector(context, state, notifier, ref),
     );
   }
 
@@ -123,7 +123,7 @@ class IrsHistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCourseSelector(BuildContext context, IrsState state, IrsNotifier notifier) {
+  Widget _buildCourseSelector(BuildContext context, IrsState state, IrsNotifier notifier, WidgetRef ref) {
     return Column(
       children: [
         // 課程選擇（下拉選單）
@@ -176,7 +176,7 @@ class IrsHistoryPage extends ConsumerWidget {
                   ? Center(child: Text(state.historyError!))
                   : state.answerRecords.isEmpty && state.askRecords.isEmpty
                       ? _buildNoRecordsState(context, state.historyTab)
-                      : _buildRecordsList(context, state, notifier),
+                      : _buildRecordsList(context, state, notifier, ref),
         ),
       ],
     );
@@ -220,7 +220,7 @@ class IrsHistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecordsList(BuildContext context, IrsState state, IrsNotifier notifier) {
+  Widget _buildRecordsList(BuildContext context, IrsState state, IrsNotifier notifier, WidgetRef ref) {
     final records = state.historyTab == 0 ? state.answerRecords : state.askRecords;
     final tabTitle = state.historyTab == 0 ? '作答記錄' : '提問記錄';
     final selectedCourseId = state.selectedCourseId;
@@ -250,7 +250,9 @@ class IrsHistoryPage extends ConsumerWidget {
                     try {
                       await notifier.loadExamDetail(record);
                       if (context.mounted) {
-                        _showExamDetailDialog(context, state, record);
+                        // 重新讀取最新 state，確保 examDetail 已更新
+                        final latestState = ref.read(irsProvider);
+                        _showExamDetailDialog(context, latestState, record);
                       }
                     } catch (e) {
                       IrsDebugLog.log('[IRS_HISTORY] 載入詳情失敗: $e');
