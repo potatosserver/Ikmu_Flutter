@@ -24,15 +24,6 @@ class IrsHistoryPage extends ConsumerWidget {
         IrsDebugLog.log('[IRS_HISTORY] 進入頁面，載入課程列表');
         notifier.loadStudentClasses();
       }
-      // 若已有選中課程但未載入記錄，觸發載入
-      if (state.selectedCourseId != null &&
-          state.selectedCourseId!.isNotEmpty &&
-          state.answerRecords.isEmpty &&
-          state.askRecords.isEmpty) {
-        IrsDebugLog.log('[IRS_HISTORY] 已選課程 ${state.selectedCourseId}，載入記錄');
-        notifier.loadAnswerRecords(state.selectedCourseId!);
-        notifier.loadAskRecords(state.selectedCourseId!);
-      }
     });
 
     return Scaffold(
@@ -149,10 +140,10 @@ class IrsHistoryPage extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: state.selectedCourseId?.isNotEmpty == true ? state.selectedCourseId : null,
+                initialValue: state.selectedCourseId?.isNotEmpty == true ? state.selectedCourseId : null,
                 items: state.studentClasses.map((course) {
                   return DropdownMenuItem<String>(
-                    value: course.id ?? '',
+                    value: course.id,
                     child: Text(course.displayName),
                   );
                 }).toList(),
@@ -328,7 +319,7 @@ class _RecordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isPassed = (record.myScore ?? 0) >= ((record.totalScore ?? 0) / 2);
+    final isPassed = record.myScore >= (record.totalScore / 2);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -359,7 +350,7 @@ class _RecordCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '${record.myScore ?? 0}/${record.totalScore ?? 0} 分',
+                      '${record.myScore}/${record.totalScore} 分',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: isPassed ? Colors.green : Colors.orange,
                         fontWeight: FontWeight.w600,
@@ -536,7 +527,7 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              '${record.myScore ?? 0}/${record.totalScore ?? 0} 分',
+                              '${record.myScore}/${record.totalScore} 分',
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: colorScheme.onPrimaryContainer,
@@ -816,7 +807,7 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
 
 Widget _buildSubQuestionDetail(ThemeData theme, IrsSubQuestion sub) {
   switch (sub.questionType) {
-    case '2': // 單選
+    case 2: // 單選
       if (sub.optionList is List && sub.optionList!.isNotEmpty) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -870,7 +861,7 @@ Widget _buildSubQuestionDetail(ThemeData theme, IrsSubQuestion sub) {
         );
       }
       return const SizedBox.shrink();
-    case '3': // 多選
+    case 3: // 多選
       if (sub.optionList is List && sub.optionList!.isNotEmpty) {
         final myAnswers = sub.myAnswer?.split('_') ?? <String>[];
         return Column(
@@ -926,7 +917,7 @@ Widget _buildSubQuestionDetail(ThemeData theme, IrsSubQuestion sub) {
         );
       }
       return const SizedBox.shrink();
-    case '4': // 填空
+    case 4: // 填空
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
