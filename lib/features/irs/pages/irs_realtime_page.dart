@@ -132,11 +132,13 @@ class _IrsRealtimePageState extends ConsumerState<IrsRealtimePage> {
         required String topic,
         required String msg,
         required String quid,
+        String? msgType,
       }) =>
           ref.read(irsProvider.notifier).sendMqttMessage(
                 topic: topic,
                 msg: msg,
                 quid: quid,
+                msgType: msgType,
               ),
     );
     return _mqttService!;

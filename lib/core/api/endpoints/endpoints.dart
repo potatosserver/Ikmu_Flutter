@@ -711,11 +711,12 @@ class IrsEndpoint {
   }
 
   /// IRS 即時答題：透過後端 HTTP POST 轉發 MQTT 訊息 (對應 URL_IRS_MQTTSEND)
-  /// 參數為 topic, msg, quid
+  /// 參數為 topic, msg, quid, [msgType]
   Future<bool> sendMqttMessage({
     required String topic,
     required String msg,
     required String quid,
+    String? msgType,
   }) async {
     final response = await _client.post(
       _irsMqttSendPath,
@@ -723,6 +724,7 @@ class IrsEndpoint {
         'topic': topic,
         'msg': msg,
         'quid': quid,
+        if (msgType != null) 'msgType': msgType,
       },
     );
     return response['success'] == true;

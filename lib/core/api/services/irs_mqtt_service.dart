@@ -7,10 +7,12 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 /// 透過後端 HTTP API (URL_IRS_MQTTSEND) 轉發 MQTT 訊息的函式介面
+/// 對齊 IRSActivity.java SendData4Type99：topic, message, quid, [msgType]
 typedef IrsHttpMqttSender = Future<bool> Function({
   required String topic,
   required String msg,
   required String quid,
+  String? msgType,
 });
 
 /// IRS MQTT 訊息類型
@@ -283,7 +285,7 @@ class IrsMqttService {
       'token': token,
       'device': device,
     });
-    return _sendViaHttp(topic: topic, msg: payload, quid: questionId);
+    return _sendViaHttp(topic: topic, msg: payload, quid: questionId, msgType: '98');
   }
 
   /// 送出單題作答 (msgType: "1"，questionType "1"/"2"/"3"/"4")
@@ -308,7 +310,7 @@ class IrsMqttService {
       'userName': ansUserName,
       'answer': answer,
     });
-    return _sendViaHttp(topic: topic, msg: payload, quid: questionId);
+    return _sendViaHttp(topic: topic, msg: payload, quid: questionId, msgType: '1');
   }
 
   /// 送出試卷多題作答 (msgType: "1", questionType: "99")
@@ -327,7 +329,7 @@ class IrsMqttService {
       'userName': ansUserName,
       'ansList': ansList,
     });
-    return _sendViaHttp(topic: questionId, msg: payload, quid: questionId);
+    return _sendViaHttp(topic: questionId, msg: payload, quid: questionId, msgType: '1');
   }
 
   /// 學生提問 (msgType: "3", topic: "stuask")
@@ -350,13 +352,14 @@ class IrsMqttService {
       'teacherno': teacherNo,
       'sec_no': secno,
     });
-    return _sendViaHttp(topic: 'stuask', msg: payload, quid: '');
+    return _sendViaHttp(topic: 'stuask', msg: payload, quid: '', msgType: '3');
   }
 
   Future<bool> _sendViaHttp({
     required String topic,
     required String msg,
     required String quid,
+    String? msgType,
   }) async {
     final sender = httpSender;
     if (sender == null) {
@@ -365,10 +368,10 @@ class IrsMqttService {
     }
     try {
       developer.log(
-        '[IrsMqttService] HTTP MQTTSEND: topic=$topic, quid=$quid, msg=$msg',
+        '[IrsMqttService] HTTP MQTTSEND: topic=$topic, quid=$quid, msg=$msg, msgType=$msgType',
         name: 'IRS_MQTT',
       );
-      final ok = await sender(topic: topic, msg: msg, quid: quid);
+      final ok = await sender(topic: topic, msg: msg, quid: quid, msgType: msgType);
       if (!ok) {
         onError?.call('送出失敗：伺服器未回傳成功');
       }

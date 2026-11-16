@@ -563,11 +563,13 @@ class IrsNotifier extends Notifier<IrsState> {
     required String topic,
     required String msg,
     required String quid,
+    String? msgType,
   }) async {
     return _endpoints.irs.sendMqttMessage(
       topic: topic,
       msg: msg,
       quid: quid,
+      msgType: msgType,
     );
   }
 
