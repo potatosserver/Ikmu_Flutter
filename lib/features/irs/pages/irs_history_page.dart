@@ -1027,21 +1027,82 @@ Widget _buildSubQuestionDetail(ThemeData theme, IrsSubQuestion sub) {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 8),
-          Text(
-            '我的填空：${sub.myAnswer?.isEmpty == true ? '未作答' : sub.myAnswer}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
+          // M3: 填空題卡片化
+          Card(
+            color: theme.colorScheme.surfaceContainerLowest,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: theme.colorScheme.outlineVariant),
             ),
-          ),
-          if (sub.stdAnswer?.isNotEmpty == true) ...[
-            const SizedBox(height: 4),
-            Text(
-              '標準答案：${sub.stdAnswer}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.blue.shade700,
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.edit_note,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '填空作答',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      sub.myAnswer?.isEmpty == true ? '未作答' : sub.myAnswer!,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                  if (sub.stdAnswer?.isNotEmpty == true) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.verified,
+                          size: 16,
+                          color: theme.colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '標準答案：${sub.stdAnswer}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.tertiary,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
             ),
-          ],
+          ),
         ],
       );
     default:
