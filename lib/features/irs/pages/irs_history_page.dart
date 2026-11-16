@@ -887,18 +887,46 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                 ),
               ),
 
-              // 底部按鈕
-              Container(
-                padding: const EdgeInsets.all(16),
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    '關閉',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w500,
+              // 底部操作列 (M3: FilledButton.tonal 膠囊狀 + 時間資訊)
+              SafeArea(
+                top: false,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLowest,
+                    border: Border(
+                      top: BorderSide(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                      ),
                     ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // 時間資訊
+                      Text(
+                        record.answerTime ?? record.askTime ?? '',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      // 關閉按鈕 (M3 FilledButton.tonal - 膠囊狀)
+                      FilledButton.tonal(
+                        onPressed: () => Navigator.pop(context),
+                        style: FilledButton.styleFrom(
+                          shape: const StadiumBorder(), // 膠囊狀圓角
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          minimumSize: const Size(0, 36),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          '關閉',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
