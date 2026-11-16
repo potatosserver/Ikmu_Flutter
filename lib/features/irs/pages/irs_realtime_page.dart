@@ -1093,6 +1093,22 @@ class _IrsRealtimePageState extends ConsumerState<IrsRealtimePage> {
   }
 
   @override
+  void deactivate() {
+    super.deactivate();
+    // 對齊 IRSActivity.java onPause()：頁面暫離時上報異常 (status="2")
+    final quid = _activeQuid;
+    if (quid != null && quid.isNotEmpty && !_hasAnswered) {
+      unawaited(
+        ref.read(irsProvider.notifier).sendAbnormal(
+              quid: quid,
+              status: '2',
+              studentId: _getAnsUserId(),
+            ),
+      );
+    }
+  }
+
+  @override
   void dispose() {
     final quid = _activeQuid;
     if (quid != null && quid.isNotEmpty && !_hasAnswered) {
