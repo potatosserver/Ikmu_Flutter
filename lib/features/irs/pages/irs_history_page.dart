@@ -598,16 +598,15 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                         ),
                       ),
                       const SizedBox(height: 8),
+                      // M3 題目卡片: surfaceContainerLowest + 16dp 圓角 + outlineVariant 邊框
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
+                          color: colorScheme.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: colorScheme.outlineVariant.withValues(
-                              alpha: 0.3,
-                            ),
+                            color: colorScheme.outlineVariant,
                           ),
                         ),
                         child: Text(
