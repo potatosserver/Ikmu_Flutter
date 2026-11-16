@@ -246,11 +246,21 @@ class IrsHistoryPage extends ConsumerWidget {
                 final record = records[index];
                 return _RecordCard(
                   record: record,
-                  onTap: () => notifier.loadExamDetail(record).then((_) {
-                    if (context.mounted) {
-                      _showExamDetailDialog(context, state, record);
+                  onTap: () async {
+                    try {
+                      await notifier.loadExamDetail(record);
+                      if (context.mounted) {
+                        _showExamDetailDialog(context, state, record);
+                      }
+                    } catch (e) {
+                      IrsDebugLog.log('[IRS_HISTORY] 載入詳情失敗: $e');
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('載入詳情失敗：$e')),
+                        );
+                      }
                     }
-                  }),
+                  },
                 );
               },
             ),
@@ -564,12 +574,12 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
               ),
 
               // 內容區
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                       // 題目卡片 (M3 Surface Container Lowest / 白底)
                       Container(
                         width: double.infinity,
@@ -696,7 +706,6 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                     ],
                   ),
                 ),
-              ),
             ],
           ),
         ),
