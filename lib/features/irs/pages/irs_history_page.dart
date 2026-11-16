@@ -661,8 +661,14 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                           final sub = entry.value;
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
+                            color: colorScheme.surfaceContainerLowest,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(color: colorScheme.outlineVariant),
+                            ),
+                            elevation: 0,
                             child: Padding(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
