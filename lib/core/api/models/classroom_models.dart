@@ -3,7 +3,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'classroom_models.freezed.dart';
-part 'classroom_models.g.dart';
 
 /// 場地分類
 @freezed
@@ -271,34 +270,64 @@ extension TimeSlotExtension on TimeSlot {
 }
 
 /// 場地使用狀況
-@JsonSerializable()
-@freezed
-abstract class ClassroomUsage with _$ClassroomUsage {
-  const factory ClassroomUsage({
-    required ClassroomDetail room,
-    required String date,
-    @Default([]) List<TimeSlot> timeSlots,
-    int? weekday,
-  }) = _ClassroomUsage;
+class ClassroomUsage {
+  const ClassroomUsage({
+    required this.room,
+    required this.date,
+    required this.timeSlots,
+    this.weekday,
+  });
 
-  const ClassroomUsage._();
+  final ClassroomDetail room;
+  final String date;
+  final List<TimeSlot> timeSlots;
+  final int? weekday;
 
-  // 便利 getter
-  String get firstStartTime => timeSlots.isNotEmpty ? timeSlots.first.startTime : '';
-  String get lastEndTime => timeSlots.isNotEmpty ? timeSlots.last.endTime : '';
+  factory ClassroomUsage.fromJson(Map<String, dynamic> json) {
+    return ClassroomUsage(
+      room: ClassroomDetail.fromJson(
+        json['room'] as Map<String, dynamic>? ?? {},
+      ),
+      date: (json['date'] ?? '').toString(),
+      timeSlots: (json['time_slots'] as List?)
+          ?.map((e) => TimeSlot.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+          [],
+      weekday: int.tryParse(json['weekday']?.toString() ?? ''),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'room': room.toJson(),
+      'date': date,
+      'time_slots': timeSlots.map((e) => e.toJson()).toList(),
+      'weekday': weekday,
+    };
+  }
 }
 
 /// 場地使用狀況回應
-@freezed
-abstract class ClassroomUsageResponse with _$ClassroomUsageResponse {
-  const factory ClassroomUsageResponse({
-    required bool success,
-    required String message,
-    List<ClassroomUsage>? data,
-  }) = _ClassroomUsageResponse;
+class ClassroomUsageResponse {
+  const ClassroomUsageResponse({
+    required this.success,
+    required this.message,
+    this.data,
+  });
 
-  factory ClassroomUsageResponse.fromJson(Map<String, dynamic> json) =>
-      _$ClassroomUsageResponseFromJson(json);
+  final bool success;
+  final String message;
+  final List<ClassroomUsage>? data;
+
+  factory ClassroomUsageResponse.fromJson(Map<String, dynamic> json) {
+    return ClassroomUsageResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: (json['data'] as List?)
+          ?.map((e) => ClassroomUsage.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
 }
 
 /// 場地使用狀況資料

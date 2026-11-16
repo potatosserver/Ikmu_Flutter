@@ -56,6 +56,14 @@ class ApiEndpoints {
   static const String irsStudentQaList = 'irs/stu/qaList';
   static const String irsStudentAskList = 'irs/stu/askList';
   static const String irsStudentExamDetail = 'irs/stu/examDetail';
+
+  // IRS 即時答題端點 (選課程/選老師/答題) - 對應 strings.xml
+  static const String irsCurrent = 'irsCurrent'; // 取得當前狀態 (status, secno, endTime)
+  static const String irsPaperFill = 'irsPaperFill'; // 對應 strings.xml URL_IRS_PAPERFILL = /appwsv3/irsPaperFill
+  static const String irsCurrentClass = 'irsCurrentClass'; // 取得課程列表 (含 teacherList) + userId path
+  static const String irsCurrentTeacherClass = 'irsCurrentTeacherClass'; // 不再使用，teacherList 在課程中
+  static const String irsStuCurrentQu = 'irs/stu/currentQu'; // 取得當前題目 (無下劃線)
+  static const String irsStuApplogin = 'irs/stu/applogin'; // IRS 學生登入
 }
 
 /// 3DES 加密金鑰

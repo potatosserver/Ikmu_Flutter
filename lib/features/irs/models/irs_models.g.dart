@@ -156,106 +156,295 @@ Map<String, dynamic> _$$IrsQuestionnaireDetailImplToJson(
 _$IrsStudentClassImpl _$$IrsStudentClassImplFromJson(
         Map<String, dynamic> json) =>
     _$IrsStudentClassImpl(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      englishName: json['englishName'] as String?,
+      id: json['classId'] as String,
+      name: json['className'] as String,
+      englishName: json['englishco'] as String?,
+      teacherNo: json['teafno'] as String?,
+      teacherName: json['teafnam'] as String?,
+      seqno: json['seqno'] as String?,
+      classRoom: json['classRoom'] as String?,
+      startTime: json['startTime'] as String?,
+      endTime: json['endTime'] as String?,
+      teacherList: (json['teacherList'] as List<dynamic>?)
+              ?.map(
+                  (e) => IrsRealtimeTeacher.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$IrsStudentClassImplToJson(
         _$IrsStudentClassImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'englishName': instance.englishName,
+      'classId': instance.id,
+      'className': instance.name,
+      'englishco': instance.englishName,
+      'teafno': instance.teacherNo,
+      'teafnam': instance.teacherName,
+      'seqno': instance.seqno,
+      'classRoom': instance.classRoom,
+      'startTime': instance.startTime,
+      'endTime': instance.endTime,
+      'teacherList': instance.teacherList,
     };
 
 _$IrsAnswerRecordImpl _$$IrsAnswerRecordImplFromJson(
         Map<String, dynamic> json) =>
     _$IrsAnswerRecordImpl(
-      id: json['id'] as String,
-      courseId: json['courseId'] as String,
-      courseName: json['courseName'] as String,
-      title: json['title'] as String,
-      answerTime: json['answerTime'] as String,
-      myScore: (json['myScore'] as num).toInt(),
-      totalScore: (json['totalScore'] as num).toInt(),
-      imagePath: json['imagePath'] as String?,
+      myScore: (json['myScore'] as num?)?.toInt() ?? 0,
+      totalScore: (json['totalScore'] as num?)?.toInt() ?? 0,
+      questionId: json['questionId'] as String?,
+      cono: json['cono'] as String?,
+      courseName: json['courseName'] as String?,
+      questionType: json['questionType'] as String?,
+      description: json['description'] as String?,
+      ansTime: json['ansTime'] as String?,
+      teafNam: json['teafNam'] as String?,
+      teafEnam: json['teafEnam'] as String?,
+      imgPath: json['imgPath'] as String?,
       stdAnswer: json['stdAnswer'] as String?,
       myAnswer: json['myAnswer'] as String?,
+      correct: json['correct'] as bool?,
+      hideAns: json['hideAns'] as bool?,
+      scoreDesc: json['scoreDesc'] as String?,
+      optionList: (json['optionList'] as List<dynamic>?)
+          ?.map((e) => IrsSubOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      pid: json['pid'] as String?,
+      askTime: json['askTime'] as String?,
+      askDesc: json['askDesc'] as String?,
+      replyContent: json['replyContent'] as String?,
+      replied: json['replied'] as bool?,
     );
 
 Map<String, dynamic> _$$IrsAnswerRecordImplToJson(
         _$IrsAnswerRecordImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'courseId': instance.courseId,
-      'courseName': instance.courseName,
-      'title': instance.title,
-      'answerTime': instance.answerTime,
       'myScore': instance.myScore,
       'totalScore': instance.totalScore,
-      'imagePath': instance.imagePath,
+      'questionId': instance.questionId,
+      'cono': instance.cono,
+      'courseName': instance.courseName,
+      'questionType': instance.questionType,
+      'description': instance.description,
+      'ansTime': instance.ansTime,
+      'teafNam': instance.teafNam,
+      'teafEnam': instance.teafEnam,
+      'imgPath': instance.imgPath,
       'stdAnswer': instance.stdAnswer,
       'myAnswer': instance.myAnswer,
+      'correct': instance.correct,
+      'hideAns': instance.hideAns,
+      'scoreDesc': instance.scoreDesc,
+      'optionList': instance.optionList,
+      'pid': instance.pid,
+      'askTime': instance.askTime,
+      'askDesc': instance.askDesc,
+      'replyContent': instance.replyContent,
+      'replied': instance.replied,
     };
 
 _$IrsExamDetailImpl _$$IrsExamDetailImplFromJson(Map<String, dynamic> json) =>
     _$IrsExamDetailImpl(
-      answerTime: json['answerTime'] as String,
-      teacherName: json['teacherName'] as String,
-      question: json['question'] as String,
-      myScore: (json['myScore'] as num).toInt(),
+      description: json['description'] as String,
+      teacherno: json['teacherno'] as String,
+      teafNam: json['teafNam'] as String,
+      teafEnam: json['teafEnam'] as String?,
+      ansTime: json['ansTime'] as String,
       totalScore: (json['totalScore'] as num).toInt(),
-      subQuestions: (json['subQuestions'] as List<dynamic>)
+      myScore: (json['myScore'] as num).toInt(),
+      hideAns: json['hideAns'] as bool? ?? false,
+      subquList: (json['subquList'] as List<dynamic>)
           .map((e) => IrsSubQuestion.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
 Map<String, dynamic> _$$IrsExamDetailImplToJson(_$IrsExamDetailImpl instance) =>
     <String, dynamic>{
-      'answerTime': instance.answerTime,
-      'teacherName': instance.teacherName,
-      'question': instance.question,
-      'myScore': instance.myScore,
+      'description': instance.description,
+      'teacherno': instance.teacherno,
+      'teafNam': instance.teafNam,
+      'teafEnam': instance.teafEnam,
+      'ansTime': instance.ansTime,
       'totalScore': instance.totalScore,
-      'subQuestions': instance.subQuestions,
+      'myScore': instance.myScore,
+      'hideAns': instance.hideAns,
+      'subquList': instance.subquList,
     };
 
 _$IrsSubQuestionImpl _$$IrsSubQuestionImplFromJson(Map<String, dynamic> json) =>
     _$IrsSubQuestionImpl(
-      questionType: json['questionType'] as String,
+      questionId: json['questionId'] as String?,
+      questionType: (json['questionType'] as num).toInt(),
       description: json['description'] as String,
-      scoreDesc: json['scoreDesc'] as String,
-      myAnswer: json['myAnswer'] as String,
-      stdAnswer: json['stdAnswer'] as String?,
-      options: (json['options'] as List<dynamic>?)
+      optionList: (json['optionList'] as List<dynamic>?)
           ?.map((e) => IrsSubOption.fromJson(e as Map<String, dynamic>))
           .toList(),
-      imagePath: json['imagePath'] as String?,
+      stdAnswer: json['stdAnswer'] as String?,
+      myAnswer: json['myAnswer'] as String?,
+      score: (json['score'] as num?)?.toInt(),
+      correct: json['correct'] as bool? ?? false,
+      hideAns: json['hideAns'] as bool? ?? false,
+      scoreDesc: json['scoreDesc'] as String?,
+      imgPath: json['imgPath'] as String?,
     );
 
 Map<String, dynamic> _$$IrsSubQuestionImplToJson(
         _$IrsSubQuestionImpl instance) =>
     <String, dynamic>{
+      'questionId': instance.questionId,
       'questionType': instance.questionType,
       'description': instance.description,
-      'scoreDesc': instance.scoreDesc,
-      'myAnswer': instance.myAnswer,
+      'optionList': instance.optionList,
       'stdAnswer': instance.stdAnswer,
-      'options': instance.options,
-      'imagePath': instance.imagePath,
+      'myAnswer': instance.myAnswer,
+      'score': instance.score,
+      'correct': instance.correct,
+      'hideAns': instance.hideAns,
+      'scoreDesc': instance.scoreDesc,
+      'imgPath': instance.imgPath,
     };
 
 _$IrsSubOptionImpl _$$IrsSubOptionImplFromJson(Map<String, dynamic> json) =>
     _$IrsSubOptionImpl(
-      key: json['key'] as String,
-      value: json['value'] as String,
-      isCorrect: json['isCorrect'] as bool? ?? false,
+      optKey: json['optKey'] as String,
+      optVal: json['optVal'] as String,
+      correct: json['correct'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$IrsSubOptionImplToJson(_$IrsSubOptionImpl instance) =>
     <String, dynamic>{
-      'key': instance.key,
-      'value': instance.value,
-      'isCorrect': instance.isCorrect,
+      'optKey': instance.optKey,
+      'optVal': instance.optVal,
+      'correct': instance.correct,
+    };
+
+_$IrsRealtimeSubQuestionImpl _$$IrsRealtimeSubQuestionImplFromJson(
+        Map<String, dynamic> json) =>
+    _$IrsRealtimeSubQuestionImpl(
+      subQuOrder: (json['subQuOrder'] as num).toInt(),
+      questionType: json['questionType'] as String,
+      description: json['description'] as String,
+      options: (json['options'] as List<dynamic>)
+          .map((e) => IrsRealtimeOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      imgPath: json['imgPath'] as String?,
+      imgFile: json['imgFile'] as String?,
+    );
+
+Map<String, dynamic> _$$IrsRealtimeSubQuestionImplToJson(
+        _$IrsRealtimeSubQuestionImpl instance) =>
+    <String, dynamic>{
+      'subQuOrder': instance.subQuOrder,
+      'questionType': instance.questionType,
+      'description': instance.description,
+      'options': instance.options,
+      'imgPath': instance.imgPath,
+      'imgFile': instance.imgFile,
+    };
+
+_$IrsRealtimeQuestionImpl _$$IrsRealtimeQuestionImplFromJson(
+        Map<String, dynamic> json) =>
+    _$IrsRealtimeQuestionImpl(
+      id: json['questionId'] as String,
+      content: json['content'] as String,
+      type: (json['questionType'] as num).toInt(),
+      options: (json['options'] as List<dynamic>)
+          .map((e) => IrsRealtimeOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      secno: json['secno'] as String,
+      answerTime: json['answerTime'] as String,
+      imagePath: json['imagePath'] as String?,
+      imgFile: json['imgFile'] as String?,
+      subQuestions: (json['subQuestions'] as List<dynamic>?)
+              ?.map((e) =>
+                  IrsRealtimeSubQuestion.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      seqList: json['seqList'] as String?,
+      period: (json['period'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$$IrsRealtimeQuestionImplToJson(
+        _$IrsRealtimeQuestionImpl instance) =>
+    <String, dynamic>{
+      'questionId': instance.id,
+      'content': instance.content,
+      'questionType': instance.type,
+      'options': instance.options,
+      'secno': instance.secno,
+      'answerTime': instance.answerTime,
+      'imagePath': instance.imagePath,
+      'imgFile': instance.imgFile,
+      'subQuestions': instance.subQuestions,
+      'seqList': instance.seqList,
+      'period': instance.period,
+    };
+
+_$IrsRealtimeOptionImpl _$$IrsRealtimeOptionImplFromJson(
+        Map<String, dynamic> json) =>
+    _$IrsRealtimeOptionImpl(
+      key: json['optKey'] as String,
+      value: json['optVal'] as String,
+    );
+
+Map<String, dynamic> _$$IrsRealtimeOptionImplToJson(
+        _$IrsRealtimeOptionImpl instance) =>
+    <String, dynamic>{
+      'optKey': instance.key,
+      'optVal': instance.value,
+    };
+
+_$IrsRealtimeTeacherImpl _$$IrsRealtimeTeacherImplFromJson(
+        Map<String, dynamic> json) =>
+    _$IrsRealtimeTeacherImpl(
+      id: json['teacherNo'] as String,
+      name: json['teacherName'] as String,
+    );
+
+Map<String, dynamic> _$$IrsRealtimeTeacherImplToJson(
+        _$IrsRealtimeTeacherImpl instance) =>
+    <String, dynamic>{
+      'teacherNo': instance.id,
+      'teacherName': instance.name,
+    };
+
+_$IrsRealtimeSubmitRequestImpl _$$IrsRealtimeSubmitRequestImplFromJson(
+        Map<String, dynamic> json) =>
+    _$IrsRealtimeSubmitRequestImpl(
+      classId: json['classId'] as String,
+      studentId: json['studentId'] as String,
+      teacherNo: json['teacherNo'] as String,
+      secno: json['secno'] as String,
+      username: json['username'] as String,
+      answers: (json['answers'] as List<dynamic>)
+          .map((e) => IrsRealtimeAnswer.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$$IrsRealtimeSubmitRequestImplToJson(
+        _$IrsRealtimeSubmitRequestImpl instance) =>
+    <String, dynamic>{
+      'classId': instance.classId,
+      'studentId': instance.studentId,
+      'teacherNo': instance.teacherNo,
+      'secno': instance.secno,
+      'username': instance.username,
+      'answers': instance.answers,
+    };
+
+_$IrsRealtimeAnswerImpl _$$IrsRealtimeAnswerImplFromJson(
+        Map<String, dynamic> json) =>
+    _$IrsRealtimeAnswerImpl(
+      questionId: json['questionId'] as String,
+      optionIds:
+          (json['optionIds'] as List<dynamic>).map((e) => e as String).toList(),
+      textAnswer: json['textAnswer'] as String?,
+    );
+
+Map<String, dynamic> _$$IrsRealtimeAnswerImplToJson(
+        _$IrsRealtimeAnswerImpl instance) =>
+    <String, dynamic>{
+      'questionId': instance.questionId,
+      'optionIds': instance.optionIds,
+      'textAnswer': instance.textAnswer,
     };

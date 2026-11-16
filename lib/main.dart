@@ -42,10 +42,12 @@ Future<void> main() async {
   // 設定錯誤處理
   _setupErrorHandling();
   
-  // 設定系統 UI 模式
+  // 設定系統 UI 模式 (支援豎屏與橫屏，適合平板)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
   ]);
   
   // 啟用邊緣到邊緣 (Android)

@@ -63,8 +63,14 @@ class RoutePaths {
   /// IRS 歷史記錄頁面 (學生端)
   static const String irsHistory = '/irs/history';
 
+  /// IRS 即時答題頁面 (選課程/選老師/答題)
+  static const String irsRealtime = '/irs/realtime';
+
   /// IRS 考試詳情頁面
   static const String irsExamDetail = '/irs/exam-detail';
+
+  /// IRS 除錯日誌頁面
+  static const String irsDebugLog = '/irs/debug-log';
 
   // ===========================================
   // 設定

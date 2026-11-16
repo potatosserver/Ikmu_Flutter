@@ -23,7 +23,7 @@ class _ForceRefreshIntent extends Intent {
   const _ForceRefreshIntent();
 }
 
-/// 週課表表格視圖 (節次=列, 星期=欄) - 對齊 reference/kmucoursequery_wac.py PERIOD_MAP
+/// 週課表表格視圖 (節次=列, 星期=欄) - M3 風格重構
 /// 高醫節次：1~9 (日間), A~D (夜間)；星期：一~五 (移除週六)
 class WeekScheduleGrid extends StatelessWidget {
   const WeekScheduleGrid({
@@ -35,13 +35,37 @@ class WeekScheduleGrid extends StatelessWidget {
 
   static const List<KmuPeriod> _periods = KmuPeriod.all;
   static const List<String> _weekdayLabels = ['一', '二', '三', '四', '五']; // 移除週六
-  static const double _timeColumnWidth = 64.0;
-  static const double _headerHeight = 44.0;
-  static const double _rowHeight = 60.0;
+  static const double _timeColumnWidth = 48.0;
+  static const double _headerHeight = 48.0;
+  static const double _rowHeight = 64.0;
+  static const double _cardRadius = 12.0;
+  static const double _cardPadding = 6.0;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final today = _getTodayWeekday(); // 1~5
+
+    // 為課程分配不重複的馬卡龍色索引（頁面內實作，避免跨檔案私有函數）
+    final colorAssignments = <String, int>{};
+    final usedIndices = <int>{};
+    final sortedNames = <String>{};
+    for (final course in courses) {
+      sortedNames.add(course.name);
+    }
+    final sortedNameList = sortedNames.toList()..sort();
+    for (int i = 0; i < sortedNameList.length; i++) {
+      int index;
+      int attempts = 0;
+      do {
+        index = (i * 3 + 7) % 20;
+        attempts++;
+        if (attempts > 20) break;
+      } while (usedIndices.contains(index));
+      colorAssignments[sortedNameList[i]] = index;
+      usedIndices.add(index);
+    }
 
     // 建立課表查找表: weekday (1-5) -> periodCode -> List<Course>
     final Map<int, Map<String, List<Course>>> scheduleMap = {};
@@ -56,25 +80,23 @@ class WeekScheduleGrid extends StatelessWidget {
       }
     }
 
+    final totalHeight = _periods.length * _rowHeight;
+
     // 合併相同課程的連續節次為一個大方塊
-    // 回傳: weekday -> periodCode -> List<MergedCourseBlock>
     final Map<int, Map<String, List<_MergedCourseBlock>>> mergedMap = {};
     for (final entry1 in scheduleMap.entries) {
       final weekday = entry1.key;
       final periodMap = entry1.value;
       mergedMap[weekday] = {};
-      // 收集該節次下的所有課程 (去重，同一課程可能在多個節次出現)
       final Map<String, Course> courseById = {};
       for (final entry2 in periodMap.entries) {
         for (final course in entry2.value) {
           courseById[course.id] = course;
         }
       }
-      // 對每個課程，找出其佔用的連續節次
       for (final course in courseById.values) {
         final coursePeriods = course.periods.where((p) => periodMap.containsKey(p)).toList();
         if (coursePeriods.isEmpty) continue;
-        // 將連續節次分組
         final periodIndexMap = {for (int i = 0; i < _periods.length; i++) _periods[i].code: i};
         final sortedPeriods = coursePeriods..sort((a, b) => (periodIndexMap[a] ?? 0).compareTo(periodIndexMap[b] ?? 0));
         int groupStart = 0;
@@ -100,173 +122,263 @@ class WeekScheduleGrid extends StatelessWidget {
       }
     }
 
-    return Column(
-            children: [
-              // 表頭：時間欄 + 星期標題
-              Container(
-                height: _headerHeight,
-                color: theme.colorScheme.surfaceContainerHighest,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: _timeColumnWidth,
-                      child: Center(
-                        child: Text('節次', style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700)),
-                      ),
-                    ),
-                    ..._weekdayLabels.map((label) {
-                      return Expanded(
-                        child: Center(
-                          child: Text(
-                            '星期$label',
-                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-              // 表身：各節次列
-              ..._periods.map((period) {
-                final periodCode = period.code;
-                final timeParts = period.timeRange.split('-');
-
-                return Container(
-                  height: _rowHeight,
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
-                    ),
+    // 時間軸：節次號 + 緊湊兩行時間，去掉 ~
+    final timeColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: List.generate(_periods.length, (i) {
+        final period = _periods[i];
+        final timeParts = period.timeRange.split('-');
+        return SizedBox(
+          height: _rowHeight,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 節次號：放大粗體
+                Text(
+                  '${i + 1}',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 時間欄
-                      SizedBox(
-                        width: _timeColumnWidth,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  timeParts[0],
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontSize: 10,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const RotatedBox(
-                                  quarterTurns: 1,
-                                  child: Text(
-                                    '~',
-                                    style: TextStyle(fontSize: 14, height: 1.2),
-                                  ),
-                                ),
-                                Text(
-                                  timeParts[1],
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontSize: 10,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 2),
+                // 時間：緊湊兩行，次要文字色
+                Text(
+                  timeParts[0],
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  timeParts[1],
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+
+    return Column(
+      children: [
+        // 表頭：星期標題，今天用 primaryContainer 膠囊高亮
+        Container(
+          height: _headerHeight,
+          color: colorScheme.surfaceContainerLow,
+          child: Row(
+            children: [
+              SizedBox(width: _timeColumnWidth, child: const Center()),
+              ..._weekdayLabels.asMap().entries.map((entry) {
+                final weekday = entry.key + 1;
+                final isToday = weekday == today;
+                return Expanded(
+                  child: Center(
+                    child: Container(
+                      padding: isToday
+                          ? const EdgeInsets.symmetric(horizontal: 10, vertical: 6)
+                          : null,
+                      decoration: isToday
+                          ? BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(20),
+                            )
+                          : null,
+                      child: Text(
+                        '星期${entry.value}',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isToday
+                              ? colorScheme.onPrimaryContainer
+                              : colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      // 星期欄位
-                      ..._weekdayLabels.asMap().entries.map((entry) {
-                        final weekday = entry.key + 1; // 1~5
-                        final mergedBlocks = mergedMap[weekday]?[periodCode] ?? [];
-
-                        return Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                left: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
-                              ),
-                            ),
-                            child: Stack(
-                              children: mergedBlocks.asMap().entries.map((blockEntry) {
-                                final block = blockEntry.value;
-                                final isStartBlock = block.startPeriod == periodCode;
-                                if (!isStartBlock) return const SizedBox.shrink();
-                                final colorValue = int.tryParse(block.course.color?.replaceFirst('#', '') ?? '2196F3', radix: 16) ?? 0xFF2196F3;
-                                final cardColor = Color(colorValue | 0xFF000000);
-
-                                return Positioned(
-                                  top: 0.0,
-                                  left: 2.0,
-                                  right: 2.0,
-                                  bottom: 2.0,
-                                  child: SizedBox(
-                                    height: block.spanPeriods * _rowHeight - 4.0,
-                                    child: Material(
-                                      color: cardColor.withValues(alpha: 0.85),
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: InkWell(
-                                        onTap: () => onCourseTap(block.course),
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(4),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                block.course.name,
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: theme.textTheme.labelMedium?.copyWith(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 11,
-                                                  shadows: const [Shadow(blurRadius: 2, color: Colors.black54)],
-                                                ),
-                                              ),
-                                              if (block.course.teacher?.isNotEmpty == true)
-                                                Text(
-                                                  block.course.teacher!,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: theme.textTheme.labelSmall?.copyWith(
-                                                    color: Colors.white.withValues(alpha: 0.9),
-                                                    fontSize: 9,
-                                                  ),
-                                                ),
-                                              if (block.course.classroom?.isNotEmpty == true)
-                                                Text(
-                                                  block.course.classroom!,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: theme.textTheme.labelSmall?.copyWith(
-                                                    color: Colors.white.withValues(alpha: 0.8),
-                                                    fontSize: 9,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        );
-                      }),
-                    ],
+                    ),
                   ),
                 );
               }),
             ],
-          );
+          ),
+        ),
+        // 表身：一個大 Stack，高度 totalHeight (576)
+        Expanded(
+          child: SizedBox(
+            height: totalHeight.toDouble(),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 時間欄
+                SizedBox(width: _timeColumnWidth, child: timeColumn),
+                // 星期欄位
+                ..._weekdayLabels.asMap().entries.map((entry) {
+                  final weekday = entry.key + 1;
+                  return Expanded(
+                    child: Stack(
+                      children: [
+                        // 背景格線：弱化 outlineVariant
+                        ...List.generate(_periods.length, (i) {
+                          return Positioned(
+                            top: i * _rowHeight,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              height: _rowHeight,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  left: BorderSide(
+                                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                                      width: 0.5),
+                                  bottom: BorderSide(
+                                      color: colorScheme.outlineVariant.withValues(
+                                        alpha: 0.3),
+                                      width: 0.5),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                        // 今天欄位底色極淡 primary
+                        if (weekday == today)
+                          Positioned.fill(
+                            child: Container(
+                              color: colorScheme.primary.withValues(alpha: 0.04),
+                            ),
+                          ),
+                        // 課程方塊
+                        ...?mergedMap[weekday]?.entries.expand((entry) =>
+                            entry.value.map((block) {
+                          return _buildCourseBlock(
+                            context,
+                            block,
+                            _periods.indexWhere((p) => p.code == block.startPeriod),
+                            _rowHeight,
+                            colorAssignments,
+                            theme,
+                          );
+                        })),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 建立單一課程卡片 (M3 風格)
+  Widget _buildCourseBlock(
+    BuildContext context,
+    _MergedCourseBlock block,
+    int startIndex,
+    double rowHeight,
+    Map<String, int> colorAssignments,
+    ThemeData theme,
+  ) {
+    final colorValue = int.tryParse(block.course.color?.replaceFirst('#', '') ?? '2196F3', radix: 16) ?? 0xFF2196F3;
+    final cardColor = Color(colorValue | 0xFF000000);
+
+    final topPosition = startIndex * rowHeight;
+
+    return Positioned(
+      top: topPosition.toDouble(),
+      left: 0.5,
+      right: 0.5,
+      child: SizedBox(
+        height: block.spanPeriods * rowHeight - 4.0,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(_cardRadius),
+          child: InkWell(
+            onTap: () => onCourseTap(block.course),
+            borderRadius: BorderRadius.circular(_cardRadius),
+            child: Container(
+              padding: const EdgeInsets.all(_cardPadding),
+              decoration: BoxDecoration(
+                color: cardColor.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(_cardRadius),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 課程名稱：置中，labelMedium w600，最多 2 行
+                  Text(
+                    block.course.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  // 教授：置中，labelSmall
+                  if (block.course.teacher?.isNotEmpty == true)
+                    Text(
+                      block.course.teacher!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10,
+                      ),
+                    ),
+                  const SizedBox(height: 2),
+                  // 教室：置中，pill badge
+                  if (block.course.classroom?.isNotEmpty == true)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        block.course.classroom!,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 9,
+                          fontFeatures: [const FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 取得今天是星期幾 (1=Monday ... 5=Friday)
+  int _getTodayWeekday() {
+    final now = DateTime.now();
+    // DateTime.monday=1 ... DateTime.friday=5, saturday=6, sunday=7
+    final weekday = now.weekday;
+    if (weekday >= 1 && weekday <= 5) return weekday;
+    return 1; // 週末預設顯示星期一
   }
 }
 

@@ -1,11 +1,11 @@
 // IRS 問卷答題頁面 (詳情頁)
+// 靜態問卷系統：單選、多選、填空、量表題型
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core.dart';
 import '../providers/irs_providers.dart';
-import '../models/models.dart';
 
 class IrsDetailPage extends ConsumerWidget {
   const IrsDetailPage({super.key});
@@ -48,7 +48,6 @@ class IrsDetailPage extends ConsumerWidget {
             color: Theme.of(context).colorScheme.primary,
             minHeight: 4,
           ),
-          
           // 題號指示器
           _QuestionIndicator(
             totalQuestions: detail.questions.length,
@@ -56,7 +55,6 @@ class IrsDetailPage extends ConsumerWidget {
             answeredMap: _buildAnsweredMap(detail, state),
             onTap: notifier.goToQuestion,
           ),
-
           // 題目內容
           Expanded(
             child: state.isLoading
@@ -74,7 +72,6 @@ class IrsDetailPage extends ConsumerWidget {
                       )
                     : const Center(child: Text('無題目')),
           ),
-
           // 底部導航
           if (!detail.questionnaire.isSubmitted)
             _BottomNavigation(
@@ -84,8 +81,8 @@ class IrsDetailPage extends ConsumerWidget {
               canGoNext: notifier.isCurrentQuestionAnswered() || !question!.isRequired,
               onPrevious: notifier.previousQuestion,
               onNext: notifier.nextQuestion,
-              onSubmit: isLastQuestion && notifier.areAllRequiredAnswered() 
-                  ? () => _submit(context, notifier) 
+              onSubmit: isLastQuestion && notifier.areAllRequiredAnswered()
+                  ? () => _submit(context, notifier)
                   : null,
             ),
         ],
@@ -99,7 +96,7 @@ class IrsDetailPage extends ConsumerWidget {
       final q = detail.questions[i];
       final answer = state.userAnswers[q.id];
       final textAnswer = state.userTextAnswers[q.id];
-      
+
       bool answered = false;
       switch (q.type) {
         case IrsQuestionType.textInput:
@@ -284,14 +281,14 @@ class _SingleChoiceOptions extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: isSelected 
-                        ? theme.colorScheme.primary 
+                    color: isSelected
+                        ? theme.colorScheme.primary
                         : theme.colorScheme.outlineVariant,
                     width: isSelected ? 2 : 1,
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  color: isSelected 
-                      ? theme.colorScheme.primaryContainer 
+                  color: isSelected
+                      ? theme.colorScheme.primaryContainer
                       : theme.colorScheme.surface,
                 ),
                 child: Row(
@@ -303,21 +300,21 @@ class _SingleChoiceOptions extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected 
-                              ? theme.colorScheme.primary 
+                          color: isSelected
+                              ? theme.colorScheme.primary
                               : theme.colorScheme.outlineVariant,
                           width: 2,
                         ),
-                        color: isSelected 
-                            ? theme.colorScheme.primary 
+                        color: isSelected
+                            ? theme.colorScheme.primary
                             : Colors.transparent,
                       ),
                       child: Center(
                         child: Text(
                           String.fromCharCode(65 + index), // A, B, C, D...
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: isSelected 
-                                ? theme.colorScheme.onPrimary 
+                            color: isSelected
+                                ? theme.colorScheme.onPrimary
                                 : theme.colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                           ),
@@ -329,8 +326,8 @@ class _SingleChoiceOptions extends StatelessWidget {
                       child: Text(
                         option.content,
                         style: theme.textTheme.bodyLarge?.copyWith(
-                          color: isSelected 
-                              ? theme.colorScheme.onPrimaryContainer 
+                          color: isSelected
+                              ? theme.colorScheme.onPrimaryContainer
                               : theme.colorScheme.onSurface,
                         ),
                       ),
@@ -399,14 +396,14 @@ class _MultipleChoiceOptions extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: isSelected 
-                        ? theme.colorScheme.primary 
+                    color: isSelected
+                        ? theme.colorScheme.primary
                         : theme.colorScheme.outlineVariant,
                     width: isSelected ? 2 : 1,
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  color: isSelected 
-                      ? theme.colorScheme.primaryContainer 
+                  color: isSelected
+                      ? theme.colorScheme.primaryContainer
                       : theme.colorScheme.surface,
                 ),
                 child: Row(
@@ -418,13 +415,13 @@ class _MultipleChoiceOptions extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected 
-                              ? theme.colorScheme.primary 
+                          color: isSelected
+                              ? theme.colorScheme.primary
                               : theme.colorScheme.outlineVariant,
                           width: 2,
                         ),
-                        color: isSelected 
-                            ? theme.colorScheme.primary 
+                        color: isSelected
+                            ? theme.colorScheme.primary
                             : Colors.transparent,
                       ),
                       child: isSelected
@@ -440,8 +437,8 @@ class _MultipleChoiceOptions extends StatelessWidget {
                       child: Text(
                         option.content,
                         style: theme.textTheme.bodyLarge?.copyWith(
-                          color: isSelected 
-                              ? theme.colorScheme.onPrimaryContainer 
+                          color: isSelected
+                              ? theme.colorScheme.onPrimaryContainer
                               : theme.colorScheme.onSurface,
                         ),
                       ),
@@ -503,8 +500,8 @@ class _ScaleInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // 預設 1-5 分，若選項有分數則用選項數量
-    final maxValue = question.options.isNotEmpty 
-        ? question.options.length 
+    final maxValue = question.options.isNotEmpty
+        ? question.options.length
         : 5;
 
     return Column(
@@ -514,7 +511,7 @@ class _ScaleInput extends StatelessWidget {
           children: List.generate(maxValue, (index) {
             final value = index + 1;
             final isSelected = selectedValue == value;
-            
+
             return Expanded(
               child: InkWell(
                 onTap: () => onChanged(value),
@@ -523,13 +520,13 @@ class _ScaleInput extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: isSelected 
-                        ? theme.colorScheme.primary 
+                    color: isSelected
+                        ? theme.colorScheme.primary
                         : theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected 
-                          ? theme.colorScheme.primary 
+                      color: isSelected
+                          ? theme.colorScheme.primary
                           : theme.colorScheme.outlineVariant,
                     ),
                   ),
@@ -537,8 +534,8 @@ class _ScaleInput extends StatelessWidget {
                     child: Text(
                       '$value',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: isSelected 
-                            ? theme.colorScheme.onPrimary 
+                        color: isSelected
+                            ? theme.colorScheme.onPrimary
                             : theme.colorScheme.onSurface,
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                       ),
@@ -549,7 +546,7 @@ class _ScaleInput extends StatelessWidget {
             );
           }),
         ),
-        
+
         // 標籤說明
         if (question.options.isNotEmpty) ...[
           const SizedBox(height: 16),

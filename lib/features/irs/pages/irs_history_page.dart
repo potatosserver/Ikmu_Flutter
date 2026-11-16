@@ -1,11 +1,14 @@
 // IRS 學生歷史記錄頁面
 // 對應 KMU IRS 學生端：作答記錄 / 提問記錄 / 考試詳情
+// 完整對齊 IRSRecordActivity.java：getQAData + show99View
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core.dart';
 import '../providers/irs_providers.dart';
+import '../utils/irs_debug_log.dart';
 
 class IrsHistoryPage extends ConsumerWidget {
   const IrsHistoryPage({super.key});
@@ -15,14 +18,39 @@ class IrsHistoryPage extends ConsumerWidget {
     final state = ref.watch(irsProvider);
     final notifier = ref.read(irsProvider.notifier);
 
+    // 進入頁面時自動載入課程列表
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (state.studentClasses.isEmpty && !state.isLoadingHistory) {
+        IrsDebugLog.log('[IRS_HISTORY] 進入頁面，載入課程列表');
+        notifier.loadStudentClasses();
+      }
+      // 若已有選中課程但未載入記錄，觸發載入
+      if (state.selectedCourseId != null &&
+          state.selectedCourseId!.isNotEmpty &&
+          state.answerRecords.isEmpty &&
+          state.askRecords.isEmpty) {
+        IrsDebugLog.log('[IRS_HISTORY] 已選課程 ${state.selectedCourseId}，載入記錄');
+        notifier.loadAnswerRecords(state.selectedCourseId!);
+        notifier.loadAskRecords(state.selectedCourseId!);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('IRS 作答/提問記錄'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => notifier.loadStudentClasses(),
+            onPressed: () {
+              IrsDebugLog.log('[IRS_HISTORY] 手動重新整理課程');
+              notifier.loadStudentClasses();
+            },
             tooltip: '重新整理課程',
+          ),
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: () => context.push(RoutePaths.irsDebugLog),
+            tooltip: '除錯日誌',
           ),
         ],
       ),
@@ -107,7 +135,7 @@ class IrsHistoryPage extends ConsumerWidget {
   Widget _buildCourseSelector(BuildContext context, IrsState state, IrsNotifier notifier) {
     return Column(
       children: [
-        // 課程選擇
+        // 課程選擇（下拉選單）
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -120,25 +148,24 @@ class IrsHistoryPage extends ConsumerWidget {
                     ),
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                height: 56,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: state.studentClasses.length,
-                  itemBuilder: (context, index) {
-                    final course = state.studentClasses[index];
-                    final isSelected = state.studentClasses.isNotEmpty &&
-                        index == 0; // 簡單處理：預設選第一個
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: FilterChip(
-                        selected: isSelected,
-                        label: Text(course.name),
-                        onSelected: (_) => _loadRecords(context, notifier, course.id),
-                        avatar: const Icon(Icons.book, size: 18),
-                      ),
-                    );
-                  },
+              DropdownButtonFormField<String>(
+                value: state.selectedCourseId?.isNotEmpty == true ? state.selectedCourseId : null,
+                items: state.studentClasses.map((course) {
+                  return DropdownMenuItem<String>(
+                    value: course.id ?? '',
+                    child: Text(course.displayName),
+                  );
+                }).toList(),
+                onChanged: (courseId) {
+                  if (courseId != null) {
+                    notifier.setSelectedCourseId(courseId);
+                    _loadRecords(context, notifier, courseId);
+                  }
+                },
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '請選擇課程',
+                  prefixIcon: Icon(Icons.school, size: 20),
                 ),
               ),
               const SizedBox(height: 16),
@@ -157,7 +184,7 @@ class IrsHistoryPage extends ConsumerWidget {
               : state.historyError != null
                   ? Center(child: Text(state.historyError!))
                   : state.answerRecords.isEmpty && state.askRecords.isEmpty
-                      ? _buildNoRecordsState(context)
+                      ? _buildNoRecordsState(context, state.historyTab)
                       : _buildRecordsList(context, state, notifier),
         ),
       ],
@@ -165,30 +192,34 @@ class IrsHistoryPage extends ConsumerWidget {
   }
 
   void _loadRecords(BuildContext context, IrsNotifier notifier, String courseId) {
+    IrsDebugLog.log('[IRS_HISTORY] 選擇課程: $courseId，載入作答/提問記錄');
     notifier.loadAnswerRecords(courseId);
     notifier.loadAskRecords(courseId);
   }
 
-  Widget _buildNoRecordsState(BuildContext context) {
+  Widget _buildNoRecordsState(BuildContext context, int historyTab) {
+    final isAskTab = historyTab == 1;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.assignment_outlined,
+            isAskTab ? Icons.question_answer_outlined : Icons.assignment_outlined,
             size: 64,
             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
-            '目前無記錄',
+            isAskTab ? '目前無提問記錄' : '目前無作答記錄',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            '選擇課程後會顯示作答與提問記錄',
+            isAskTab
+                ? '該課程尚無提問紀錄'
+                : '選擇課程後會顯示作答記錄',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -199,21 +230,50 @@ class IrsHistoryPage extends ConsumerWidget {
   }
 
   Widget _buildRecordsList(BuildContext context, IrsState state, IrsNotifier notifier) {
-    // 目前顯示作答記錄 (qaList)，可後續加 Tab 切換
-    final records = state.answerRecords;
+    final records = state.historyTab == 0 ? state.answerRecords : state.askRecords;
+    final tabTitle = state.historyTab == 0 ? '作答記錄' : '提問記錄';
+    final selectedCourseId = state.selectedCourseId;
 
     return RefreshIndicator(
-      onRefresh: () => notifier.loadAnswerRecords(state.studentClasses.isNotEmpty ? state.studentClasses.first.id : ''),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: records.length,
-        itemBuilder: (context, index) {
-          final record = records[index];
-          return _RecordCard(
-            record: record,
-            onTap: () => notifier.loadExamDetail(record.id),
-          );
-        },
+      onRefresh: () {
+        if (selectedCourseId != null && selectedCourseId.isNotEmpty) {
+          if (state.historyTab == 0) {
+            return notifier.loadAnswerRecords(selectedCourseId);
+          } else {
+            return notifier.loadAskRecords(selectedCourseId);
+          }
+        }
+        return Future.value();
+      },
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: records.length,
+              itemBuilder: (context, index) {
+                final record = records[index];
+                return _RecordCard(
+                  record: record,
+                  onTap: () => notifier.loadExamDetail(record).then((_) {
+                    if (context.mounted) {
+                      _showExamDetailDialog(context, state, record);
+                    }
+                  }),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              records.isEmpty ? '目前無 $tabTitle' : '共 ${records.length} 筆 $tabTitle',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -235,18 +295,18 @@ class _RecordTabs extends ConsumerWidget {
       children: [
         Expanded(
           child: FilterChip(
-            selected: true, // 預設顯示作答記錄
+            selected: state.historyTab == 0,
             label: const Text('作答記錄'),
-            onSelected: (_) {},
+            onSelected: (_) => notifier.setHistoryTab(0),
             avatar: const Icon(Icons.check_circle, size: 16),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: FilterChip(
-            selected: false,
+            selected: state.historyTab == 1,
             label: const Text('提問記錄'),
-            onSelected: (_) {},
+            onSelected: (_) => notifier.setHistoryTab(1),
             avatar: const Icon(Icons.question_answer, size: 16),
           ),
         ),
@@ -268,7 +328,7 @@ class _RecordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isPassed = record.myScore >= (record.totalScore / 2);
+    final isPassed = (record.myScore ?? 0) >= ((record.totalScore ?? 0) / 2);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -284,7 +344,7 @@ class _RecordCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      record.courseName,
+                      record.courseName ?? '',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -299,7 +359,7 @@ class _RecordCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '${record.myScore}/${record.totalScore} 分',
+                      '${record.myScore ?? 0}/${record.totalScore ?? 0} 分',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: isPassed ? Colors.green : Colors.orange,
                         fontWeight: FontWeight.w600,
@@ -310,7 +370,7 @@ class _RecordCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                record.title,
+                record.title ?? '',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -322,7 +382,7 @@ class _RecordCard extends StatelessWidget {
                 children: [
                   _InfoChip(
                     icon: Icons.access_time,
-                    label: record.answerTime,
+                    label: record.answerTime ?? record.askTime ?? '',
                     color: theme.colorScheme.secondary,
                   ),
                   const SizedBox(width: 8),
@@ -377,5 +437,518 @@ class _InfoChip extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// 歷史記錄詳情對話框 (M3 風格，對應原版 show99View / IRSRecordActivity.GetExamData)
+/// - questionType == "99" (試卷): 顯示 examDetail.subQuestions (subquList)
+// - 單題 ("1"/"2"/"3"/"4"): 顯示該筆記錄的選項與分數
+void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord record) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  final examDetail = state.examDetail;
+  final isExamPaper = record.isExamPaper;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.92,
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 標題列
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            record.courseName?.isNotEmpty == true
+                                ? record.courseName!
+                                : (record.courseId?.isNotEmpty == true
+                                    ? record.courseId!
+                                    : 'IRS 作答記錄'),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            record.answerTime ?? record.askTime ?? '',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      iconSize: 20,
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 內容區
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 得分
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer
+                                  .withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${record.myScore ?? 0}/${record.totalScore ?? 0} 分',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 題目
+                      Text(
+                        '題目',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          record.title ?? record.description ?? '',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            height: 1.5,
+                          ),
+                          softWrap: true,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 我的答案 / 正確性
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.person,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '我的答案：${record.myAnswer?.isEmpty == true ? '未作答' : record.myAnswer ?? ''} ${record.correct == true ? '✅ 答對' : (record.correct == false ? '❌ 答錯' : '')}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: record.correct == true
+                                    ? Colors.green.shade700
+                                    : (record.correct == false
+                                        ? Colors.red.shade700
+                                        : theme.colorScheme.onSurfaceVariant),
+                                fontWeight: FontWeight.w500,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 試卷子題列表 (questionType == 99)
+                      if (isExamPaper && examDetail != null && examDetail.subQuestions.isNotEmpty) ...[
+                        Text(
+                          '試卷詳情 (共 ${examDetail.subQuestions.length} 小題)',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...examDetail.subQuestions.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final sub = entry.value;
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${index + 1}. ${sub.description}',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (sub.imgPath != null && sub.imgPath!.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        // TODO: 圖片預覽
+                                      },
+                                      icon: const Icon(Icons.image, size: 18),
+                                      label: const Text('查看子題圖片'),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 8),
+                                  _buildSubQuestionDetail(theme, sub),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                      ] else if (!isExamPaper && record.options != null && record.options!.isNotEmpty) ...[
+                        // 單題：顯示選項與正確答案
+                        Text(
+                          '選項',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...record.options!.asMap().entries.map((entry) {
+                          final opt = entry.value as Map<String, dynamic>;
+                          final bool optCorrect = opt['correct'] as bool? ?? false;
+                          final bool isSelected = record.myAnswer == (opt['optKey']?.toString() ?? '');
+                          final bool recordCorrect = record.correct ?? false;
+                          final isCorrect = optCorrect || (recordCorrect && isSelected);
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              bottom: 6,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: isCorrect
+                                        ? colorScheme.primary
+                                        : (isSelected
+                                            ? Colors.orange
+                                            : Colors.transparent),
+                                    border: Border.all(
+                                      color: colorScheme.outlineVariant,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: isCorrect || isSelected
+                                      ? Icon(
+                                          isCorrect ? Icons.check : Icons.close,
+                                          size: 12,
+                                          color: Colors.white,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    '${opt['optKey'] ?? ''}. ${opt['optVal'] ?? ''}',
+                                    style: theme.textTheme.bodySmall,
+                                    softWrap: true,
+                                  ),
+                                ),
+                                if (isCorrect)
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: 16,
+                                    color: Colors.green.shade700,
+                                  ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+
+                      const SizedBox(height: 16),
+
+                      // 標準答案
+                      if (record.stdAnswer?.isNotEmpty == true) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.verified,
+                              size: 16,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '標準答案：${record.stdAnswer}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.blue.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                softWrap: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // 分數說明
+                      if (record.scoreDesc?.isNotEmpty == true) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                record.scoreDesc!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                softWrap: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // 圖片
+                      if (record.imgPath?.isNotEmpty == true) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.image_outlined,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '含圖片：${record.imgPath}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              // 底部按鈕
+              Container(
+                padding: const EdgeInsets.all(16),
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    '關閉',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildSubQuestionDetail(ThemeData theme, IrsSubQuestion sub) {
+  switch (sub.questionType) {
+    case '2': // 單選
+      if (sub.optionList is List && sub.optionList!.isNotEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: sub.optionList!.map<Widget>((opt) {
+            final isSelected = sub.myAnswer == opt.optKey;
+            final isCorrect = opt.correct;
+            return Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: isCorrect
+                          ? theme.colorScheme.primary
+                          : (isSelected
+                              ? Colors.orange
+                              : Colors.transparent),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: isCorrect || isSelected
+                        ? Icon(
+                            isCorrect ? Icons.check : Icons.close,
+                            size: 12,
+                            color: Colors.white,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '${opt.optKey}. ${opt.optVal}',
+                      style: theme.textTheme.bodySmall,
+                      softWrap: true,
+                    ),
+                  ),
+                  if (isCorrect)
+                    Icon(
+                      Icons.check_circle,
+                      size: 16,
+                      color: Colors.green.shade700,
+                    ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      }
+      return const SizedBox.shrink();
+    case '3': // 多選
+      if (sub.optionList is List && sub.optionList!.isNotEmpty) {
+        final myAnswers = sub.myAnswer?.split('_') ?? <String>[];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: sub.optionList!.map<Widget>((opt) {
+            final key = opt.optKey;
+            final isSelected = myAnswers.contains(key);
+            final isCorrect = opt.correct;
+            return Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: isCorrect
+                          ? theme.colorScheme.primary
+                          : (isSelected
+                              ? Colors.orange
+                              : Colors.transparent),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: isCorrect || isSelected
+                        ? Icon(
+                            isCorrect ? Icons.check : Icons.close,
+                            size: 12,
+                            color: Colors.white,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '$key. ${opt.optVal}',
+                      style: theme.textTheme.bodySmall,
+                      softWrap: true,
+                    ),
+                  ),
+                  if (isCorrect)
+                    Icon(
+                      Icons.check_circle,
+                      size: 16,
+                      color: Colors.green.shade700,
+                    ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      }
+      return const SizedBox.shrink();
+    case '4': // 填空
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          Text(
+            '我的填空：${sub.myAnswer?.isEmpty == true ? '未作答' : sub.myAnswer}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (sub.stdAnswer?.isNotEmpty == true) ...[
+            const SizedBox(height: 4),
+            Text(
+              '標準答案：${sub.stdAnswer}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.blue.shade700,
+              ),
+            ),
+          ],
+        ],
+      );
+    default:
+      return const SizedBox.shrink();
   }
 }

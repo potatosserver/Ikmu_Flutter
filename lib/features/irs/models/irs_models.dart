@@ -1,10 +1,82 @@
+// ignore_for_file: invalid_annotation_target
+
 // IRS 答題系統模型
-// 對應 KMU IRS 系統 API
+// 對應 KMU IRS 系統 API 與原生 Android (IRSActivity / IRSRecordActivity)
+
+import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'irs_models.freezed.dart';
 part 'irs_models.g.dart';
+
+int _parseInt(Object? value, [int fallback = 0]) {
+  if (value == null) return fallback;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value.toString().trim()) ?? fallback;
+}
+
+bool _parseBool(Object? value, [bool fallback = false]) {
+  if (value == null) return fallback;
+  if (value is bool) return value;
+  final s = value.toString().trim().toLowerCase();
+  if (s == 'true' || s == '1') return true;
+  if (s == 'false' || s == '0') return false;
+  return fallback;
+}
+
+bool? _parseNullableBool(Object? value) {
+  if (value == null) return null;
+  if (value is bool) return value;
+  final s = value.toString().trim().toLowerCase();
+  if (s.isEmpty) return null;
+  if (s == 'true' || s == '1') return true;
+  if (s == 'false' || s == '0') return false;
+  return null;
+}
+
+List<IrsSubOption>? _parseSubOptionList(Object? raw) {
+  if (raw == null) return null;
+  Object? decoded = raw;
+  if (raw is String) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty || trimmed == 'null') return null;
+    try {
+      decoded = jsonDecode(trimmed);
+    } catch (_) {
+      return null;
+    }
+  }
+  if (decoded is List) {
+    return decoded
+        .whereType<Map>()
+        .map((e) => IrsSubOption.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+  return null;
+}
+
+List<IrsRealtimeOption> _parseRealtimeOptions(Object? raw) {
+  if (raw == null) return const [];
+  Object? decoded = raw;
+  if (raw is String) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty || trimmed == 'null') return const [];
+    try {
+      decoded = jsonDecode(trimmed);
+    } catch (_) {
+      return const [];
+    }
+  }
+  if (decoded is List) {
+    return decoded
+        .whereType<Map>()
+        .map((e) => IrsRealtimeOption.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+  return const [];
+}
 
 /// IRS 問卷/答題活動
 @freezed
@@ -132,12 +204,16 @@ abstract class IrsState with _$IrsState {
     @Default(false) bool isSubmitting,
     String? error,
     @Default(0) int currentQuestionIndex,
-    @Default({}) Map<String, List<String>> userAnswers, // questionId -> optionIds
-    @Default({}) Map<String, String> userTextAnswers, // questionId -> text
+    @Default({}) Map<String, List<String>> userAnswers,
+    @Default({}) Map<String, String> userTextAnswers,
     // 學生歷史記錄
     @Default([]) List<IrsStudentClass> studentClasses,
     @Default([]) List<IrsAnswerRecord> answerRecords,
     @Default([]) List<IrsAnswerRecord> askRecords,
+    @Default(0) int historyTab,
+    String? selectedCourseId,
+    // IRS 即時答題 & 詳情
+    @Default([]) List<IrsRealtimeTeacher> availableTeachers,
     IrsExamDetail? examDetail,
     @Default(false) bool isLoadingHistory,
     String? historyError,
@@ -146,85 +222,282 @@ abstract class IrsState with _$IrsState {
   factory IrsState.initial() => const IrsState();
 }
 
-/// ===========================================
-// 學生歷史記錄模型
+// ===========================================
+// 學生歷史記錄模型 (對齊 IRSRecordActivity.java)
 // ===========================================
 
-/// 學生課程
+/// 學生課程 (對齊 irsCurrentClass/{userId} 回傳)
+/// 欄位：classId, className, englishco, teafno, teafnam, seqno, teafenam, teacherList, classRoom
 @freezed
 abstract class IrsStudentClass with _$IrsStudentClass {
+  const IrsStudentClass._();
+
   const factory IrsStudentClass({
-    required String id, // cono
-    required String name, // course name
-    String? englishName,
+    @JsonKey(name: 'classId') required String id,
+    @JsonKey(name: 'className') required String name,
+    @JsonKey(name: 'englishco') String? englishName,
+    @JsonKey(name: 'teafno') String? teacherNo,
+    @JsonKey(name: 'teafnam') String? teacherName,
+    @JsonKey(name: 'seqno') String? seqno,
+    @JsonKey(name: 'classRoom') String? classRoom,
+    String? startTime,
+    String? endTime,
+    @JsonKey(name: 'teacherList') @Default([]) List<IrsRealtimeTeacher> teacherList,
   }) = _IrsStudentClass;
 
   factory IrsStudentClass.fromJson(Map<String, dynamic> json) =>
       _$IrsStudentClassFromJson(json);
+
+  String get displayName {
+    if (name.isNotEmpty) return name;
+    if (englishName != null && englishName!.isNotEmpty) return englishName!;
+    return id;
+  }
+
+  // 相容舊欄位名
+  String? get courseId => id;
+  String? get courseName => name;
+  String? get courseSeqno => seqno;
 }
 
 /// 學生作答/提問記錄
+/// 對齊 IRSRecordActivity.java parseList 與 IRSRecordListViewAdapter.java
+/// 14 欄位：qseq, ques, ans, correct, hideAns, ansUsrId, ansTime, isMulti, score, scoreType, qType, subquList, optionList, imgPath
 @freezed
 abstract class IrsAnswerRecord with _$IrsAnswerRecord {
+  const IrsAnswerRecord._();
+
   const factory IrsAnswerRecord({
-    required String id, // quid
-    required String courseId, // cono
-    required String courseName,
-    required String title, // 題目描述
-    required String answerTime,
-    required int myScore,
-    required int totalScore,
-    String? imagePath,
-    String? stdAnswer,
-    String? myAnswer,
+    @Default(0) int myScore,
+    @Default(0) int totalScore,
+    @JsonKey(name: 'questionId') String? questionId,
+    @JsonKey(name: 'cono') String? cono,
+    @JsonKey(name: 'courseName') String? courseName,
+    @JsonKey(name: 'questionType') String? questionType,
+    @JsonKey(name: 'description') String? description,
+    @JsonKey(name: 'ansTime') String? ansTime,
+    @JsonKey(name: 'teafNam') String? teafNam,
+    @JsonKey(name: 'teafEnam') String? teafEnam,
+    @JsonKey(name: 'imgPath') String? imgPath,
+    @JsonKey(name: 'stdAnswer') String? stdAnswer,
+    @JsonKey(name: 'myAnswer') String? myAnswer,
+    @JsonKey(name: 'correct') bool? correct,
+    @JsonKey(name: 'hideAns') bool? hideAns,
+    @JsonKey(name: 'scoreDesc') String? scoreDesc,
+    @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
+    // 提問記錄 (askList) 欄位
+    @JsonKey(name: 'pid') String? pid,
+    @JsonKey(name: 'askTime') String? askTime,
+    @JsonKey(name: 'askDesc') String? askDesc,
+    @JsonKey(name: 'replyContent') String? replyContent,
+    @JsonKey(name: 'replied') bool? replied,
   }) = _IrsAnswerRecord;
 
   factory IrsAnswerRecord.fromJson(Map<String, dynamic> json) =>
       _$IrsAnswerRecordFromJson(json);
+
+  bool get isAskRecord => pid != null && pid!.isNotEmpty;
+
+  bool get isExamPaper => questionType == '99';
+
+  // 相容舊欄位名
+  String? get title => description;
+  String? get answerTime => ansTime;
+  String? get courseId => cono;
+  List<Map<String, dynamic>>? get options => optionList?.map((e) => e.toJson()).toList();
 }
 
-/// 考試詳情
+/// 考試詳情 (對齊 irs/stu/examDetail 回應與 IRSRecordActivity.show99View)
+/// 欄位：description, teacherno, teafNam, teafEnam, ansTime, totalScore, myScore, hideAns, subquList
 @freezed
 abstract class IrsExamDetail with _$IrsExamDetail {
+  const IrsExamDetail._();
+
   const factory IrsExamDetail({
-    required String answerTime,
-    required String teacherName,
-    required String question,
-    required int myScore,
-    required int totalScore,
-    required List<IrsSubQuestion> subQuestions,
+    @JsonKey(name: 'description') required String description,
+    @JsonKey(name: 'teacherno') required String teacherno,
+    @JsonKey(name: 'teafNam') required String teafNam,
+    @JsonKey(name: 'teafEnam') String? teafEnam,
+    @JsonKey(name: 'ansTime') required String ansTime,
+    @JsonKey(name: 'totalScore') required int totalScore,
+    @JsonKey(name: 'myScore') required int myScore,
+    @JsonKey(name: 'hideAns') @Default(false) bool hideAns,
+    @JsonKey(name: 'subquList') required List<IrsSubQuestion> subquList,
   }) = _IrsExamDetail;
 
   factory IrsExamDetail.fromJson(Map<String, dynamic> json) =>
       _$IrsExamDetailFromJson(json);
+
+  // 相容舊欄位名 (供頁面與 Provider 使用)
+  String get answerTime => ansTime;
+  String get teacherName => teafNam;
+  String? get teacherEnglishName => teafEnam;
+  String get question => description;
+  List<IrsSubQuestion> get subQuestions => subquList;
 }
 
-/// 子題目詳情
+/// 子題目詳情 (對齊 IRSRecordActivity.show99View subquList 元素)
+/// 欄位：questionId, questionType (int), description, optionList, imgPath, stdAnswer, myAnswer, score, correct, hideAns, scoreDesc
 @freezed
 abstract class IrsSubQuestion with _$IrsSubQuestion {
+  const IrsSubQuestion._();
+
   const factory IrsSubQuestion({
-    required String questionType, // 1=單選, 2=多選, 3=文字, 4=...
-    required String description,
-    required String scoreDesc,
-    required String myAnswer,
-    String? stdAnswer,
-    List<IrsSubOption>? options,
-    String? imagePath,
+    @JsonKey(name: 'questionId') String? questionId,
+    @JsonKey(name: 'questionType') required int questionType,
+    @JsonKey(name: 'description') required String description,
+    @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
+    @JsonKey(name: 'stdAnswer') String? stdAnswer,
+    @JsonKey(name: 'myAnswer') String? myAnswer,
+    @JsonKey(name: 'score') int? score,
+    @JsonKey(name: 'correct') @Default(false) bool correct,
+    @JsonKey(name: 'hideAns') @Default(false) bool hideAns,
+    @JsonKey(name: 'scoreDesc') String? scoreDesc,
+    @JsonKey(name: 'imgPath') String? imgPath,
   }) = _IrsSubQuestion;
 
   factory IrsSubQuestion.fromJson(Map<String, dynamic> json) =>
       _$IrsSubQuestionFromJson(json);
 }
 
-/// 子題目選項
+/// 子題目/歷史題目選項 (對齊 optionList: optKey, optVal, correct)
 @freezed
 abstract class IrsSubOption with _$IrsSubOption {
+  const IrsSubOption._();
+
   const factory IrsSubOption({
-    required String key,
-    required String value,
-    @Default(false) bool isCorrect,
+    @JsonKey(name: 'optKey') required String optKey,
+    @JsonKey(name: 'optVal') required String optVal,
+    @JsonKey(name: 'correct') @Default(false) bool correct,
   }) = _IrsSubOption;
 
   factory IrsSubOption.fromJson(Map<String, dynamic> json) =>
       _$IrsSubOptionFromJson(json);
+}
+
+// ===========================================
+// IRS 即時答題模型 (對齊 IRSActivity.java)
+// ===========================================
+
+/// IRS 即時試卷子題 (questionType == "99" 的 subQuList)
+@freezed
+abstract class IrsRealtimeSubQuestion with _$IrsRealtimeSubQuestion {
+  const IrsRealtimeSubQuestion._();
+
+  const factory IrsRealtimeSubQuestion({
+    @JsonKey(name: 'subQuOrder') required int subQuOrder,
+    @JsonKey(name: 'questionType') required String questionType,
+    @JsonKey(name: 'description') required String description,
+    @JsonKey(name: 'options') required List<IrsRealtimeOption> options,
+    @JsonKey(name: 'imgPath') String? imgPath,
+    @JsonKey(name: 'imgFile') String? imgFile,
+  }) = _IrsRealtimeSubQuestion;
+
+  factory IrsRealtimeSubQuestion.fromJson(Map<String, dynamic> json) =>
+      _$IrsRealtimeSubQuestionFromJson(json);
+}
+
+/// IRS 即時題目
+/// questionType: "1"=快問快答, "2"=單選, "3"=多選, "4"=文字/填空, "99"=試卷
+@freezed
+abstract class IrsRealtimeQuestion with _$IrsRealtimeQuestion {
+  const IrsRealtimeQuestion._();
+
+  const factory IrsRealtimeQuestion({
+    @JsonKey(name: 'questionId') required String id,
+    @JsonKey(name: 'content') required String content,
+    @JsonKey(name: 'questionType') required int type,
+    @JsonKey(name: 'options') required List<IrsRealtimeOption> options,
+    @JsonKey(name: 'secno') required String secno,
+    @JsonKey(name: 'answerTime') required String answerTime,
+    @JsonKey(name: 'imagePath') String? imagePath,
+    @JsonKey(name: 'imgFile') String? imgFile,
+    @JsonKey(name: 'subQuestions') @Default([]) List<IrsRealtimeSubQuestion> subQuestions,
+    @JsonKey(name: 'seqList') String? seqList,
+    @JsonKey(name: 'period') @Default(0) int period,
+  }) = _IrsRealtimeQuestion;
+
+  factory IrsRealtimeQuestion.fromJson(Map<String, dynamic> json) =>
+      _$IrsRealtimeQuestionFromJson(json);
+
+  // 相容舊欄位名
+  List<IrsRealtimeSubQuestion> get subQuList => subQuestions;
+}
+
+/// IRS 即時選項
+@freezed
+abstract class IrsRealtimeOption with _$IrsRealtimeOption {
+  const IrsRealtimeOption._();
+
+  const factory IrsRealtimeOption({
+    @JsonKey(name: 'optKey') required String key,
+    @JsonKey(name: 'optVal') required String value,
+  }) = _IrsRealtimeOption;
+
+  factory IrsRealtimeOption.fromJson(Map<String, dynamic> json) =>
+      _$IrsRealtimeOptionFromJson(json);
+}
+
+/// IRS 即時答題狀態
+@freezed
+abstract class IrsRealtimeState with _$IrsRealtimeState {
+  const factory IrsRealtimeState({
+    @Default([]) List<IrsStudentClass> availableClasses,
+    @Default([]) List<IrsRealtimeTeacher> availableTeachers,
+    IrsStudentClass? selectedClass,
+    IrsRealtimeTeacher? selectedTeacher,
+    IrsRealtimeQuestion? currentQuestion,
+    @Default(false) bool isLoading,
+    @Default(false) bool isSubmitting,
+    String? error,
+  }) = _IrsRealtimeState;
+
+  factory IrsRealtimeState.initial() => const IrsRealtimeState();
+}
+
+/// IRS 老師資訊
+@freezed
+abstract class IrsRealtimeTeacher with _$IrsRealtimeTeacher {
+  const IrsRealtimeTeacher._();
+
+  const factory IrsRealtimeTeacher({
+    @JsonKey(name: 'teacherNo') required String id,
+    @JsonKey(name: 'teacherName') required String name,
+  }) = _IrsRealtimeTeacher;
+
+  factory IrsRealtimeTeacher.fromJson(Map<String, dynamic> json) =>
+      _$IrsRealtimeTeacherFromJson(json);
+
+  // 相容舊欄位名
+  String get teacherNo => id;
+  String get teacherName => name;
+}
+
+/// IRS 即時答題提交請求
+@freezed
+abstract class IrsRealtimeSubmitRequest with _$IrsRealtimeSubmitRequest {
+  const factory IrsRealtimeSubmitRequest({
+    required String classId,
+    required String studentId,
+    required String teacherNo,
+    required String secno,
+    required String username,
+    required List<IrsRealtimeAnswer> answers,
+  }) = _IrsRealtimeSubmitRequest;
+
+  factory IrsRealtimeSubmitRequest.fromJson(Map<String, dynamic> json) =>
+      _$IrsRealtimeSubmitRequestFromJson(json);
+}
+
+/// IRS 即時答題答案
+@freezed
+abstract class IrsRealtimeAnswer with _$IrsRealtimeAnswer {
+  const factory IrsRealtimeAnswer({
+    required String questionId,
+    required List<String> optionIds,
+    String? textAnswer,
+  }) = _IrsRealtimeAnswer;
+
+  factory IrsRealtimeAnswer.fromJson(Map<String, dynamic> json) =>
+      _$IrsRealtimeAnswerFromJson(json);
 }

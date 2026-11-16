@@ -4,52 +4,71 @@ import 'package:flutter/material.dart';
 import 'common_models.dart';
 
 /// 20種固定馬卡龍色系（不重複）
-/// 對應課程名稱雜湊，確保同名課程顏色固定
-const List<Color> _macaronColors = [
-  Color(0xFFFFB3BA), // 粉紅
-  Color(0xFFFFDFBA), // 橘黃
-  Color(0xFFFFFF),   // 白（備用，實際不會用）
-  Color(0xFFBAE1FF), // 淺藍
-  Color(0xFFBAFFC9), // 淺綠
-  Color(0xFFFFC6FF), // 粉紫
-  Color(0xFFFFD6BA), // 淺橘
-  Color(0xFFC9C9FF), // 淺紫
-  Color(0xFFC4E5FF), // 天藍
-  Color(0xFFC9FFF0), // 薄荷綠
-  Color(0xFFD1DC),   // 豆沙紅
-  Color(0xFFE2C9),   // 麥黃
-  Color(0xFFD5AAFF), // 紫色
-  Color(0xFFA0C4FF), // 亮藍
-  Color(0xFFB9FBC0), // 草綠
-  Color(0xFFFFC6FF), // 淺粉紅
-  Color(0xFFFFDAC1), // 肉桂橘
-  Color(0xFFE2CBFF), // 淡紫
-  Color(0xFFBDE0FE), // 水藍
-  Color(0xFFCDB4DB), // 灰紫
+const List<Color> macaronColors = [
+  Color(0xFFFFB3BA), // 0 粉紅
+  Color(0xFFFFDFBA), // 1 橘黃
+  Color(0xFFBAE1FF), // 2 淺藍
+  Color(0xFFBAFFC9), // 3 淺綠
+  Color(0xFFFFC6FF), // 4 粉紫
+  Color(0xFFFFD6BA), // 5 淺橘
+  Color(0xFFC9C9FF), // 6 淺紫
+  Color(0xFFC4E5FF), // 7 天藍
+  Color(0xFFC9FFF0), // 8 薄荷綠
+  Color(0xFFD1DCD5), // 9 豆沙紅
+  Color(0xFFE2C9A8), // 10 麥黃
+  Color(0xFFD5AAFF), // 11 紫色
+  Color(0xFFA0C4FF), // 12 亮藍
+  Color(0xFFB9FBC0), // 13 草綠
+  Color(0xFFFFE0E0), // 14 淺粉紅
+  Color(0xFFFFDAC1), // 15 肉桂橘
+  Color(0xFFE2CBFF), // 16 淡紫
+  Color(0xFFBDE0FE), // 17 水藍
+  Color(0xFFCDB4DB), // 18 灰紫
+  Color(0xFFFFE5B4), // 19 淺橘黃
 ];
 
-/// 根據課程名稱生成固定顏色（從 20 種馬卡龍色中選擇，回傳 HEX 字串）
-String _generateCourseColor(String name, String? type) {
-  // 依類型給預設色系索引
-  const Map<String, int> typeColorIndex = {
-    'required': 0,   // 粉紅 - 必修
-    'elective': 4,   // 淺綠 - 選修
-    'general': 7,    // 淺紫 - 通識
-    'other': 15,     // 淺粉紅 - 其他
-  };
+/// 為課程列表分配不重複的馬卡龍色索引
+/// 相同課程名稱獲得相同索引，不同課程盡量不重複
+Map<String, int> _allocateCourseColors(List<Course> courses) {
+  final colorAssignments = <String, int>{};
+  final usedIndices = <int>{};
+  final sortedNames = <String>[];
 
-  if (type != null && typeColorIndex.containsKey(type)) {
-    final baseIndex = typeColorIndex[type]!;
-    // 以名稱雜湊微調索引（±3）
-    final hash = name.codeUnits.fold(0, (a, b) => a + b);
-    final offset = hash % 7 - 3;
-    final index = (baseIndex + offset).clamp(0, 19);
-    return '#${_macaronColors[index].value.toRadixString(16).padLeft(8, '0').substring(2)}';
+  // 收集所有不同課程名稱並排序（確保分配穩定）
+  for (final course in courses) {
+    if (!sortedNames.contains(course.name)) {
+      sortedNames.add(course.name);
+    }
+  }
+  sortedNames.sort();
+
+  for (int i = 0; i < sortedNames.length; i++) {
+    final name = sortedNames[i];
+    // 嘗試找一個未使用的索引，循環使用 0-19
+    int index;
+    int attempts = 0;
+    do {
+      index = (i * 3 + 7) % 20; // 步長3，減少相鄰課程撞色機率
+      attempts++;
+      if (attempts > 20) break;
+    } while (usedIndices.contains(index));
+
+    colorAssignments[name] = index;
+    usedIndices.add(index);
   }
 
-  // 回退：純名稱雜湊選色
-  final hash = name.codeUnits.fold(0, (a, b) => a + b);
-  return '#${_macaronColors[hash % 20].value.toRadixString(16).padLeft(8, '0').substring(2)}';
+  return colorAssignments;
+}
+
+/// 根據課程名稱取得固定顏色（回傳 HEX 字串）
+String _getCourseColorHex(String name, Map<String, int> colorAssignments) {
+  final index = colorAssignments[name];
+  if (index == null) {
+    // 回退：純名稱雜湊選色
+    final hash = name.codeUnits.fold(0, (a, b) => a + b);
+    return '#${macaronColors[hash % 20].value.toRadixString(16).padLeft(8, '0').substring(2)}';
+  }
+  return '#${macaronColors[index].value.toRadixString(16).padLeft(8, '0').substring(2)}';
 }
 
 
@@ -94,9 +113,14 @@ class KmuPeriod {
 
   /// 起始節次 + 結束節次 → 連續節次代碼清單 (對齊 Python get_period_range)
   static List<String> expandRange(String? bcl, String? ecl) {
-    if (bcl == null || bcl.isEmpty || ecl == null || ecl.isEmpty) return const [];
+    if (bcl == null || bcl.isEmpty) return const [];
     final keys = all.map((p) => p.code).toList();
     final upperBcl = bcl.toUpperCase();
+    // 若只有單一節次 (無範圍)，直接回傳該節次
+    if (ecl == null || ecl.isEmpty || upperBcl == ecl.toUpperCase()) {
+      final idx = keys.indexOf(upperBcl);
+      return idx >= 0 ? [bcl] : [bcl];
+    }
     final upperEcl = ecl.toUpperCase();
     final i1 = keys.indexOf(upperBcl);
     final i2 = keys.indexOf(upperEcl);
@@ -180,11 +204,16 @@ class Course {
     // periods = 展開後的連續節次清單
     final periodCodeRaw = json['periodCode']?.toString().trim();
     final periodsRaw = json['periods'];
-    final List<String> periods = periodsRaw is List
-        ? periodsRaw.map((e) => e.toString()).toList()
-        : (periodCodeRaw != null && periodCodeRaw.isNotEmpty)
-            ? [periodCodeRaw]
-            : <String>[];
+    List<String> periods;
+    if (periodsRaw is List) {
+      periods = periodsRaw.map((e) => e.toString()).toList();
+    } else if (periodCodeRaw != null && periodCodeRaw.isNotEmpty) {
+      // 支援範圍格式如 "1-3"，展開為 ["1","2","3"]
+      final expanded = KmuPeriod.expandRange(periodCodeRaw, null);
+      periods = expanded.isNotEmpty ? expanded : [periodCodeRaw];
+    } else {
+      periods = <String>[];
+    }
 
     // 從第一節推導上課時間 (若無 wac 資料則 fallback 預設值)
     String startTime;
@@ -220,8 +249,10 @@ class Course {
     // 學期
     final semester = '$year-$sem';
 
-    // 根據課程類型/名稱生成一致配色
-    final color = _generateCourseColor(name, type);
+    // 課程色碼：依名稱雜湊選取馬卡龍色（跨檔案直接用公開 macaronColors）
+    final hash = name.codeUnits.fold(0, (a, b) => a + b);
+    final colorIndex = hash % 20;
+    final color = '#${macaronColors[colorIndex].value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
     return Course(
       id: id,

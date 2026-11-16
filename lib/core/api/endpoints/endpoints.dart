@@ -1,11 +1,14 @@
 // API 端點介面定義
 // 使用 KmuClient 封裝加密/解密、認證管理
 
+import 'dart:convert';
+
 import 'package:ikmu_flutter/core/api/kmu_client.dart';
 import 'package:ikmu_flutter/core/constants/api_constants.dart';
 import 'package:ikmu_flutter/core/api/models.dart';
 import 'package:ikmu_flutter/core/utils/crypto_utils.dart';
 import 'package:ikmu_flutter/core/utils/date_utils.dart';
+import 'package:ikmu_flutter/features/irs/utils/irs_debug_log.dart';
 
 /// 認證端點
 class AuthEndpoint {
@@ -26,7 +29,7 @@ class AuthEndpoint {
     );
 
     if (response['success'] == true && response['data'] != null) {
-      final items = response['data'] as Map<String, dynamic>;
+      final items = Map<String, dynamic>.from(response['data'] as Map);
       return LoginResponse(
         success: true,
         message: response['message']?.toString() ?? '登入成功',
@@ -60,8 +63,8 @@ class AuthEndpoint {
     required String newPassword,
   }) async {
     final response = await _client.post(
-      'changePassword', // API 端點需確認
-      data: {
+      'changePassword',
+      data: <String, dynamic>{
         'old_password': oldPassword,
         'new_password': newPassword,
       },
@@ -89,16 +92,16 @@ class CalendarEndpoint {
 
   /// 取得日事件 (單日)
   Future<List<CalendarEvent>> getDayEvents({
-    required String date, // YYYY-MM-DD
+    required String date,
   }) async {
     final response = await _client.get(
       ApiEndpoints.calendar,
-      queryParameters: {'d': date},
+      queryParameters: <String, dynamic>{'d': date},
     );
 
     if (response['success'] == true && response['data'] != null) {
       final data = response['data'];
-      List<dynamic> list = [];
+      List<dynamic> list = <dynamic>[];
       if (data is List) {
         list = data;
       } else if (data is Map) {
@@ -107,66 +110,52 @@ class CalendarEndpoint {
         if (events is List) {
           list = events;
         } else {
-          // 處理 {"0": {...}, "1": {...}} 格式
           list = mapData.values.toList();
         }
       }
 
-      return list
-          .whereType<Map>()
-          .map((e) {
-            final map = Map<String, dynamic>.from(e);
-            // 若 API 回傳缺少 date 或 dateFrom，自動補上查詢當日的日期
-            if (map['date'] == null && map['dateFrom'] == null) {
-              map['date'] = date;
-            }
-            return CalendarEvent.fromApi(map);
-          })
-          .toList();
+      return list.whereType<Map>().map((e) {
+        final map = Map<String, dynamic>.from(e);
+        if (map['date'] == null && map['dateFrom'] == null) {
+          map['date'] = date;
+        }
+        return CalendarEvent.fromApi(map);
+      }).toList();
     }
-    // API 回傳 success != true 或無資料
     throw Exception('API 回傳失敗: ${response['message'] ?? '未知錯誤'}');
   }
 
   /// 取得月份所有事件 (自動平行併發下載 7x6 格子共 42 天，含上下月重疊天數)
   Future<List<CalendarEvent>> getMonthEvents({
-    required String yearMonth, // YYYY-MM
+    required String yearMonth,
   }) async {
     final parts = yearMonth.split('-');
-    if (parts.length < 2) return [];
+    if (parts.length < 2) return <CalendarEvent>[];
 
     final year = int.tryParse(parts[0]) ?? DateTime.now().year;
     final month = int.tryParse(parts[1]) ?? DateTime.now().month;
 
-    // 計算該月第一天和最後一天
     final firstDayOfMonth = DateTime(year, month, 1);
     final lastDayOfMonth = DateTime(year, month + 1, 0);
 
-    // 7x6 固定網格：週日為起始，共 42 格 (6 週)
-    // 找出第一格的日期 (該月 1 號所在週的週日)
-    final firstWeekday = firstDayOfMonth.weekday % 7; // 0=Sun, 1=Mon...
+    final firstWeekday = firstDayOfMonth.weekday % 7;
     final gridStartDate = firstDayOfMonth.subtract(Duration(days: firstWeekday));
-    
-    // 最後一格的日期 (該月最後一天所在週的週六)
+
     final lastWeekday = lastDayOfMonth.weekday % 7;
-    final daysToAdd = (6 - lastWeekday) % 7; // 到週六需要加的天數
+    final daysToAdd = (6 - lastWeekday) % 7;
     final gridEndDate = lastDayOfMonth.add(Duration(days: daysToAdd));
 
-    // 計算總天數
     final totalDays = gridEndDate.difference(gridStartDate).inDays + 1;
 
-    // 產生所有 42 天的非同步請求列表
-    final futures = List.generate(totalDays, (index) {
+    final futures = List<Future<List<CalendarEvent>>>.generate(totalDays, (index) {
       final d = gridStartDate.add(Duration(days: index));
       final dateStr =
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
       return getDayEvents(date: dateStr);
     });
 
-    // 平行同時抓取所有天數
     final results = await Future.wait(futures);
 
-    // 攤平 (flatten) 為單一事件清單
     final allEvents = <CalendarEvent>[];
     for (final dayEvents in results) {
       allEvents.addAll(dayEvents);
@@ -176,15 +165,14 @@ class CalendarEndpoint {
 
   /// 取得週所有事件 (自動平行併發下載該週 7 天，週日到週六)
   Future<List<CalendarEvent>> getWeekEvents({
-    required String weekStart, // YYYY-MM-DD
+    required String weekStart,
   }) async {
     final startDate = DateTime.tryParse(weekStart);
-    if (startDate == null) return [];
+    if (startDate == null) return <CalendarEvent>[];
 
-    // 確保起始是週日
     final weekStartDate = DateUtils.getWeekStart(startDate);
 
-    final futures = List.generate(7, (i) {
+    final futures = List<Future<List<CalendarEvent>>>.generate(7, (i) {
       final d = weekStartDate.add(Duration(days: i));
       final dateStr =
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -206,7 +194,6 @@ class ClassroomEndpoint {
 
   final KmuClient _client;
 
-  // 快取清單以供詳情查詢
   List<ClassroomRoom>? _cachedRooms;
 
   /// 取得場地列表
@@ -227,19 +214,22 @@ class ClassroomEndpoint {
         _cachedRooms = rooms;
 
         if (categoryId != null && categoryId.isNotEmpty) {
-          rooms = rooms.where((r) => r.categoryName == categoryId || r.categoryId == categoryId).toList();
+          rooms = rooms
+              .where((r) =>
+                  r.categoryName == categoryId || r.categoryId == categoryId)
+              .toList();
         }
 
         return rooms;
       }
     }
-    return [];
+    return <ClassroomRoom>[];
   }
 
   /// 取得場地分類（從場地清單中動態分組）
   Future<List<ClassroomCategory>> getCategories() async {
     final rooms = _cachedRooms ?? await getRooms();
-    final Map<String, int> categoryCounts = {};
+    final Map<String, int> categoryCounts = <String, int>{};
 
     for (final room in rooms) {
       final catName = room.categoryName;
@@ -281,11 +271,11 @@ class ClassroomEndpoint {
   /// 取得場地使用狀況（對齊 Python: /getClassroomUsageByDate）
   Future<ClassroomUsageResponse?> getUsage({
     required String roomId,
-    required String date, // YYYY-MM-DD
+    required String date,
   }) async {
     final response = await _client.get(
       '/getClassroomUsageByDate',
-      queryParameters: {
+      queryParameters: <String, dynamic>{
         'plano': roomId,
         'date': date,
       },
@@ -293,22 +283,42 @@ class ClassroomEndpoint {
 
     if (response['success'] == true && response['data'] != null) {
       final data = response['data'];
-      final List<TimeSlot> timeSlots = [];
+      final List<TimeSlot> timeSlots = <TimeSlot>[];
 
       if (data is List && data.isNotEmpty) {
         final first = Map<String, dynamic>.from(data.first as Map);
 
-        const startTimes = [
-          '08:10', '09:10', '10:10', '11:10',
-          '12:10', '13:10', '14:10', '15:10',
-          '16:10', '17:10', '18:10', '19:10',
-          '20:10', '21:10',
+        const startTimes = <String>[
+          '08:10',
+          '09:10',
+          '10:10',
+          '11:10',
+          '12:10',
+          '13:10',
+          '14:10',
+          '15:10',
+          '16:10',
+          '17:10',
+          '18:10',
+          '19:10',
+          '20:10',
+          '21:10',
         ];
-        const endTimes = [
-          '09:00', '10:00', '11:00', '12:00',
-          '13:00', '14:00', '15:00', '16:00',
-          '17:00', '18:00', '19:00', '20:00',
-          '21:00', '22:00',
+        const endTimes = <String>[
+          '09:00',
+          '10:00',
+          '11:00',
+          '12:00',
+          '13:00',
+          '14:00',
+          '15:00',
+          '16:00',
+          '17:00',
+          '18:00',
+          '19:00',
+          '20:00',
+          '21:00',
+          '22:00',
         ];
 
         for (int i = 1; i <= 14; i++) {
@@ -338,18 +348,18 @@ class ClassroomEndpoint {
       return ClassroomUsageResponse(
         success: true,
         message: '成功',
-        data: [usage],
+        data: <ClassroomUsage>[usage],
       );
     }
 
     return ClassroomUsageResponse(
       success: true,
       message: '成功',
-      data: [
+      data: <ClassroomUsage>[
         ClassroomUsage(
           room: ClassroomDetail(id: roomId, name: ''),
           date: date,
-          timeSlots: const [],
+          timeSlots: const <TimeSlot>[],
         ),
       ],
     );
@@ -371,14 +381,14 @@ class CourseEndpoint {
     final encryptedPw = CryptoUtils.encrypt3DesHex(password);
     final response = await _client.get(
       ApiEndpoints.myClass,
-      queryParameters: {
+      queryParameters: <String, dynamic>{
         'id': encryptedId,
         'pw': encryptedPw,
       },
     );
 
     if (response['success'] == true && response['data'] != null) {
-      return MyScheduleResponse.fromJson({
+      return MyScheduleResponse.fromJson(<String, dynamic>{
         'success': true,
         'message': response['message']?.toString() ?? '成功',
         'data': response['data'],
@@ -396,7 +406,7 @@ class CourseEndpoint {
     final encryptedPw = CryptoUtils.encrypt3DesHex(password);
     final response = await _client.get(
       ApiEndpoints.myScoreSem,
-      queryParameters: {
+      queryParameters: <String, dynamic>{
         'id': encryptedId,
         'pw': encryptedPw,
       },
@@ -404,11 +414,12 @@ class CourseEndpoint {
 
     if (response['success'] == true && response['data'] is List) {
       final dataList = (response['data'] as List)
-          .map((e) => SemesterInfo.fromJson(e as Map<String, dynamic>))
+          .whereType<Map>()
+          .map((e) => SemesterInfo.fromJson(Map<String, dynamic>.from(e)))
           .toList();
       return dataList;
     }
-    return [];
+    return <SemesterInfo>[];
   }
 
   /// 取得成績
@@ -422,7 +433,7 @@ class CourseEndpoint {
     final encryptedPw = CryptoUtils.encrypt3DesHex(password);
     final response = await _client.get(
       ApiEndpoints.myScoreHis,
-      queryParameters: {
+      queryParameters: <String, dynamic>{
         'id': encryptedId,
         'pw': encryptedPw,
         'year': year,
@@ -431,7 +442,7 @@ class CourseEndpoint {
     );
 
     if (response['success'] == true && response['data'] != null) {
-      return MyScoresResponse.fromJson({
+      return MyScoresResponse.fromJson(<String, dynamic>{
         'success': true,
         'message': response['message']?.toString() ?? '成功',
         'data': response['data'],
@@ -441,35 +452,38 @@ class CourseEndpoint {
   }
 
   /// 取得課程詳細資料
-    Future<Map<String, dynamic>?> getClassDetail({
-      required String seq,
-      required String userId,
-      required String password,
-    }) async {
-      final encryptedId = CryptoUtils.encrypt3DesHex(userId);
-      final encryptedPw = CryptoUtils.encrypt3DesHex(password);
-      final response = await _client.get(
-        ApiEndpoints.myClassDetail,
-        queryParameters: {
-          'id': encryptedId,
-          'pw': encryptedPw,
-          'seq': seq,
-        },
-      );
+  Future<Map<String, dynamic>?> getClassDetail({
+    required String seq,
+    required String userId,
+    required String password,
+  }) async {
+    final encryptedId = CryptoUtils.encrypt3DesHex(userId);
+    final encryptedPw = CryptoUtils.encrypt3DesHex(password);
+    final response = await _client.get(
+      ApiEndpoints.myClassDetail,
+      queryParameters: <String, dynamic>{
+        'id': encryptedId,
+        'pw': encryptedPw,
+        'seq': seq,
+      },
+    );
 
-      if (response['success'] == true && response['data'] != null) {
-        if (response['data'] is Map<String, dynamic>) {
-          return response['data'] as Map<String, dynamic>;
-        }
-        if (response['data'] is List && (response['data'] as List).isNotEmpty) {
-          return (response['data'] as List).first as Map<String, dynamic>;
+    if (response['success'] == true && response['data'] != null) {
+      if (response['data'] is Map) {
+        return Map<String, dynamic>.from(response['data'] as Map);
+      }
+      if (response['data'] is List && (response['data'] as List).isNotEmpty) {
+        final first = (response['data'] as List).first;
+        if (first is Map) {
+          return Map<String, dynamic>.from(first);
         }
       }
-      return null;
     }
+    return null;
   }
+}
 
-  /// 校園資訊端點
+/// 校園資訊端點
 class CampusInfoEndpoint {
   CampusInfoEndpoint(this._client);
 
@@ -483,7 +497,7 @@ class CampusInfoEndpoint {
   }) async {
     final response = await _client.get(
       ApiEndpoints.newsList,
-      queryParameters: {
+      queryParameters: <String, dynamic>{
         if (category != null) 'category': category,
         'page': page,
         'page_size': pageSize,
@@ -491,7 +505,9 @@ class CampusInfoEndpoint {
     );
 
     if (response['success'] == true && response['data'] != null) {
-      return NewsListResponse.fromJson(response['data'] as Map<String, dynamic>);
+      return NewsListResponse.fromJson(
+        Map<String, dynamic>.from(response['data'] as Map),
+      );
     }
     return null;
   }
@@ -502,11 +518,13 @@ class CampusInfoEndpoint {
   }) async {
     final response = await _client.get(
       ApiEndpoints.newsDetail,
-      queryParameters: {'news_id': newsId},
+      queryParameters: <String, dynamic>{'news_id': newsId},
     );
 
     if (response['success'] == true && response['data'] != null) {
-      return NewsDetailResponse.fromJson(response['data'] as Map<String, dynamic>);
+      return NewsDetailResponse.fromJson(
+        Map<String, dynamic>.from(response['data'] as Map),
+      );
     }
     return null;
   }
@@ -516,12 +534,12 @@ class CampusInfoEndpoint {
     final response = await _client.get(ApiEndpoints.poiList);
 
     if (response['success'] == true && response['data'] is List) {
-      final dataList = (response['data'] as List)
-          .map((e) => POI.fromJson(e as Map<String, dynamic>))
+      return (response['data'] as List)
+          .whereType<Map>()
+          .map((e) => POI.fromJson(Map<String, dynamic>.from(e)))
           .toList();
-      return dataList;
     }
-    return [];
+    return <POI>[];
   }
 
   /// 取得圖庫
@@ -529,18 +547,23 @@ class CampusInfoEndpoint {
     final response = await _client.get(ApiEndpoints.gallery);
 
     if (response['success'] == true && response['data'] is List) {
-      final dataList = (response['data'] as List)
-          .map((e) => GalleryItem.fromJson(e as Map<String, dynamic>))
+      return (response['data'] as List)
+          .whereType<Map>()
+          .map((e) => GalleryItem.fromJson(Map<String, dynamic>.from(e)))
           .toList();
-      return dataList;
     }
-    return [];
+    return <GalleryItem>[];
   }
 }
 
 /// IRS 端點
 class IrsEndpoint {
   IrsEndpoint(this._client);
+
+  // 原生 URL_IRS_MQTTSEND 與 URL_IRS_STU_ABNORMAL 對應路徑
+  // 若與校內伺服器實際路徑不同，請於 TBD.md 實測項目確認並同步 ApiEndpoints
+  static const String _irsMqttSendPath = 'mqttSend'; // 對應 strings.xml URL_IRS_MQTTSEND = /appwsv3/mqttSend
+  static const String _irsStuAbnormalPath = '/irs/stu/abnormal';
 
   final KmuClient _client;
   String _currentUserId = '';
@@ -555,40 +578,52 @@ class IrsEndpoint {
     final response = await _client.get(ApiEndpoints.questionnaire);
 
     if (response['success'] == true && response['data'] is List) {
-      final dataList = (response['data'] as List)
-          .map((e) => IrsQuestionnaire.fromJson(e as Map<String, dynamic>))
+      return (response['data'] as List)
+          .whereType<Map>()
+          .map((e) => IrsQuestionnaire.fromJson(Map<String, dynamic>.from(e)))
           .toList();
-      return dataList;
     }
-    return [];
+    return <IrsQuestionnaire>[];
   }
 
   /// 取得 IRS 問卷詳情 (包含題目)
-  Future<IrsQuestionnaireDetail?> getQuestionnaireDetail(String questionnaireId) async {
+  Future<IrsQuestionnaireDetail?> getQuestionnaireDetail(
+    String questionnaireId,
+  ) async {
     final response = await _client.get(
       ApiEndpoints.questionnaire,
-      queryParameters: {'id': questionnaireId, 'detail': 'true'},
+      queryParameters: <String, dynamic>{
+        'id': questionnaireId,
+        'detail': 'true',
+      },
     );
 
-    if (response['success'] == true && response['data'] != null) {
-      return IrsQuestionnaireDetail.fromJson(response['data'] as Map<String, dynamic>);
+    if (response['success'] == true && response['data'] is Map) {
+      return IrsQuestionnaireDetail.fromJson(
+        Map<String, dynamic>.from(response['data'] as Map),
+      );
     }
     return null;
   }
 
-  /// 提交 IRS 答題
-  Future<IrsSubmissionResponse> submitAnswers(IrsSubmissionRequest request) async {
+  /// 提交 IRS 問卷答題
+  Future<IrsSubmissionResponse> submitAnswers(
+    IrsSubmissionRequest request,
+  ) async {
     final response = await _client.post(
       ApiEndpoints.questionnaire,
       data: request.toJson(),
     );
 
     if (response['success'] == true) {
+      final dataMap = response['data'] is Map
+          ? Map<String, dynamic>.from(response['data'] as Map)
+          : null;
       return IrsSubmissionResponse(
         success: true,
         message: response['message']?.toString() ?? '提交成功',
-        submissionId: (response['data'] as Map<String, dynamic>?)?['submissionId']?.toString(),
-        score: ((response['data'] as Map<String, dynamic>?)?['score'] as num?)?.toInt() ?? 0,
+        submissionId: dataMap?['submissionId']?.toString(),
+        score: (dataMap?['score'] as num?)?.toInt() ?? 0,
       );
     }
 
@@ -598,104 +633,308 @@ class IrsEndpoint {
     );
   }
 
-  /// 學生端：取得課程列表
-  Future<List<IrsStudentClass>> getStudentClasses() async {
+  /// IRS 即時答題：取得當前題目 (irs/stu/current_qu)
+  /// 對齊 IRSActivity.java GetIRSCurrentQu：參數為 cono, stuno, teafno
+  Future<Map<String, dynamic>?> getCurrentQuestion({
+    required String classId,
+    required String studentId,
+    required String teacherNo,
+  }) async {
     final response = await _client.post(
-      ApiEndpoints.irsStudentClass,
-      data: {'stuno': _currentUserId},
+      ApiEndpoints.irsStuCurrentQu,
+      data: <String, dynamic>{
+        'cono': classId,
+        'stuno': studentId,
+        'teafno': teacherNo,
+      },
+    );
+
+    if (response['success'] == true && response['data'] is Map) {
+      return Map<String, dynamic>.from(response['data'] as Map);
+    }
+    return null;
+  }
+
+  /// IRS 學生登入 (irs/stu/applogin)
+  /// 對齊 IRSActivity.java SendIRSLoginData：參數為 classid, stuno, teacherno, bt
+  Future<Map<String, dynamic>?> irsStuApplogin({
+    required String classId,
+    required String studentId,
+    required String teacherNo,
+    required String bt,
+  }) async {
+    final response = await _client.post(
+      ApiEndpoints.irsStuApplogin,
+      data: <String, dynamic>{
+        'classid': classId,
+        'stuno': studentId,
+        'teacherno': teacherNo,
+        'bt': bt,
+      },
+    );
+
+    if (response['success'] == true) {
+      final data = response['data'];
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return <String, dynamic>{'success': true};
+    }
+    return null;
+  }
+
+  /// IRS 取得當前狀態 (irs/stu/current)
+  /// 回傳 status, secno, endTime, currentServerTime (及失敗時之 reason)
+  Future<Map<String, dynamic>?> getIRSCurrentData({
+    required String classId,
+    required String studentId,
+    required String teacherNo,
+  }) async {
+    final response = await _client.post(
+      ApiEndpoints.irsCurrent,
+      data: <String, dynamic>{
+        'classid': classId,
+        'stuno': studentId,
+        'teacherno': teacherNo,
+      },
+    );
+
+    final dataMap = response['data'] is Map
+        ? Map<String, dynamic>.from(response['data'] as Map)
+        : <String, dynamic>{};
+
+    return <String, dynamic>{
+      'success': response['success'] == true,
+      'message': response['message']?.toString() ?? '',
+      ...dataMap,
+    };
+  }
+
+  /// IRS 即時答題：透過後端 HTTP POST 轉發 MQTT 訊息 (對應 URL_IRS_MQTTSEND)
+  /// 參數為 topic, msg, quid
+  Future<bool> sendMqttMessage({
+    required String topic,
+    required String msg,
+    required String quid,
+  }) async {
+    final response = await _client.post(
+      _irsMqttSendPath,
+      data: <String, dynamic>{
+        'topic': topic,
+        'msg': msg,
+        'quid': quid,
+      },
+    );
+    return response['success'] == true;
+  }
+
+  /// IRS 學生端異常/逾時/離開回報 (對應 URL_IRS_STU_ABNORMAL)
+  /// status: "1"=作答逾時, "2"=頁面暫停/離開
+  Future<bool> sendAbnormal({
+    required String quid,
+    required String status,
+    required String studentId,
+  }) async {
+    final response = await _client.post(
+      _irsStuAbnormalPath,
+      data: <String, dynamic>{
+        'quid': quid,
+        'status': status,
+        'stuno': studentId,
+      },
+    );
+    return response['success'] == true;
+  }
+
+  /// IRS 即時答題：取得課程下的老師列表 (irs/stu/teacher_class)
+  /// 參數為 classid
+  Future<List<IrsRealtimeTeacher>> getTeacherClasses({
+    required String classId,
+  }) async {
+    IrsDebugLog.log('[IRS_ENDPOINT] getTeacherClasses: classId=$classId');
+    final response = await _client.post(
+      ApiEndpoints.irsCurrentTeacherClass,
+      data: <String, dynamic>{'classid': classId},
+    );
+    IrsDebugLog.log(
+      '[IRS_ENDPOINT] 回傳: success=${response['success']}, data type=${response['data']?.runtimeType}',
     );
 
     if (response['success'] == true && response['data'] is List) {
-      return (response['data'] as List)
-          .map((e) => IrsStudentClass.fromJson(Map<String, dynamic>.from(e)))
+      final list = (response['data'] as List)
+          .whereType<Map>()
+          .map((e) => IrsRealtimeTeacher.fromJson(Map<String, dynamic>.from(e)))
           .toList();
+      IrsDebugLog.log('[IRS_ENDPOINT] 解析 List 完成: ${list.length} 筆');
+      return list;
     }
-    return [];
+    if (response['success'] == true && response['data'] is Map) {
+      final data = Map<String, dynamic>.from(response['data'] as Map);
+      if (data['items'] is List) {
+        final list = (data['items'] as List)
+            .whereType<Map>()
+            .map(
+              (e) => IrsRealtimeTeacher.fromJson(Map<String, dynamic>.from(e)),
+            )
+            .toList();
+        IrsDebugLog.log('[IRS_ENDPOINT] 解析 items 完成: ${list.length} 筆');
+        return list;
+      }
+      if (data.values.isNotEmpty) {
+        final list = data.values
+            .whereType<Map>()
+            .map(
+              (e) => IrsRealtimeTeacher.fromJson(Map<String, dynamic>.from(e)),
+            )
+            .toList();
+        IrsDebugLog.log('[IRS_ENDPOINT] 解析 Map values 完成: ${list.length} 筆');
+        return list;
+      }
+    }
+    IrsDebugLog.log('[IRS_ENDPOINT] 回傳空陣列');
+    return <IrsRealtimeTeacher>[];
   }
 
-  /// 學生端：取得作答記錄
+  /// IRS 即時答題：提交多題連答/填空答案 (irs/stu/paperFill)
+  /// 對齊 IRSActivity.java UploadIRSPaperFillData：answers 為 JSON 字串
+  Future<Map<String, dynamic>?> submitPaperFill({
+    required String classId,
+    required String studentId,
+    required String teacherNo,
+    required String secno,
+    required String username,
+    required Object answers,
+  }) async {
+    final encodedAnswers =
+        answers is String ? answers : jsonEncode(answers);
+    final response = await _client.post(
+      ApiEndpoints.irsPaperFill,
+      data: <String, dynamic>{
+        'classid': classId,
+        'stuno': studentId,
+        'teacherno': teacherNo,
+        'secno': secno,
+        'username': username,
+        'answers': encodedAnswers,
+      },
+    );
+
+    if (response['success'] == true) {
+      return <String, dynamic>{
+        'success': true,
+        'message': response['message']?.toString() ?? '送出成功',
+        'data': response['data'],
+      };
+    }
+    return <String, dynamic>{
+      'success': false,
+      'message': response['message']?.toString() ?? '送出失敗',
+    };
+  }
+
+  /// 學生端：取得課程列表 (含 teacherList)
+  Future<List<IrsStudentClass>> getStudentClasses({
+    required String userId,
+  }) async {
+    final response = await _client.post(
+      '${ApiEndpoints.irsCurrentClass}/$userId',
+      data: <String, dynamic>{'userId': userId},
+    );
+
+    if (response['success'] == true) {
+      final data = response['data'];
+      List<dynamic>? list;
+      if (data is List) {
+        list = data;
+      } else if (data is Map && data['items'] is List) {
+        list = data['items'] as List<dynamic>;
+      }
+      if (list != null) {
+        return list
+            .whereType<Map>()
+            .map((e) => IrsStudentClass.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    }
+    return <IrsStudentClass>[];
+  }
+
+  /// 學生端：取得作答記錄 (irs/stu/qaList)
   Future<List<IrsAnswerRecord>> getAnswerRecords(String courseId) async {
     final response = await _client.post(
       ApiEndpoints.irsStudentQaList,
-      data: {
+      data: <String, dynamic>{
         'stuno': _currentUserId,
         'cono': courseId,
-      },
-    );
-
-    if (response['success'] == true && response['data'] is List) {
-      final data = response['data'];
-      if (data is Map && data['items'] is List) {
-        return (data['items'] as List)
-            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
-      }
-      return (response['data'] as List)
-          .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
-    }
-    return [];
-  }
-
-  /// 學生端：取得提問記錄
-  Future<List<IrsAnswerRecord>> getAskRecords(String courseId) async {
-    final response = await _client.post(
-      ApiEndpoints.irsStudentAskList,
-      data: {
-        'stuno': _currentUserId,
-        'cono': courseId,
-      },
-    );
-
-    if (response['success'] == true && response['data'] is List) {
-      final data = response['data'];
-      if (data is Map && data['items'] is List) {
-        return (data['items'] as List)
-            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
-      }
-      return (response['data'] as List)
-          .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
-    }
-    return [];
-  }
-
-  /// 學生端：取得考試詳情
-  Future<IrsExamDetail?> getExamDetail(String quid) async {
-    final response = await _client.post(
-      ApiEndpoints.irsStudentExamDetail,
-      data: {
-        'stuno': _currentUserId,
-        'quid': quid,
       },
     );
 
     if (response['success'] == true && response['data'] != null) {
       final data = response['data'];
-      Map<String, dynamic> items;
-      if (data is Map && data['items'] is Map) {
-        items = Map<String, dynamic>.from(data['items']);
-      } else {
-        return null;
-      }
-
-      final subQuestionsList = items['subquList'];
-      List<IrsSubQuestion> subQuestions = [];
-      if (subQuestionsList is List<dynamic>) {
-        subQuestions = subQuestionsList
-            .map((e) => IrsSubQuestion.fromJson(Map<String, dynamic>.from(e)))
+      if (data is List) {
+        return data
+            .whereType<Map>()
+            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
             .toList();
       }
+      if (data is Map && data['items'] is List) {
+        return (data['items'] as List)
+            .whereType<Map>()
+            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    }
+    return <IrsAnswerRecord>[];
+  }
 
-      return IrsExamDetail(
-        answerTime: items['ansTime']?.toString() ?? '',
-        teacherName: items['teafNam']?.toString() ?? '',
-        question: items['description']?.toString() ?? '',
-        myScore: (items['myScore'] as num?)?.toInt() ?? 0,
-        totalScore: (items['totalScore'] as num?)?.toInt() ?? 0,
-        subQuestions: subQuestions,
-      );
+  /// 學生端：取得提問記錄 (irs/stu/askList)
+  Future<List<IrsAnswerRecord>> getAskRecords(String courseId) async {
+    final response = await _client.post(
+      ApiEndpoints.irsStudentAskList,
+      data: <String, dynamic>{
+        'stuno': _currentUserId,
+        'cono': courseId,
+      },
+    );
+
+    if (response['success'] == true && response['data'] != null) {
+      final data = response['data'];
+      if (data is List) {
+        return data
+            .whereType<Map>()
+            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+      if (data is Map && data['items'] is List) {
+        return (data['items'] as List)
+            .whereType<Map>()
+            .map((e) => IrsAnswerRecord.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+      }
+    }
+    return <IrsAnswerRecord>[];
+  }
+
+  /// 學生端：取得考試詳情 (irs/stu/examDetail)
+  /// 回應 items 為單一物件，內含 subquList
+  Future<IrsExamDetail?> getExamDetail({
+    required String userId,
+    required String quid,
+  }) async {
+    final response = await _client.post(
+      ApiEndpoints.irsStudentExamDetail,
+      data: <String, dynamic>{
+        'stuno': userId,
+        'quid': quid,
+      },
+    );
+
+    if (response['success'] == true && response['data'] is Map) {
+      final dataMap = Map<String, dynamic>.from(response['data'] as Map);
+      final items = dataMap['items'] is Map
+          ? Map<String, dynamic>.from(dataMap['items'] as Map)
+          : dataMap;
+      return IrsExamDetail.fromJson(items);
     }
     return null;
   }
