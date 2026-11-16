@@ -690,7 +690,7 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                           );
                         }),
                       ] else if (!isExamPaper && record.options != null && record.options!.isNotEmpty) ...[
-                        // 單題：顯示選項與正確答案
+                        // 單題：M3 風格選項卡片
                         Text(
                           '選項',
                           style: theme.textTheme.titleSmall?.copyWith(
@@ -701,54 +701,103 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                         const SizedBox(height: 8),
                         ...record.options!.asMap().entries.map((entry) {
                           final opt = entry.value as Map<String, dynamic>;
+                          final optKey = opt['optKey']?.toString() ?? '';
+                          final optVal = opt['optVal']?.toString() ?? '';
                           final bool optCorrect = opt['correct'] as bool? ?? false;
-                          final bool isSelected = record.myAnswer == (opt['optKey']?.toString() ?? '');
-                          final bool recordCorrect = record.correct ?? false;
-                          final isCorrect = optCorrect || (recordCorrect && isSelected);
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                              left: 16,
-                              bottom: 6,
+                          final bool isSelected = record.myAnswer == optKey;
+
+                          // M3: 決定選項狀態與樣式
+                          Color bgColor;
+                          Color borderColor;
+                          Widget? statusChip;
+
+                          if (optCorrect) {
+                            // 正確答案（無論是否被選中）
+                            bgColor = colorScheme.tertiaryContainer;
+                            borderColor = colorScheme.tertiary;
+                            statusChip = Chip(
+                              label: Text(isSelected ? '答對' : '正確答案',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onTertiaryContainer,
+                                  )),
+                              backgroundColor: colorScheme.tertiaryContainer,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            );
+                          } else if (isSelected) {
+                            // 我選的但錯誤
+                            bgColor = colorScheme.errorContainer;
+                            borderColor = colorScheme.error;
+                            statusChip = Chip(
+                              label: Text('答錯',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onErrorContainer,
+                                  )),
+                              backgroundColor: colorScheme.errorContainer,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            );
+                          } else {
+                            // 普通未選選項
+                            bgColor = colorScheme.surfaceContainerLowest;
+                            borderColor = colorScheme.outlineVariant;
+                            statusChip = null;
+                          }
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            color: bgColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: borderColor, width: 1.5),
                             ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: isCorrect
-                                        ? colorScheme.primary
-                                        : (isSelected
-                                            ? Colors.orange
-                                            : Colors.transparent),
-                                    border: Border.all(
-                                      color: colorScheme.outlineVariant,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Row(
+                                children: [
+                                  // 選項標記圓圈
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: optCorrect || isSelected
+                                          ? borderColor
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                        color: borderColor,
+                                        width: 2,
+                                      ),
+                                      shape: BoxShape.circle,
                                     ),
-                                    shape: BoxShape.circle,
+                                    child: (optCorrect || isSelected)
+                                        ? Icon(
+                                            optCorrect ? Icons.check : Icons.close,
+                                            size: 14,
+                                            color: optCorrect
+                                                ? colorScheme.onTertiaryContainer
+                                                : colorScheme.onErrorContainer,
+                                          )
+                                        : null,
                                   ),
-                                  child: isCorrect || isSelected
-                                      ? Icon(
-                                          isCorrect ? Icons.check : Icons.close,
-                                          size: 12,
-                                          color: Colors.white,
-                                        )
-                                      : null,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    '${opt['optKey'] ?? ''}. ${opt['optVal'] ?? ''}',
-                                    style: theme.textTheme.bodySmall,
-                                    softWrap: true,
+                                  const SizedBox(width: 12),
+                                  // 選項文字
+                                  Expanded(
+                                    child: Text(
+                                      '$optKey. $optVal',
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurface,
+                                      ),
+                                      softWrap: true,
+                                    ),
                                   ),
-                                ),
-                                if (isCorrect)
-                                  Icon(
-                                    Icons.check_circle,
-                                    size: 16,
-                                    color: Colors.green.shade700,
-                                  ),
-                              ],
+                                  // 狀態 Chip
+                                  if (statusChip != null) statusChip,
+                                ],
+                              ),
                             ),
                           );
                         }),
