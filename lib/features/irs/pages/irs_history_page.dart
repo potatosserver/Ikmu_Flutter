@@ -445,37 +445,40 @@ class _InfoChip extends StatelessWidget {
 
 /// 歷史記錄詳情對話框 (M3 風格，對應原版 show99View / IRSRecordActivity.GetExamData)
 /// - questionType == "99" (試卷): 顯示 examDetail.subQuestions (subquList)
-/// - 單題 ("1"/"2"/"3"/"4"): 顯示該筆記錄的選項與分數
-/// 設計參考: M3 Dialog/Sheet 規格，動態色彩、語意容器、緊湊佈局
+// - 單題 ("1"/"2"/"3"/"4"): 顯示該筆記錄的選項與分數
 void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord record) {
   final theme = Theme.of(context);
   final colorScheme = theme.colorScheme;
   final examDetail = state.examDetail;
   final isExamPaper = record.isExamPaper;
-  final isCorrect = record.correct == true;
-  final bool hasScore = record.totalScore > 0;
 
   showDialog(
     context: context,
     builder: (context) {
       return Dialog(
-        // M3: 標準對話框最大寬度 560dp，平板上收斂至 560-640dp
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28), // M3 Extra Large 圓角
+          borderRadius: BorderRadius.circular(16),
         ),
-        backgroundColor: colorScheme.surfaceContainerHigh, // M3 Surface 層級
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600), // M3 建議最大寬度
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.92,
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header: 標題 + 狀態 Chip + 關閉按鈕
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
+              // 標題列
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
@@ -487,7 +490,7 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                                 : (record.courseId?.isNotEmpty == true
                                     ? record.courseId!
                                     : 'IRS 作答記錄'),
-                            style: theme.textTheme.headlineSmall?.copyWith(
+                            style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: colorScheme.onSurface,
                             ),
@@ -497,119 +500,115 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                           const SizedBox(height: 4),
                           Text(
                             record.answerTime ?? record.askTime ?? '',
-                            style: theme.textTheme.bodyMedium?.copyWith(
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    // 狀態 Chip (如: 不計分 / 練習題)
-                    if (!hasScore)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '不計分',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSecondaryContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    else
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isCorrect
-                              ? colorScheme.tertiaryContainer
-                              : (record.correct == false
-                                  ? colorScheme.errorContainer
-                                  : colorScheme.primaryContainer),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              isCorrect
-                                  ? Icons.check_circle
-                                  : (record.correct == false ? Icons.cancel : Icons.help_outline),
-                              size: 14,
-                              color: isCorrect
-                                  ? colorScheme.onTertiaryContainer
-                                  : (record.correct == false
-                                      ? colorScheme.onErrorContainer
-                                      : colorScheme.onPrimaryContainer),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              isCorrect
-                                  ? '答對'
-                                  : (record.correct == false ? '答錯' : '${record.myScore}/${record.totalScore}'),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: isCorrect
-                                    ? colorScheme.onTertiaryContainer
-                                    : (record.correct == false
-                                        ? colorScheme.onErrorContainer
-                                        : colorScheme.onPrimaryContainer),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.close),
                       iconSize: 20,
                       constraints: const BoxConstraints(),
                       padding: EdgeInsets.zero,
                       onPressed: () => Navigator.pop(context),
-                      tooltip: '關閉',
                     ),
                   ],
                 ),
               ),
 
               // 內容區
-              SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                      // 題目卡片 (M3 Surface Container Lowest / 白底)
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 得分
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer
+                                  .withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${record.myScore}/${record.totalScore} 分',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 題目
+                      Text(
+                        '題目',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(16), // M3 Large 圓角
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                            color: colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
                           ),
                         ),
                         child: Text(
                           record.title ?? record.description ?? '',
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             height: 1.5,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 18, // M3 Title Medium
                           ),
                           softWrap: true,
                         ),
                       ),
                       const SizedBox(height: 16),
 
-                      // 單題模式：選項列表
-                      if (!isExamPaper && record.options != null && record.options!.isNotEmpty)
-                        _buildOptionsListM3(context, theme, colorScheme, record),
+                      // 我的答案 / 正確性
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.person,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '我的答案：${record.myAnswer?.isEmpty == true ? '未作答' : record.myAnswer ?? ''} ${record.correct == true ? '✅ 答對' : (record.correct == false ? '❌ 答錯' : '')}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: record.correct == true
+                                    ? Colors.green.shade700
+                                    : (record.correct == false
+                                        ? Colors.red.shade700
+                                        : theme.colorScheme.onSurfaceVariant),
+                                fontWeight: FontWeight.w500,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
 
-                      // 試卷模式：子題列表
+                      // 試卷子題列表 (questionType == 99)
                       if (isExamPaper && examDetail != null && examDetail.subQuestions.isNotEmpty) ...[
                         Text(
                           '試卷詳情 (共 ${examDetail.subQuestions.length} 小題)',
@@ -622,92 +621,194 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
                         ...examDetail.subQuestions.asMap().entries.map((entry) {
                           final index = entry.key;
                           final sub = entry.value;
-                          return _buildSubQuestionCardM3(context, theme, colorScheme, index, sub);
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${index + 1}. ${sub.description}',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (sub.imgPath != null && sub.imgPath!.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        // TODO: 圖片預覽
+                                      },
+                                      icon: const Icon(Icons.image, size: 18),
+                                      label: const Text('查看子題圖片'),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 8),
+                                  _buildSubQuestionDetail(theme, sub),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                      ] else if (!isExamPaper && record.options != null && record.options!.isNotEmpty) ...[
+                        // 單題：顯示選項與正確答案
+                        Text(
+                          '選項',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...record.options!.asMap().entries.map((entry) {
+                          final opt = entry.value as Map<String, dynamic>;
+                          final bool optCorrect = opt['correct'] as bool? ?? false;
+                          final bool isSelected = record.myAnswer == (opt['optKey']?.toString() ?? '');
+                          final bool recordCorrect = record.correct ?? false;
+                          final isCorrect = optCorrect || (recordCorrect && isSelected);
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              bottom: 6,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: isCorrect
+                                        ? colorScheme.primary
+                                        : (isSelected
+                                            ? Colors.orange
+                                            : Colors.transparent),
+                                    border: Border.all(
+                                      color: colorScheme.outlineVariant,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: isCorrect || isSelected
+                                      ? Icon(
+                                          isCorrect ? Icons.check : Icons.close,
+                                          size: 12,
+                                          color: Colors.white,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    '${opt['optKey'] ?? ''}. ${opt['optVal'] ?? ''}',
+                                    style: theme.textTheme.bodySmall,
+                                    softWrap: true,
+                                  ),
+                                ),
+                                if (isCorrect)
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: 16,
+                                    color: Colors.green.shade700,
+                                  ),
+                              ],
+                            ),
+                          );
                         }),
                       ],
 
                       const SizedBox(height: 16),
 
                       // 標準答案
-                      if (record.stdAnswer?.isNotEmpty == true)
-                        _buildInfoRow(
-                          context: context,
-                          icon: Icons.verified,
-                          iconColor: Colors.blue,
-                          text: '標準答案：${record.stdAnswer}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.blue.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      if (record.stdAnswer?.isNotEmpty == true) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.verified,
+                              size: 16,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '標準答案：${record.stdAnswer}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.blue.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                softWrap: true,
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // 分數說明
-                      if (record.scoreDesc?.isNotEmpty == true)
-                        _buildInfoRow(
-                          context: context,
-                          icon: Icons.info_outline,
-                          iconColor: Colors.grey,
-                          text: record.scoreDesc!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                      if (record.scoreDesc?.isNotEmpty == true) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                record.scoreDesc!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                softWrap: true,
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // 圖片
-                      if (record.imgPath?.isNotEmpty == true)
-                        _buildInfoRow(
-                          context: context,
-                          icon: Icons.image_outlined,
-                          iconColor: Colors.grey,
-                          text: '含圖片：${record.imgPath}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-
-                      // 底部操作列: 時間資訊 + 關閉按鈕
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // 作答時間/進度
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.timer_outlined,
-                                size: 16,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                record.answerTime?.isNotEmpty == true
-                                    ? '作答時間：${record.answerTime}'
-                                    : '耗時：${record.ansTime ?? record.askTime ?? '--'}',
+                      if (record.imgPath?.isNotEmpty == true) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.image_outlined,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '含圖片：${record.imgPath}',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                            ],
-                          ),
-                          // M3 Filled Tonal Button (膠囊狀)
-                          FilledButton.tonal(
-                            onPressed: () => Navigator.pop(context),
-                            style: FilledButton.styleFrom(
-                              shape: const StadiumBorder(), // 全圓角膠囊
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              minimumSize: const Size(88, 44),
                             ),
-                            child: Text(
-                              '關閉',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ],
                   ),
                 ),
+              ),
+
+              // 底部按鈕
+              Container(
+                padding: const EdgeInsets.all(16),
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    '關閉',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -716,257 +817,38 @@ void _showExamDetailDialog(BuildContext context, IrsState state, IrsAnswerRecord
   );
 }
 
-/// 建立 M3 風格的選項列表 (單題模式)
-Widget _buildOptionsListM3(
-  BuildContext context,
-  ThemeData theme,
-  ColorScheme colorScheme,
-  IrsAnswerRecord record,
-) {
-  final options = record.options!;
-  final userAnswer = record.myAnswer ?? '';
-  final isCorrect = record.correct == true;
-
-  return Column(
-    children: options.asMap().entries.map((entry) {
-      final opt = entry.value;
-      final optKey = opt['optKey']?.toString() ?? '';
-      final optVal = opt['optVal']?.toString() ?? '';
-      final optCorrect = opt['correct'] as bool? ?? false;
-      final isSelected = userAnswer == optKey;
-      final isThisCorrect = optCorrect;
-      final shouldHighlight = isSelected && isCorrect;
-
-      return Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          // 答對且為用戶選擇：使用 Tonal Container (語意綠)
-          color: shouldHighlight
-              ? colorScheme.tertiaryContainer.withValues(alpha: 0.8)
-              : colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(12), // M3 Medium 圓角
-          border: Border.all(
-            color: shouldHighlight
-                ? colorScheme.tertiary
-                : (isSelected && !isThisCorrect
-                    ? colorScheme.error
-                    : colorScheme.outlineVariant.withValues(alpha: 0.5)),
-            width: shouldHighlight || isSelected ? 2 : 1,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              // M3 Radio Button 風格指示器
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: shouldHighlight
-                      ? colorScheme.tertiary
-                      : (isSelected
-                          ? colorScheme.primary
-                          : Colors.transparent),
-                  border: Border.all(
-                    color: shouldHighlight
-                        ? colorScheme.tertiary
-                        : (isSelected
-                            ? colorScheme.primary
-                            : colorScheme.outlineVariant),
-                    width: 2,
-                  ),
-                ),
-                child: shouldHighlight || isSelected
-                    ? Icon(
-                        shouldHighlight ? Icons.check : Icons.radio_button_checked,
-                        size: 16,
-                        color: shouldHighlight
-                            ? colorScheme.onTertiary
-                            : colorScheme.onPrimary,
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              // 選項文字
-              Expanded(
-                child: Text(
-                  '$optKey. $optVal',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: shouldHighlight
-                        ? colorScheme.onTertiaryContainer
-                        : colorScheme.onSurface,
-                    fontWeight: shouldHighlight ? FontWeight.w600 : FontWeight.w400,
-                    height: 1.4,
-                  ),
-                  softWrap: true,
-                ),
-              ),
-              // 狀態標籤
-              if (shouldHighlight) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: colorScheme.tertiary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '答對',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onTertiary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ] else if (isSelected && !isThisCorrect) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '答錯',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onErrorContainer,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ] else if (isThisCorrect && !isSelected) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '正確答案',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      );
-    }).toList(),
-  );
-}
-
-/// 建立 M3 風格的試卷子題卡片
-Widget _buildSubQuestionCardM3(
-  BuildContext context,
-  ThemeData theme,
-  ColorScheme colorScheme,
-  int index,
-  IrsSubQuestion sub,
-) {
-  return Card(
-    margin: const EdgeInsets.only(bottom: 12),
-    elevation: 0,
-    color: colorScheme.surfaceContainerLowest,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-      side: BorderSide(
-        color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-      ),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 子題標題
-          Text(
-            '${index + 1}. ${sub.description}',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-            ),
-          ),
-          if (sub.imgPath != null && sub.imgPath!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () {
-                // TODO: 圖片預覽
-              },
-              icon: const Icon(Icons.image, size: 18),
-              label: const Text('查看子題圖片'),
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          _buildSubQuestionDetailM3(theme, colorScheme, sub),
-        ],
-      ),
-    ),
-  );
-}
-
-/// M3 風格的子題詳情渲染 (單選/多選/填空)
-Widget _buildSubQuestionDetailM3(ThemeData theme, ColorScheme colorScheme, IrsSubQuestion sub) {
+Widget _buildSubQuestionDetail(ThemeData theme, IrsSubQuestion sub) {
   switch (sub.questionType) {
     case 2: // 單選
-      if (sub.optionList != null && sub.optionList!.isNotEmpty) {
+      if (sub.optionList is List && sub.optionList!.isNotEmpty) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: sub.optionList!.map<Widget>((opt) {
             final isSelected = sub.myAnswer == opt.optKey;
             final isCorrect = opt.correct;
-            final shouldHighlight = isSelected && isCorrect;
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: shouldHighlight
-                    ? colorScheme.tertiaryContainer.withValues(alpha: 0.6)
-                    : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: shouldHighlight
-                      ? colorScheme.tertiary.withValues(alpha: 0.5)
-                      : colorScheme.outlineVariant.withValues(alpha: 0.3),
-                ),
-              ),
+            return Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 6),
               child: Row(
                 children: [
                   Container(
                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: shouldHighlight
-                          ? colorScheme.tertiary
+                      color: isCorrect
+                          ? theme.colorScheme.primary
                           : (isSelected
-                              ? colorScheme.primary
+                              ? Colors.orange
                               : Colors.transparent),
                       border: Border.all(
-                        color: shouldHighlight
-                            ? colorScheme.tertiary
-                            : (isSelected
-                                ? colorScheme.primary
-                                : colorScheme.outlineVariant),
-                        width: 2,
+                        color: theme.colorScheme.outlineVariant,
                       ),
+                      shape: BoxShape.circle,
                     ),
-                    child: shouldHighlight || isSelected
+                    child: isCorrect || isSelected
                         ? Icon(
-                            shouldHighlight ? Icons.check : Icons.radio_button_checked,
+                            isCorrect ? Icons.check : Icons.close,
                             size: 12,
-                            color: shouldHighlight
-                                ? colorScheme.onTertiary
-                                : colorScheme.onPrimary,
+                            color: Colors.white,
                           )
                         : null,
                   ),
@@ -974,44 +856,15 @@ Widget _buildSubQuestionDetailM3(ThemeData theme, ColorScheme colorScheme, IrsSu
                   Expanded(
                     child: Text(
                       '${opt.optKey}. ${opt.optVal}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: shouldHighlight
-                            ? colorScheme.onTertiaryContainer
-                            : colorScheme.onSurface,
-                        fontWeight: shouldHighlight ? FontWeight.w600 : FontWeight.w400,
-                      ),
+                      style: theme.textTheme.bodySmall,
                       softWrap: true,
                     ),
                   ),
-                  if (shouldHighlight)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: colorScheme.tertiary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '答對',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onTertiary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    )
-                  else if (isCorrect && !isSelected)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '正確答案',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSecondaryContainer,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  if (isCorrect)
+                    Icon(
+                      Icons.check_circle,
+                      size: 16,
+                      color: Colors.green.shade700,
                     ),
                 ],
               ),
@@ -1020,9 +873,8 @@ Widget _buildSubQuestionDetailM3(ThemeData theme, ColorScheme colorScheme, IrsSu
         );
       }
       return const SizedBox.shrink();
-
     case 3: // 多選
-      if (sub.optionList != null && sub.optionList!.isNotEmpty) {
+      if (sub.optionList is List && sub.optionList!.isNotEmpty) {
         final myAnswers = sub.myAnswer?.split('_') ?? <String>[];
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1030,46 +882,29 @@ Widget _buildSubQuestionDetailM3(ThemeData theme, ColorScheme colorScheme, IrsSu
             final key = opt.optKey;
             final isSelected = myAnswers.contains(key);
             final isCorrect = opt.correct;
-            final shouldHighlight = isSelected && isCorrect;
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: shouldHighlight
-                    ? colorScheme.tertiaryContainer.withValues(alpha: 0.6)
-                    : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: shouldHighlight
-                      ? colorScheme.tertiary.withValues(alpha: 0.5)
-                      : (isSelected ? colorScheme.primary.withValues(alpha: 0.5) : colorScheme.outlineVariant.withValues(alpha: 0.3)),
-                ),
-              ),
+            return Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 6),
               child: Row(
                 children: [
                   Container(
                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: shouldHighlight
-                          ? colorScheme.tertiary
-                          : (isSelected ? colorScheme.primary : Colors.transparent),
+                      color: isCorrect
+                          ? theme.colorScheme.primary
+                          : (isSelected
+                              ? Colors.orange
+                              : Colors.transparent),
                       border: Border.all(
-                        color: shouldHighlight
-                            ? colorScheme.tertiary
-                            : (isSelected ? colorScheme.primary : colorScheme.outlineVariant),
-                        width: 2,
+                        color: theme.colorScheme.outlineVariant,
                       ),
+                      shape: BoxShape.circle,
                     ),
-                    child: (shouldHighlight || isSelected)
+                    child: isCorrect || isSelected
                         ? Icon(
-                            shouldHighlight ? Icons.check : Icons.check_box,
+                            isCorrect ? Icons.check : Icons.close,
                             size: 12,
-                            color: shouldHighlight
-                                ? colorScheme.onTertiary
-                                : colorScheme.onPrimary,
+                            color: Colors.white,
                           )
                         : null,
                   ),
@@ -1077,44 +912,15 @@ Widget _buildSubQuestionDetailM3(ThemeData theme, ColorScheme colorScheme, IrsSu
                   Expanded(
                     child: Text(
                       '$key. ${opt.optVal}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: shouldHighlight
-                            ? colorScheme.onTertiaryContainer
-                            : colorScheme.onSurface,
-                        fontWeight: shouldHighlight ? FontWeight.w600 : FontWeight.w400,
-                      ),
+                      style: theme.textTheme.bodySmall,
                       softWrap: true,
                     ),
                   ),
-                  if (shouldHighlight)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: colorScheme.tertiary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '答對',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onTertiary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    )
-                  else if (isCorrect && !isSelected)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '正確答案',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSecondaryContainer,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  if (isCorrect)
+                    Icon(
+                      Icons.check_circle,
+                      size: 16,
+                      color: Colors.green.shade700,
                     ),
                 ],
               ),
@@ -1123,65 +929,29 @@ Widget _buildSubQuestionDetailM3(ThemeData theme, ColorScheme colorScheme, IrsSu
         );
       }
       return const SizedBox.shrink();
-
     case 4: // 填空
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '我的填空：${sub.myAnswer?.isEmpty == true ? '未作答' : sub.myAnswer}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (sub.stdAnswer?.isNotEmpty == true) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    '標準答案：${sub.stdAnswer}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.blue.shade700,
-                    ),
-                  ),
-                ],
-              ],
+          Text(
+            '我的填空：${sub.myAnswer?.isEmpty == true ? '未作答' : sub.myAnswer}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
             ),
           ),
+          if (sub.stdAnswer?.isNotEmpty == true) ...[
+            const SizedBox(height: 4),
+            Text(
+              '標準答案：${sub.stdAnswer}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.blue.shade700,
+              ),
+            ),
+          ],
         ],
       );
-
     default:
       return const SizedBox.shrink();
   }
-}
-
-/// 資訊列 (圖示 + 文字)
-Widget _buildInfoRow({
-  required BuildContext context,
-  required IconData icon,
-  required Color iconColor,
-  required String text,
-  required TextStyle? style,
-}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Icon(icon, size: 16, color: iconColor),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Text(text, style: style, softWrap: true),
-      ),
-    ],
-  );
 }
