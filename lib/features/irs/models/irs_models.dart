@@ -56,8 +56,11 @@ List<IrsSubOption>? _parseSubOptionList(Object? raw) {
   return null;
 }
 
-/// 自訂 JSON key 解析器：將任意值安全轉 String
+/// 自訂 JSON key 解析器：將任意值安全轉 String (nullable)
 String? _parseStringKey(Object? value) => _asString(value);
+
+/// 自訂 JSON key 解析器：將任意值安全轉 String (非 nullable，空字串作為預設)
+String _parseStringKeyOrEmpty(Object? value) => _asString(value) ?? '';
 
 /// 自訂 JSON key 解析器：將任意值安全轉 int
 int _parseIntKey(Object? value) => _asInt(value);
@@ -310,7 +313,7 @@ abstract class IrsExamDetail with _$IrsExamDetail {
     @JsonKey(name: 'totalScore') required int totalScore,
     @JsonKey(name: 'myScore') required int myScore,
     @JsonKey(name: 'hideAns') @Default(false) bool hideAns,
-    @JsonKey(name: 'subquList') required List<IrsSubQuestion> subquList,
+    @JsonKey(name: 'subquList') @Default([]) List<IrsSubQuestion> subquList,
   }) = _IrsExamDetail;
 
   factory IrsExamDetail.fromJson(Map<String, dynamic> json) =>
@@ -332,8 +335,8 @@ abstract class IrsSubQuestion with _$IrsSubQuestion {
 
   const factory IrsSubQuestion({
     @JsonKey(name: 'questionId') String? questionId,
-    @JsonKey(name: 'questionType') required int questionType,
-    @JsonKey(name: 'description') required String description,
+    @JsonKey(name: 'questionType', fromJson: _parseIntKey) @Default(2) int questionType,
+    @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty) @Default('') String description,
     @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
     @JsonKey(name: 'stdAnswer') String? stdAnswer,
     @JsonKey(name: 'myAnswer') String? myAnswer,

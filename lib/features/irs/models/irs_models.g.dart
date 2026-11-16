@@ -252,9 +252,10 @@ _$IrsExamDetailImpl _$$IrsExamDetailImplFromJson(Map<String, dynamic> json) =>
       totalScore: (json['totalScore'] as num).toInt(),
       myScore: (json['myScore'] as num).toInt(),
       hideAns: json['hideAns'] as bool? ?? false,
-      subquList: (json['subquList'] as List<dynamic>)
-          .map((e) => IrsSubQuestion.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      subquList: (json['subquList'] as List<dynamic>?)
+              ?.map((e) => IrsSubQuestion.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$IrsExamDetailImplToJson(_$IrsExamDetailImpl instance) =>
@@ -273,8 +274,11 @@ Map<String, dynamic> _$$IrsExamDetailImplToJson(_$IrsExamDetailImpl instance) =>
 _$IrsSubQuestionImpl _$$IrsSubQuestionImplFromJson(Map<String, dynamic> json) =>
     _$IrsSubQuestionImpl(
       questionId: json['questionId'] as String?,
-      questionType: (json['questionType'] as num).toInt(),
-      description: json['description'] as String,
+      questionType:
+          json['questionType'] == null ? 2 : _parseIntKey(json['questionType']),
+      description: json['description'] == null
+          ? ''
+          : _parseStringKeyOrEmpty(json['description']),
       optionList: (json['optionList'] as List<dynamic>?)
           ?.map((e) => IrsSubOption.fromJson(e as Map<String, dynamic>))
           .toList(),

@@ -3467,7 +3467,7 @@ class _$IrsExamDetailImpl extends _IrsExamDetail {
       @JsonKey(name: 'myScore') required this.myScore,
       @JsonKey(name: 'hideAns') this.hideAns = false,
       @JsonKey(name: 'subquList')
-      required final List<IrsSubQuestion> subquList})
+      final List<IrsSubQuestion> subquList = const []})
       : _subquList = subquList,
         super._();
 
@@ -3563,16 +3563,16 @@ class _$IrsExamDetailImpl extends _IrsExamDetail {
 
 abstract class _IrsExamDetail extends IrsExamDetail {
   const factory _IrsExamDetail(
-      {@JsonKey(name: 'description') required final String description,
-      @JsonKey(name: 'teacherno') required final String teacherno,
-      @JsonKey(name: 'teafNam') required final String teafNam,
-      @JsonKey(name: 'teafEnam') final String? teafEnam,
-      @JsonKey(name: 'ansTime') required final String ansTime,
-      @JsonKey(name: 'totalScore') required final int totalScore,
-      @JsonKey(name: 'myScore') required final int myScore,
-      @JsonKey(name: 'hideAns') final bool hideAns,
-      @JsonKey(name: 'subquList')
-      required final List<IrsSubQuestion> subquList}) = _$IrsExamDetailImpl;
+          {@JsonKey(name: 'description') required final String description,
+          @JsonKey(name: 'teacherno') required final String teacherno,
+          @JsonKey(name: 'teafNam') required final String teafNam,
+          @JsonKey(name: 'teafEnam') final String? teafEnam,
+          @JsonKey(name: 'ansTime') required final String ansTime,
+          @JsonKey(name: 'totalScore') required final int totalScore,
+          @JsonKey(name: 'myScore') required final int myScore,
+          @JsonKey(name: 'hideAns') final bool hideAns,
+          @JsonKey(name: 'subquList') final List<IrsSubQuestion> subquList}) =
+      _$IrsExamDetailImpl;
   const _IrsExamDetail._() : super._();
 
   factory _IrsExamDetail.fromJson(Map<String, dynamic> json) =
@@ -3619,9 +3619,9 @@ IrsSubQuestion _$IrsSubQuestionFromJson(Map<String, dynamic> json) {
 mixin _$IrsSubQuestion {
   @JsonKey(name: 'questionId')
   String? get questionId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'questionType')
+  @JsonKey(name: 'questionType', fromJson: _parseIntKey)
   int get questionType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'description')
+  @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty)
   String get description => throw _privateConstructorUsedError;
   @JsonKey(name: 'optionList')
   List<IrsSubOption>? get optionList => throw _privateConstructorUsedError;
@@ -3654,8 +3654,9 @@ abstract class $IrsSubQuestionCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: 'questionId') String? questionId,
-      @JsonKey(name: 'questionType') int questionType,
-      @JsonKey(name: 'description') String description,
+      @JsonKey(name: 'questionType', fromJson: _parseIntKey) int questionType,
+      @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty)
+      String description,
       @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
       @JsonKey(name: 'stdAnswer') String? stdAnswer,
       @JsonKey(name: 'myAnswer') String? myAnswer,
@@ -3750,8 +3751,9 @@ abstract class _$$IrsSubQuestionImplCopyWith<$Res>
   @useResult
   $Res call(
       {@JsonKey(name: 'questionId') String? questionId,
-      @JsonKey(name: 'questionType') int questionType,
-      @JsonKey(name: 'description') String description,
+      @JsonKey(name: 'questionType', fromJson: _parseIntKey) int questionType,
+      @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty)
+      String description,
       @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
       @JsonKey(name: 'stdAnswer') String? stdAnswer,
       @JsonKey(name: 'myAnswer') String? myAnswer,
@@ -3839,8 +3841,10 @@ class __$$IrsSubQuestionImplCopyWithImpl<$Res>
 class _$IrsSubQuestionImpl extends _IrsSubQuestion {
   const _$IrsSubQuestionImpl(
       {@JsonKey(name: 'questionId') this.questionId,
-      @JsonKey(name: 'questionType') required this.questionType,
-      @JsonKey(name: 'description') required this.description,
+      @JsonKey(name: 'questionType', fromJson: _parseIntKey)
+      this.questionType = 2,
+      @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty)
+      this.description = '',
       @JsonKey(name: 'optionList') final List<IrsSubOption>? optionList,
       @JsonKey(name: 'stdAnswer') this.stdAnswer,
       @JsonKey(name: 'myAnswer') this.myAnswer,
@@ -3859,10 +3863,10 @@ class _$IrsSubQuestionImpl extends _IrsSubQuestion {
   @JsonKey(name: 'questionId')
   final String? questionId;
   @override
-  @JsonKey(name: 'questionType')
+  @JsonKey(name: 'questionType', fromJson: _parseIntKey)
   final int questionType;
   @override
-  @JsonKey(name: 'description')
+  @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty)
   final String description;
   final List<IrsSubOption>? _optionList;
   @override
@@ -3961,8 +3965,10 @@ class _$IrsSubQuestionImpl extends _IrsSubQuestion {
 abstract class _IrsSubQuestion extends IrsSubQuestion {
   const factory _IrsSubQuestion(
       {@JsonKey(name: 'questionId') final String? questionId,
-      @JsonKey(name: 'questionType') required final int questionType,
-      @JsonKey(name: 'description') required final String description,
+      @JsonKey(name: 'questionType', fromJson: _parseIntKey)
+      final int questionType,
+      @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty)
+      final String description,
       @JsonKey(name: 'optionList') final List<IrsSubOption>? optionList,
       @JsonKey(name: 'stdAnswer') final String? stdAnswer,
       @JsonKey(name: 'myAnswer') final String? myAnswer,
@@ -3980,10 +3986,10 @@ abstract class _IrsSubQuestion extends IrsSubQuestion {
   @JsonKey(name: 'questionId')
   String? get questionId;
   @override
-  @JsonKey(name: 'questionType')
+  @JsonKey(name: 'questionType', fromJson: _parseIntKey)
   int get questionType;
   @override
-  @JsonKey(name: 'description')
+  @JsonKey(name: 'description', fromJson: _parseStringKeyOrEmpty)
   String get description;
   @override
   @JsonKey(name: 'optionList')
