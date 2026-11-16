@@ -190,30 +190,29 @@ Map<String, dynamic> _$$IrsStudentClassImplToJson(
 _$IrsAnswerRecordImpl _$$IrsAnswerRecordImplFromJson(
         Map<String, dynamic> json) =>
     _$IrsAnswerRecordImpl(
-      myScore: (json['myScore'] as num?)?.toInt() ?? 0,
-      totalScore: (json['totalScore'] as num?)?.toInt() ?? 0,
-      questionId: json['questionId'] as String?,
-      cono: json['cono'] as String?,
-      courseName: json['courseName'] as String?,
-      questionType: json['questionType'] as String?,
-      description: json['description'] as String?,
-      ansTime: json['ansTime'] as String?,
-      teafNam: json['teafNam'] as String?,
-      teafEnam: json['teafEnam'] as String?,
-      imgPath: json['imgPath'] as String?,
-      stdAnswer: json['stdAnswer'] as String?,
-      myAnswer: json['myAnswer'] as String?,
-      correct: json['correct'] as bool?,
-      hideAns: json['hideAns'] as bool?,
-      scoreDesc: json['scoreDesc'] as String?,
-      optionList: (json['optionList'] as List<dynamic>?)
-          ?.map((e) => IrsSubOption.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      pid: json['pid'] as String?,
-      askTime: json['askTime'] as String?,
-      askDesc: json['askDesc'] as String?,
-      replyContent: json['replyContent'] as String?,
-      replied: json['replied'] as bool?,
+      myScore: json['myScore'] == null ? 0 : _parseIntKey(json['myScore']),
+      totalScore:
+          json['totalScore'] == null ? 0 : _parseIntKey(json['totalScore']),
+      questionId: _parseStringKey(json['questionId']),
+      cono: _parseStringKey(json['cono']),
+      courseName: _parseStringKey(json['courseName']),
+      questionType: _parseStringKey(json['questionType']),
+      description: _parseStringKey(json['description']),
+      ansTime: _parseStringKey(json['ansTime']),
+      teafNam: _parseStringKey(json['teafNam']),
+      teafEnam: _parseStringKey(json['teafEnam']),
+      imgPath: _parseStringKey(json['imgPath']),
+      stdAnswer: _parseStringKey(json['stdAnswer']),
+      myAnswer: _parseStringKey(json['myAnswer']),
+      correct: _parseBoolKey(json['correct']),
+      hideAns: _parseBoolKey(json['hideAns']),
+      scoreDesc: _parseStringKey(json['scoreDesc']),
+      optionList: _parseSubOptionList(json['optionList']),
+      pid: _parseStringKey(json['pid']),
+      askTime: _parseStringKey(json['askTime']),
+      askDesc: _parseStringKey(json['askDesc']),
+      replyContent: _parseStringKey(json['replyContent']),
+      replied: _parseBoolKey(json['replied']),
     );
 
 Map<String, dynamic> _$$IrsAnswerRecordImplToJson(

@@ -2559,48 +2559,50 @@ IrsAnswerRecord _$IrsAnswerRecordFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$IrsAnswerRecord {
+  @JsonKey(name: 'myScore', fromJson: _parseIntKey)
   int get myScore => throw _privateConstructorUsedError;
+  @JsonKey(name: 'totalScore', fromJson: _parseIntKey)
   int get totalScore => throw _privateConstructorUsedError;
-  @JsonKey(name: 'questionId')
+  @JsonKey(name: 'questionId', fromJson: _parseStringKey)
   String? get questionId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'cono')
+  @JsonKey(name: 'cono', fromJson: _parseStringKey)
   String? get cono => throw _privateConstructorUsedError;
-  @JsonKey(name: 'courseName')
+  @JsonKey(name: 'courseName', fromJson: _parseStringKey)
   String? get courseName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'questionType')
+  @JsonKey(name: 'questionType', fromJson: _parseStringKey)
   String? get questionType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'description')
+  @JsonKey(name: 'description', fromJson: _parseStringKey)
   String? get description => throw _privateConstructorUsedError;
-  @JsonKey(name: 'ansTime')
+  @JsonKey(name: 'ansTime', fromJson: _parseStringKey)
   String? get ansTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'teafNam')
+  @JsonKey(name: 'teafNam', fromJson: _parseStringKey)
   String? get teafNam => throw _privateConstructorUsedError;
-  @JsonKey(name: 'teafEnam')
+  @JsonKey(name: 'teafEnam', fromJson: _parseStringKey)
   String? get teafEnam => throw _privateConstructorUsedError;
-  @JsonKey(name: 'imgPath')
+  @JsonKey(name: 'imgPath', fromJson: _parseStringKey)
   String? get imgPath => throw _privateConstructorUsedError;
-  @JsonKey(name: 'stdAnswer')
+  @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey)
   String? get stdAnswer => throw _privateConstructorUsedError;
-  @JsonKey(name: 'myAnswer')
+  @JsonKey(name: 'myAnswer', fromJson: _parseStringKey)
   String? get myAnswer => throw _privateConstructorUsedError;
-  @JsonKey(name: 'correct')
+  @JsonKey(name: 'correct', fromJson: _parseBoolKey)
   bool? get correct => throw _privateConstructorUsedError;
-  @JsonKey(name: 'hideAns')
+  @JsonKey(name: 'hideAns', fromJson: _parseBoolKey)
   bool? get hideAns => throw _privateConstructorUsedError;
-  @JsonKey(name: 'scoreDesc')
+  @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey)
   String? get scoreDesc => throw _privateConstructorUsedError;
-  @JsonKey(name: 'optionList')
+  @JsonKey(name: 'optionList', fromJson: _parseSubOptionList)
   List<IrsSubOption>? get optionList =>
       throw _privateConstructorUsedError; // 提問記錄 (askList) 欄位
-  @JsonKey(name: 'pid')
+  @JsonKey(name: 'pid', fromJson: _parseStringKey)
   String? get pid => throw _privateConstructorUsedError;
-  @JsonKey(name: 'askTime')
+  @JsonKey(name: 'askTime', fromJson: _parseStringKey)
   String? get askTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'askDesc')
+  @JsonKey(name: 'askDesc', fromJson: _parseStringKey)
   String? get askDesc => throw _privateConstructorUsedError;
-  @JsonKey(name: 'replyContent')
+  @JsonKey(name: 'replyContent', fromJson: _parseStringKey)
   String? get replyContent => throw _privateConstructorUsedError;
-  @JsonKey(name: 'replied')
+  @JsonKey(name: 'replied', fromJson: _parseBoolKey)
   bool? get replied => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -2616,28 +2618,34 @@ abstract class $IrsAnswerRecordCopyWith<$Res> {
       _$IrsAnswerRecordCopyWithImpl<$Res, IrsAnswerRecord>;
   @useResult
   $Res call(
-      {int myScore,
-      int totalScore,
-      @JsonKey(name: 'questionId') String? questionId,
-      @JsonKey(name: 'cono') String? cono,
-      @JsonKey(name: 'courseName') String? courseName,
-      @JsonKey(name: 'questionType') String? questionType,
-      @JsonKey(name: 'description') String? description,
-      @JsonKey(name: 'ansTime') String? ansTime,
-      @JsonKey(name: 'teafNam') String? teafNam,
-      @JsonKey(name: 'teafEnam') String? teafEnam,
-      @JsonKey(name: 'imgPath') String? imgPath,
-      @JsonKey(name: 'stdAnswer') String? stdAnswer,
-      @JsonKey(name: 'myAnswer') String? myAnswer,
-      @JsonKey(name: 'correct') bool? correct,
-      @JsonKey(name: 'hideAns') bool? hideAns,
-      @JsonKey(name: 'scoreDesc') String? scoreDesc,
-      @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
-      @JsonKey(name: 'pid') String? pid,
-      @JsonKey(name: 'askTime') String? askTime,
-      @JsonKey(name: 'askDesc') String? askDesc,
-      @JsonKey(name: 'replyContent') String? replyContent,
-      @JsonKey(name: 'replied') bool? replied});
+      {@JsonKey(name: 'myScore', fromJson: _parseIntKey) int myScore,
+      @JsonKey(name: 'totalScore', fromJson: _parseIntKey) int totalScore,
+      @JsonKey(name: 'questionId', fromJson: _parseStringKey)
+      String? questionId,
+      @JsonKey(name: 'cono', fromJson: _parseStringKey) String? cono,
+      @JsonKey(name: 'courseName', fromJson: _parseStringKey)
+      String? courseName,
+      @JsonKey(name: 'questionType', fromJson: _parseStringKey)
+      String? questionType,
+      @JsonKey(name: 'description', fromJson: _parseStringKey)
+      String? description,
+      @JsonKey(name: 'ansTime', fromJson: _parseStringKey) String? ansTime,
+      @JsonKey(name: 'teafNam', fromJson: _parseStringKey) String? teafNam,
+      @JsonKey(name: 'teafEnam', fromJson: _parseStringKey) String? teafEnam,
+      @JsonKey(name: 'imgPath', fromJson: _parseStringKey) String? imgPath,
+      @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey) String? stdAnswer,
+      @JsonKey(name: 'myAnswer', fromJson: _parseStringKey) String? myAnswer,
+      @JsonKey(name: 'correct', fromJson: _parseBoolKey) bool? correct,
+      @JsonKey(name: 'hideAns', fromJson: _parseBoolKey) bool? hideAns,
+      @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey) String? scoreDesc,
+      @JsonKey(name: 'optionList', fromJson: _parseSubOptionList)
+      List<IrsSubOption>? optionList,
+      @JsonKey(name: 'pid', fromJson: _parseStringKey) String? pid,
+      @JsonKey(name: 'askTime', fromJson: _parseStringKey) String? askTime,
+      @JsonKey(name: 'askDesc', fromJson: _parseStringKey) String? askDesc,
+      @JsonKey(name: 'replyContent', fromJson: _parseStringKey)
+      String? replyContent,
+      @JsonKey(name: 'replied', fromJson: _parseBoolKey) bool? replied});
 }
 
 /// @nodoc
@@ -2778,28 +2786,34 @@ abstract class _$$IrsAnswerRecordImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int myScore,
-      int totalScore,
-      @JsonKey(name: 'questionId') String? questionId,
-      @JsonKey(name: 'cono') String? cono,
-      @JsonKey(name: 'courseName') String? courseName,
-      @JsonKey(name: 'questionType') String? questionType,
-      @JsonKey(name: 'description') String? description,
-      @JsonKey(name: 'ansTime') String? ansTime,
-      @JsonKey(name: 'teafNam') String? teafNam,
-      @JsonKey(name: 'teafEnam') String? teafEnam,
-      @JsonKey(name: 'imgPath') String? imgPath,
-      @JsonKey(name: 'stdAnswer') String? stdAnswer,
-      @JsonKey(name: 'myAnswer') String? myAnswer,
-      @JsonKey(name: 'correct') bool? correct,
-      @JsonKey(name: 'hideAns') bool? hideAns,
-      @JsonKey(name: 'scoreDesc') String? scoreDesc,
-      @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
-      @JsonKey(name: 'pid') String? pid,
-      @JsonKey(name: 'askTime') String? askTime,
-      @JsonKey(name: 'askDesc') String? askDesc,
-      @JsonKey(name: 'replyContent') String? replyContent,
-      @JsonKey(name: 'replied') bool? replied});
+      {@JsonKey(name: 'myScore', fromJson: _parseIntKey) int myScore,
+      @JsonKey(name: 'totalScore', fromJson: _parseIntKey) int totalScore,
+      @JsonKey(name: 'questionId', fromJson: _parseStringKey)
+      String? questionId,
+      @JsonKey(name: 'cono', fromJson: _parseStringKey) String? cono,
+      @JsonKey(name: 'courseName', fromJson: _parseStringKey)
+      String? courseName,
+      @JsonKey(name: 'questionType', fromJson: _parseStringKey)
+      String? questionType,
+      @JsonKey(name: 'description', fromJson: _parseStringKey)
+      String? description,
+      @JsonKey(name: 'ansTime', fromJson: _parseStringKey) String? ansTime,
+      @JsonKey(name: 'teafNam', fromJson: _parseStringKey) String? teafNam,
+      @JsonKey(name: 'teafEnam', fromJson: _parseStringKey) String? teafEnam,
+      @JsonKey(name: 'imgPath', fromJson: _parseStringKey) String? imgPath,
+      @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey) String? stdAnswer,
+      @JsonKey(name: 'myAnswer', fromJson: _parseStringKey) String? myAnswer,
+      @JsonKey(name: 'correct', fromJson: _parseBoolKey) bool? correct,
+      @JsonKey(name: 'hideAns', fromJson: _parseBoolKey) bool? hideAns,
+      @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey) String? scoreDesc,
+      @JsonKey(name: 'optionList', fromJson: _parseSubOptionList)
+      List<IrsSubOption>? optionList,
+      @JsonKey(name: 'pid', fromJson: _parseStringKey) String? pid,
+      @JsonKey(name: 'askTime', fromJson: _parseStringKey) String? askTime,
+      @JsonKey(name: 'askDesc', fromJson: _parseStringKey) String? askDesc,
+      @JsonKey(name: 'replyContent', fromJson: _parseStringKey)
+      String? replyContent,
+      @JsonKey(name: 'replied', fromJson: _parseBoolKey) bool? replied});
 }
 
 /// @nodoc
@@ -2933,28 +2947,31 @@ class __$$IrsAnswerRecordImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$IrsAnswerRecordImpl extends _IrsAnswerRecord {
   const _$IrsAnswerRecordImpl(
-      {this.myScore = 0,
-      this.totalScore = 0,
-      @JsonKey(name: 'questionId') this.questionId,
-      @JsonKey(name: 'cono') this.cono,
-      @JsonKey(name: 'courseName') this.courseName,
-      @JsonKey(name: 'questionType') this.questionType,
-      @JsonKey(name: 'description') this.description,
-      @JsonKey(name: 'ansTime') this.ansTime,
-      @JsonKey(name: 'teafNam') this.teafNam,
-      @JsonKey(name: 'teafEnam') this.teafEnam,
-      @JsonKey(name: 'imgPath') this.imgPath,
-      @JsonKey(name: 'stdAnswer') this.stdAnswer,
-      @JsonKey(name: 'myAnswer') this.myAnswer,
-      @JsonKey(name: 'correct') this.correct,
-      @JsonKey(name: 'hideAns') this.hideAns,
-      @JsonKey(name: 'scoreDesc') this.scoreDesc,
-      @JsonKey(name: 'optionList') final List<IrsSubOption>? optionList,
-      @JsonKey(name: 'pid') this.pid,
-      @JsonKey(name: 'askTime') this.askTime,
-      @JsonKey(name: 'askDesc') this.askDesc,
-      @JsonKey(name: 'replyContent') this.replyContent,
-      @JsonKey(name: 'replied') this.replied})
+      {@JsonKey(name: 'myScore', fromJson: _parseIntKey) this.myScore = 0,
+      @JsonKey(name: 'totalScore', fromJson: _parseIntKey) this.totalScore = 0,
+      @JsonKey(name: 'questionId', fromJson: _parseStringKey) this.questionId,
+      @JsonKey(name: 'cono', fromJson: _parseStringKey) this.cono,
+      @JsonKey(name: 'courseName', fromJson: _parseStringKey) this.courseName,
+      @JsonKey(name: 'questionType', fromJson: _parseStringKey)
+      this.questionType,
+      @JsonKey(name: 'description', fromJson: _parseStringKey) this.description,
+      @JsonKey(name: 'ansTime', fromJson: _parseStringKey) this.ansTime,
+      @JsonKey(name: 'teafNam', fromJson: _parseStringKey) this.teafNam,
+      @JsonKey(name: 'teafEnam', fromJson: _parseStringKey) this.teafEnam,
+      @JsonKey(name: 'imgPath', fromJson: _parseStringKey) this.imgPath,
+      @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey) this.stdAnswer,
+      @JsonKey(name: 'myAnswer', fromJson: _parseStringKey) this.myAnswer,
+      @JsonKey(name: 'correct', fromJson: _parseBoolKey) this.correct,
+      @JsonKey(name: 'hideAns', fromJson: _parseBoolKey) this.hideAns,
+      @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey) this.scoreDesc,
+      @JsonKey(name: 'optionList', fromJson: _parseSubOptionList)
+      final List<IrsSubOption>? optionList,
+      @JsonKey(name: 'pid', fromJson: _parseStringKey) this.pid,
+      @JsonKey(name: 'askTime', fromJson: _parseStringKey) this.askTime,
+      @JsonKey(name: 'askDesc', fromJson: _parseStringKey) this.askDesc,
+      @JsonKey(name: 'replyContent', fromJson: _parseStringKey)
+      this.replyContent,
+      @JsonKey(name: 'replied', fromJson: _parseBoolKey) this.replied})
       : _optionList = optionList,
         super._();
 
@@ -2962,56 +2979,56 @@ class _$IrsAnswerRecordImpl extends _IrsAnswerRecord {
       _$$IrsAnswerRecordImplFromJson(json);
 
   @override
-  @JsonKey()
+  @JsonKey(name: 'myScore', fromJson: _parseIntKey)
   final int myScore;
   @override
-  @JsonKey()
+  @JsonKey(name: 'totalScore', fromJson: _parseIntKey)
   final int totalScore;
   @override
-  @JsonKey(name: 'questionId')
+  @JsonKey(name: 'questionId', fromJson: _parseStringKey)
   final String? questionId;
   @override
-  @JsonKey(name: 'cono')
+  @JsonKey(name: 'cono', fromJson: _parseStringKey)
   final String? cono;
   @override
-  @JsonKey(name: 'courseName')
+  @JsonKey(name: 'courseName', fromJson: _parseStringKey)
   final String? courseName;
   @override
-  @JsonKey(name: 'questionType')
+  @JsonKey(name: 'questionType', fromJson: _parseStringKey)
   final String? questionType;
   @override
-  @JsonKey(name: 'description')
+  @JsonKey(name: 'description', fromJson: _parseStringKey)
   final String? description;
   @override
-  @JsonKey(name: 'ansTime')
+  @JsonKey(name: 'ansTime', fromJson: _parseStringKey)
   final String? ansTime;
   @override
-  @JsonKey(name: 'teafNam')
+  @JsonKey(name: 'teafNam', fromJson: _parseStringKey)
   final String? teafNam;
   @override
-  @JsonKey(name: 'teafEnam')
+  @JsonKey(name: 'teafEnam', fromJson: _parseStringKey)
   final String? teafEnam;
   @override
-  @JsonKey(name: 'imgPath')
+  @JsonKey(name: 'imgPath', fromJson: _parseStringKey)
   final String? imgPath;
   @override
-  @JsonKey(name: 'stdAnswer')
+  @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey)
   final String? stdAnswer;
   @override
-  @JsonKey(name: 'myAnswer')
+  @JsonKey(name: 'myAnswer', fromJson: _parseStringKey)
   final String? myAnswer;
   @override
-  @JsonKey(name: 'correct')
+  @JsonKey(name: 'correct', fromJson: _parseBoolKey)
   final bool? correct;
   @override
-  @JsonKey(name: 'hideAns')
+  @JsonKey(name: 'hideAns', fromJson: _parseBoolKey)
   final bool? hideAns;
   @override
-  @JsonKey(name: 'scoreDesc')
+  @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey)
   final String? scoreDesc;
   final List<IrsSubOption>? _optionList;
   @override
-  @JsonKey(name: 'optionList')
+  @JsonKey(name: 'optionList', fromJson: _parseSubOptionList)
   List<IrsSubOption>? get optionList {
     final value = _optionList;
     if (value == null) return null;
@@ -3022,19 +3039,19 @@ class _$IrsAnswerRecordImpl extends _IrsAnswerRecord {
 
 // 提問記錄 (askList) 欄位
   @override
-  @JsonKey(name: 'pid')
+  @JsonKey(name: 'pid', fromJson: _parseStringKey)
   final String? pid;
   @override
-  @JsonKey(name: 'askTime')
+  @JsonKey(name: 'askTime', fromJson: _parseStringKey)
   final String? askTime;
   @override
-  @JsonKey(name: 'askDesc')
+  @JsonKey(name: 'askDesc', fromJson: _parseStringKey)
   final String? askDesc;
   @override
-  @JsonKey(name: 'replyContent')
+  @JsonKey(name: 'replyContent', fromJson: _parseStringKey)
   final String? replyContent;
   @override
-  @JsonKey(name: 'replied')
+  @JsonKey(name: 'replied', fromJson: _parseBoolKey)
   final bool? replied;
 
   @override
@@ -3127,96 +3144,114 @@ class _$IrsAnswerRecordImpl extends _IrsAnswerRecord {
 
 abstract class _IrsAnswerRecord extends IrsAnswerRecord {
   const factory _IrsAnswerRecord(
-      {final int myScore,
-      final int totalScore,
-      @JsonKey(name: 'questionId') final String? questionId,
-      @JsonKey(name: 'cono') final String? cono,
-      @JsonKey(name: 'courseName') final String? courseName,
-      @JsonKey(name: 'questionType') final String? questionType,
-      @JsonKey(name: 'description') final String? description,
-      @JsonKey(name: 'ansTime') final String? ansTime,
-      @JsonKey(name: 'teafNam') final String? teafNam,
-      @JsonKey(name: 'teafEnam') final String? teafEnam,
-      @JsonKey(name: 'imgPath') final String? imgPath,
-      @JsonKey(name: 'stdAnswer') final String? stdAnswer,
-      @JsonKey(name: 'myAnswer') final String? myAnswer,
-      @JsonKey(name: 'correct') final bool? correct,
-      @JsonKey(name: 'hideAns') final bool? hideAns,
-      @JsonKey(name: 'scoreDesc') final String? scoreDesc,
-      @JsonKey(name: 'optionList') final List<IrsSubOption>? optionList,
-      @JsonKey(name: 'pid') final String? pid,
-      @JsonKey(name: 'askTime') final String? askTime,
-      @JsonKey(name: 'askDesc') final String? askDesc,
-      @JsonKey(name: 'replyContent') final String? replyContent,
-      @JsonKey(name: 'replied') final bool? replied}) = _$IrsAnswerRecordImpl;
+      {@JsonKey(name: 'myScore', fromJson: _parseIntKey) final int myScore,
+      @JsonKey(name: 'totalScore', fromJson: _parseIntKey) final int totalScore,
+      @JsonKey(name: 'questionId', fromJson: _parseStringKey)
+      final String? questionId,
+      @JsonKey(name: 'cono', fromJson: _parseStringKey) final String? cono,
+      @JsonKey(name: 'courseName', fromJson: _parseStringKey)
+      final String? courseName,
+      @JsonKey(name: 'questionType', fromJson: _parseStringKey)
+      final String? questionType,
+      @JsonKey(name: 'description', fromJson: _parseStringKey)
+      final String? description,
+      @JsonKey(name: 'ansTime', fromJson: _parseStringKey)
+      final String? ansTime,
+      @JsonKey(name: 'teafNam', fromJson: _parseStringKey)
+      final String? teafNam,
+      @JsonKey(name: 'teafEnam', fromJson: _parseStringKey)
+      final String? teafEnam,
+      @JsonKey(name: 'imgPath', fromJson: _parseStringKey)
+      final String? imgPath,
+      @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey)
+      final String? stdAnswer,
+      @JsonKey(name: 'myAnswer', fromJson: _parseStringKey)
+      final String? myAnswer,
+      @JsonKey(name: 'correct', fromJson: _parseBoolKey) final bool? correct,
+      @JsonKey(name: 'hideAns', fromJson: _parseBoolKey) final bool? hideAns,
+      @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey)
+      final String? scoreDesc,
+      @JsonKey(name: 'optionList', fromJson: _parseSubOptionList)
+      final List<IrsSubOption>? optionList,
+      @JsonKey(name: 'pid', fromJson: _parseStringKey) final String? pid,
+      @JsonKey(name: 'askTime', fromJson: _parseStringKey)
+      final String? askTime,
+      @JsonKey(name: 'askDesc', fromJson: _parseStringKey)
+      final String? askDesc,
+      @JsonKey(name: 'replyContent', fromJson: _parseStringKey)
+      final String? replyContent,
+      @JsonKey(name: 'replied', fromJson: _parseBoolKey)
+      final bool? replied}) = _$IrsAnswerRecordImpl;
   const _IrsAnswerRecord._() : super._();
 
   factory _IrsAnswerRecord.fromJson(Map<String, dynamic> json) =
       _$IrsAnswerRecordImpl.fromJson;
 
   @override
+  @JsonKey(name: 'myScore', fromJson: _parseIntKey)
   int get myScore;
   @override
+  @JsonKey(name: 'totalScore', fromJson: _parseIntKey)
   int get totalScore;
   @override
-  @JsonKey(name: 'questionId')
+  @JsonKey(name: 'questionId', fromJson: _parseStringKey)
   String? get questionId;
   @override
-  @JsonKey(name: 'cono')
+  @JsonKey(name: 'cono', fromJson: _parseStringKey)
   String? get cono;
   @override
-  @JsonKey(name: 'courseName')
+  @JsonKey(name: 'courseName', fromJson: _parseStringKey)
   String? get courseName;
   @override
-  @JsonKey(name: 'questionType')
+  @JsonKey(name: 'questionType', fromJson: _parseStringKey)
   String? get questionType;
   @override
-  @JsonKey(name: 'description')
+  @JsonKey(name: 'description', fromJson: _parseStringKey)
   String? get description;
   @override
-  @JsonKey(name: 'ansTime')
+  @JsonKey(name: 'ansTime', fromJson: _parseStringKey)
   String? get ansTime;
   @override
-  @JsonKey(name: 'teafNam')
+  @JsonKey(name: 'teafNam', fromJson: _parseStringKey)
   String? get teafNam;
   @override
-  @JsonKey(name: 'teafEnam')
+  @JsonKey(name: 'teafEnam', fromJson: _parseStringKey)
   String? get teafEnam;
   @override
-  @JsonKey(name: 'imgPath')
+  @JsonKey(name: 'imgPath', fromJson: _parseStringKey)
   String? get imgPath;
   @override
-  @JsonKey(name: 'stdAnswer')
+  @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey)
   String? get stdAnswer;
   @override
-  @JsonKey(name: 'myAnswer')
+  @JsonKey(name: 'myAnswer', fromJson: _parseStringKey)
   String? get myAnswer;
   @override
-  @JsonKey(name: 'correct')
+  @JsonKey(name: 'correct', fromJson: _parseBoolKey)
   bool? get correct;
   @override
-  @JsonKey(name: 'hideAns')
+  @JsonKey(name: 'hideAns', fromJson: _parseBoolKey)
   bool? get hideAns;
   @override
-  @JsonKey(name: 'scoreDesc')
+  @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey)
   String? get scoreDesc;
   @override
-  @JsonKey(name: 'optionList')
+  @JsonKey(name: 'optionList', fromJson: _parseSubOptionList)
   List<IrsSubOption>? get optionList;
   @override // 提問記錄 (askList) 欄位
-  @JsonKey(name: 'pid')
+  @JsonKey(name: 'pid', fromJson: _parseStringKey)
   String? get pid;
   @override
-  @JsonKey(name: 'askTime')
+  @JsonKey(name: 'askTime', fromJson: _parseStringKey)
   String? get askTime;
   @override
-  @JsonKey(name: 'askDesc')
+  @JsonKey(name: 'askDesc', fromJson: _parseStringKey)
   String? get askDesc;
   @override
-  @JsonKey(name: 'replyContent')
+  @JsonKey(name: 'replyContent', fromJson: _parseStringKey)
   String? get replyContent;
   @override
-  @JsonKey(name: 'replied')
+  @JsonKey(name: 'replied', fromJson: _parseBoolKey)
   bool? get replied;
   @override
   @JsonKey(ignore: true)

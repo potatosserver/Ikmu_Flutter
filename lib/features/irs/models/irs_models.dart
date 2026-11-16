@@ -10,30 +10,29 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'irs_models.freezed.dart';
 part 'irs_models.g.dart';
 
-int _parseInt(Object? value, [int fallback = 0]) {
+// ===========================================
+// 工具函數：對齊 Java JSONObject.getString() 行為
+// 將任何型別 (int, bool, String, null) 安全轉為 String
+// ===========================================
+String? _asString(Object? value) {
+  if (value == null) return null;
+  return value.toString().trim();
+}
+
+int _asInt(Object? value, [int fallback = 0]) {
   if (value == null) return fallback;
   if (value is int) return value;
   if (value is num) return value.toInt();
   return int.tryParse(value.toString().trim()) ?? fallback;
 }
 
-bool _parseBool(Object? value, [bool fallback = false]) {
+bool _asBool(Object? value, [bool fallback = false]) {
   if (value == null) return fallback;
   if (value is bool) return value;
   final s = value.toString().trim().toLowerCase();
   if (s == 'true' || s == '1') return true;
   if (s == 'false' || s == '0') return false;
   return fallback;
-}
-
-bool? _parseNullableBool(Object? value) {
-  if (value == null) return null;
-  if (value is bool) return value;
-  final s = value.toString().trim().toLowerCase();
-  if (s.isEmpty) return null;
-  if (s == 'true' || s == '1') return true;
-  if (s == 'false' || s == '0') return false;
-  return null;
 }
 
 List<IrsSubOption>? _parseSubOptionList(Object? raw) {
@@ -57,26 +56,14 @@ List<IrsSubOption>? _parseSubOptionList(Object? raw) {
   return null;
 }
 
-List<IrsRealtimeOption> _parseRealtimeOptions(Object? raw) {
-  if (raw == null) return const [];
-  Object? decoded = raw;
-  if (raw is String) {
-    final trimmed = raw.trim();
-    if (trimmed.isEmpty || trimmed == 'null') return const [];
-    try {
-      decoded = jsonDecode(trimmed);
-    } catch (_) {
-      return const [];
-    }
-  }
-  if (decoded is List) {
-    return decoded
-        .whereType<Map>()
-        .map((e) => IrsRealtimeOption.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
-  }
-  return const [];
-}
+/// 自訂 JSON key 解析器：將任意值安全轉 String
+String? _parseStringKey(Object? value) => _asString(value);
+
+/// 自訂 JSON key 解析器：將任意值安全轉 int
+int _parseIntKey(Object? value) => _asInt(value);
+
+/// 自訂 JSON key 解析器：將任意值安全轉 bool
+bool? _parseBoolKey(Object? value) => _asBool(value);
 
 /// IRS 問卷/答題活動
 @freezed
@@ -263,34 +250,35 @@ abstract class IrsStudentClass with _$IrsStudentClass {
 /// 學生作答/提問記錄
 /// 對齊 IRSRecordActivity.java parseList 與 IRSRecordListViewAdapter.java
 /// 14 欄位：qseq, ques, ans, correct, hideAns, ansUsrId, ansTime, isMulti, score, scoreType, qType, subquList, optionList, imgPath
+/// 關鍵：所有欄位在 Java 端均以 getString() 讀取，故這裡用自訂 parser 統一轉型
 @freezed
 abstract class IrsAnswerRecord with _$IrsAnswerRecord {
   const IrsAnswerRecord._();
 
   const factory IrsAnswerRecord({
-    @Default(0) int myScore,
-    @Default(0) int totalScore,
-    @JsonKey(name: 'questionId') String? questionId,
-    @JsonKey(name: 'cono') String? cono,
-    @JsonKey(name: 'courseName') String? courseName,
-    @JsonKey(name: 'questionType') String? questionType,
-    @JsonKey(name: 'description') String? description,
-    @JsonKey(name: 'ansTime') String? ansTime,
-    @JsonKey(name: 'teafNam') String? teafNam,
-    @JsonKey(name: 'teafEnam') String? teafEnam,
-    @JsonKey(name: 'imgPath') String? imgPath,
-    @JsonKey(name: 'stdAnswer') String? stdAnswer,
-    @JsonKey(name: 'myAnswer') String? myAnswer,
-    @JsonKey(name: 'correct') bool? correct,
-    @JsonKey(name: 'hideAns') bool? hideAns,
-    @JsonKey(name: 'scoreDesc') String? scoreDesc,
-    @JsonKey(name: 'optionList') List<IrsSubOption>? optionList,
+    @JsonKey(name: 'myScore', fromJson: _parseIntKey) @Default(0) int myScore,
+    @JsonKey(name: 'totalScore', fromJson: _parseIntKey) @Default(0) int totalScore,
+    @JsonKey(name: 'questionId', fromJson: _parseStringKey) String? questionId,
+    @JsonKey(name: 'cono', fromJson: _parseStringKey) String? cono,
+    @JsonKey(name: 'courseName', fromJson: _parseStringKey) String? courseName,
+    @JsonKey(name: 'questionType', fromJson: _parseStringKey) String? questionType,
+    @JsonKey(name: 'description', fromJson: _parseStringKey) String? description,
+    @JsonKey(name: 'ansTime', fromJson: _parseStringKey) String? ansTime,
+    @JsonKey(name: 'teafNam', fromJson: _parseStringKey) String? teafNam,
+    @JsonKey(name: 'teafEnam', fromJson: _parseStringKey) String? teafEnam,
+    @JsonKey(name: 'imgPath', fromJson: _parseStringKey) String? imgPath,
+    @JsonKey(name: 'stdAnswer', fromJson: _parseStringKey) String? stdAnswer,
+    @JsonKey(name: 'myAnswer', fromJson: _parseStringKey) String? myAnswer,
+    @JsonKey(name: 'correct', fromJson: _parseBoolKey) bool? correct,
+    @JsonKey(name: 'hideAns', fromJson: _parseBoolKey) bool? hideAns,
+    @JsonKey(name: 'scoreDesc', fromJson: _parseStringKey) String? scoreDesc,
+    @JsonKey(name: 'optionList', fromJson: _parseSubOptionList) List<IrsSubOption>? optionList,
     // 提問記錄 (askList) 欄位
-    @JsonKey(name: 'pid') String? pid,
-    @JsonKey(name: 'askTime') String? askTime,
-    @JsonKey(name: 'askDesc') String? askDesc,
-    @JsonKey(name: 'replyContent') String? replyContent,
-    @JsonKey(name: 'replied') bool? replied,
+    @JsonKey(name: 'pid', fromJson: _parseStringKey) String? pid,
+    @JsonKey(name: 'askTime', fromJson: _parseStringKey) String? askTime,
+    @JsonKey(name: 'askDesc', fromJson: _parseStringKey) String? askDesc,
+    @JsonKey(name: 'replyContent', fromJson: _parseStringKey) String? replyContent,
+    @JsonKey(name: 'replied', fromJson: _parseBoolKey) bool? replied,
   }) = _IrsAnswerRecord;
 
   factory IrsAnswerRecord.fromJson(Map<String, dynamic> json) =>
